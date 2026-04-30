@@ -49,6 +49,44 @@ const { listItemProps, listItemClasses } = useListItem(props);
   padding: 7px !important;
   padding-right: 0 !important;
   margin-right: -18px !important;
+  /* Brand polish: smooth wash + stripe transitions */
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+  letter-spacing: 0.005em;
+}
+
+/* Teal hover wash (brand: #2dd4bf) */
+.list-item-main:hover {
+  background-color: rgba(45, 212, 191, 0.08);
+}
+
+/* Active row left-edge stripe in brand teal */
+.list-item-main.v-list-item--active,
+.list-item-main:global(.v-list-item--active) {
+  box-shadow: inset 3px 0 0 #2dd4bf;
+}
+
+/* Keyboard focus ring (focus-visible only — no mouse rings) */
+.list-item-main:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 3px 0 0 #2dd4bf,
+    0 0 0 2px rgba(45, 212, 191, 0.55);
+}
+
+/* Touch devices: suppress hover wash so tap doesn't leave a stuck tint */
+@media (hover: none) {
+  .list-item-main:hover {
+    background-color: transparent;
+  }
+}
+
+/* On-brand styling for any inline badge/chip indicators */
+.list-item-main :deep(.v-chip),
+.list-item-main :deep(.v-badge__badge) {
+  letter-spacing: 0.02em;
+  font-weight: 500;
 }
 
 .list-item-main :deep(.v-list-item__append) {

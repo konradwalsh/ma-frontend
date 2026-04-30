@@ -6,8 +6,10 @@
 <template>
   <Sheet v-model:open="show">
     <SheetContent side="bottom" class="h-[85vh] flex flex-col p-0">
-      <SheetHeader class="flex-row items-center gap-3 border-b px-4 py-3">
-        <ListPlus class="size-5 shrink-0 opacity-80" />
+      <SheetHeader
+        class="dialog-header flex-row items-center gap-3 border-b px-4 py-3"
+      >
+        <ListPlus class="size-5 shrink-0 text-[#2dd4bf]" />
         <SheetTitle>{{ $t("add_playlist") }}</SheetTitle>
       </SheetHeader>
       <SheetDescription class="sr-only">
@@ -20,7 +22,7 @@
             v-for="playlist of playlists"
             :key="playlist.item_id"
             type="button"
-            class="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-accent"
+            class="playlist-row flex w-full items-center gap-3 px-4 py-2.5 text-left"
             @click="addToPlaylist(playlist)"
           >
             <div class="shrink-0">
@@ -49,7 +51,7 @@
           <button
             v-for="providerId of createPlaylistProviders"
             :key="providerId"
-            class="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-accent"
+            class="create-playlist-row flex w-full items-center gap-3 px-4 py-2.5 text-left"
             @click="newPlaylist(providerId)"
           >
             <div class="shrink-0">
@@ -297,3 +299,75 @@ const close = function () {
   show.value = false;
 };
 </script>
+
+<style scoped>
+/* Teal underline accent below dialog header */
+.dialog-header {
+  position: relative;
+}
+.dialog-header::after {
+  content: "";
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(45, 212, 191, 0.6),
+    rgba(45, 212, 191, 0)
+  );
+  pointer-events: none;
+}
+
+/* Playlist row: teal wash on hover + active left-edge stripe */
+.playlist-row {
+  transition:
+    background-color 180ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 180ms cubic-bezier(0.34, 1.36, 0.64, 1);
+  box-shadow: inset 0 0 0 0 #2dd4bf;
+}
+
+@media (hover: hover) {
+  .playlist-row:hover {
+    background-color: rgba(45, 212, 191, 0.08);
+    box-shadow: inset 3px 0 0 #2dd4bf;
+  }
+}
+
+.playlist-row:focus-visible {
+  outline: none;
+  background-color: rgba(45, 212, 191, 0.1);
+  box-shadow:
+    inset 3px 0 0 #2dd4bf,
+    0 0 0 2px rgba(45, 212, 191, 0.4);
+}
+
+.playlist-row:active {
+  background-color: rgba(45, 212, 191, 0.14);
+}
+
+/* Create-new-playlist CTA: teal-leaning primary affordance */
+.create-playlist-row {
+  transition:
+    background-color 180ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 180ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    color 180ms cubic-bezier(0.34, 1.36, 0.64, 1);
+  border-left: 2px solid rgba(45, 212, 191, 0.35);
+}
+
+@media (hover: hover) {
+  .create-playlist-row:hover {
+    background-color: rgba(45, 212, 191, 0.1);
+    border-left-color: #2dd4bf;
+    color: #2dd4bf;
+  }
+}
+
+.create-playlist-row:focus-visible {
+  outline: none;
+  background-color: rgba(45, 212, 191, 0.12);
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.45);
+  border-left-color: #2dd4bf;
+}
+</style>

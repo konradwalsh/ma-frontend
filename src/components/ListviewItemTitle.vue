@@ -78,6 +78,18 @@ withDefaults(defineProps<Props>(), {
   margin-left: 23px;
 }
 
+/* Brand polish: tighten title typography for crisper list rows */
+.v-list-item-title {
+  letter-spacing: 0.01em;
+  transition: color 160ms ease;
+}
+
+/* "Now playing" — teal-tint the title to align with the brand accent (#2dd4bf) */
+.is-playing {
+  color: #2dd4bf;
+  font-weight: 500;
+}
+
 /* When checkbox is displayed, explicit icon will be shown to the right of the title.
    This adds a bit of spacing between the title and the explicit icon. */
 .explicit-icon-margin-left {

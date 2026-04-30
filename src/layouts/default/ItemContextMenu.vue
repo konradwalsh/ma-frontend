@@ -1209,7 +1209,7 @@ const radioModeSupported = function (item: MediaItemTypeOrItemMapping) {
 
 <style scoped>
 .menurow :deep(.v-list-item__prepend) {
-  width: 45px;
+  width: 42px;
   margin-left: -5px;
 }
 
@@ -1228,8 +1228,69 @@ const radioModeSupported = function (item: MediaItemTypeOrItemMapping) {
   padding: 0;
 }
 
+/* Teal-tinted menu container: subtle brand border + slight elevation lift */
+.v-menu :deep(> .v-overlay__content > .v-card) {
+  border: 1px solid rgba(45, 212, 191, 0.15);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.28),
+    0 2px 6px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(45, 212, 191, 0.04) !important;
+}
+
+/* Teal hover wash on each menu item (suppress on touch — no hover state) */
+@media (hover: hover) {
+  .menurow :deep(.v-list-item:hover) {
+    background-color: rgba(45, 212, 191, 0.08);
+    transition:
+      background-color 160ms cubic-bezier(0.34, 1.36, 0.64, 1),
+      color 160ms cubic-bezier(0.34, 1.36, 0.64, 1);
+  }
+}
+
+/* Keyboard navigation: teal-tinted bg + teal text on focused/highlighted item */
+.menurow :deep(.v-list-item:focus-visible),
+.menurow :deep(.v-list-item--active),
+.menurow :deep(.v-list-item.v-list-item--variant-text:focus-visible) {
+  background-color: rgba(45, 212, 191, 0.12);
+  color: #2dd4bf;
+  outline: none;
+}
+
+.menurow :deep(.v-list-item:focus-visible)::before {
+  opacity: 0;
+}
+
+.menurow :deep(.v-list-item:focus-visible) {
+  box-shadow: inset 0 0 0 2px rgba(45, 212, 191, 0.55);
+  border-radius: 6px;
+}
+
+/* Tighten icon-to-label gap so dense menus feel intentional, not cramped */
+.menurow :deep(.v-list-item-title) {
+  letter-spacing: 0.01em;
+  font-weight: 500;
+}
+
+/* Section divider: teal-tinted hairline */
+.v-menu :deep(.v-divider) {
+  border-color: rgba(45, 212, 191, 0.18) !important;
+  opacity: 1;
+}
+
+/* Destructive items: teal-leaning red (warm coral that respects brand palette) */
 .menu-item-error :deep(.v-list-item-title),
 .menu-item-error :deep(.v-icon) {
   color: rgb(var(--v-theme-error)) !important;
+}
+
+@media (hover: hover) {
+  .menu-item-error:hover :deep(.v-list-item) {
+    background-color: rgba(244, 114, 114, 0.1);
+  }
+}
+
+.menu-item-error :deep(.v-list-item:focus-visible) {
+  background-color: rgba(244, 114, 114, 0.14);
+  box-shadow: inset 0 0 0 2px rgba(244, 114, 114, 0.5);
 }
 </style>

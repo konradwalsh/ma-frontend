@@ -16,8 +16,65 @@ const props = defineProps<Props>();
     variant="icon"
     :icon="item?.favorite ? 'mdi-heart' : 'mdi-heart-outline'"
     :title="$t('tooltip.favorite')"
+    :class="['favorite-btn', { 'favorite-btn--active': item?.favorite }]"
     @click="api.toggleFavorite(item)"
     @click.prevent
     @click.stop
   />
 </template>
+
+<style scoped>
+.favorite-btn :deep(.v-icon) {
+  transition:
+    transform 320ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    color 200ms ease,
+    filter 200ms ease;
+}
+
+.favorite-btn--active :deep(.v-icon) {
+  color: rgb(45, 212, 191);
+  animation: favorite-pop 360ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.favorite-btn:hover :deep(.v-icon) {
+  color: rgb(45, 212, 191);
+  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.55));
+  transform: scale(1.08);
+}
+
+.favorite-btn:focus-visible {
+  outline: 2px solid rgb(45, 212, 191);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+@keyframes favorite-pop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (hover: none) {
+  .favorite-btn:hover :deep(.v-icon) {
+    transform: none;
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .favorite-btn :deep(.v-icon),
+  .favorite-btn--active :deep(.v-icon),
+  .favorite-btn:hover :deep(.v-icon) {
+    transition: none;
+    animation: none;
+    transform: none;
+    filter: none;
+  }
+}
+</style>

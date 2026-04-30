@@ -24,33 +24,37 @@
       </template>
     </v-toolbar>
 
-    <swiper
-      :slides-per-view="'auto'"
-      :space-between="15"
-      :free-mode="true"
-      :navigation="false"
-      :mousewheel="{
-        forceToAxis: true,
-        releaseOnEdges: true,
-      }"
-    >
-      <swiper-slide
-        v-for="player in sortedPlayers"
-        :key="player.player_id"
-        style="width: 240px"
+    <div class="players-swiper-wrap">
+      <swiper
+        :slides-per-view="'auto'"
+        :space-between="15"
+        :free-mode="true"
+        :navigation="false"
+        :mousewheel="{
+          forceToAxis: true,
+          releaseOnEdges: true,
+        }"
       >
-        <PlayerCard
-          :id="player.player_id"
+        <swiper-slide
+          v-for="player in sortedPlayers"
           :key="player.player_id"
-          :player="player"
-          :show-volume-control="false"
-          :show-menu-button="false"
-          :show-sub-players="false"
-          :show-sync-controls="false"
-          @click="playerClicked(player)"
-        />
-      </swiper-slide>
-    </swiper>
+          style="width: 240px"
+        >
+          <div class="player-card-shell" tabindex="0">
+            <PlayerCard
+              :id="player.player_id"
+              :key="player.player_id"
+              :player="player"
+              :show-volume-control="false"
+              :show-menu-button="false"
+              :show-sub-players="false"
+              :show-sync-controls="false"
+              @click="playerClicked(player)"
+            />
+          </div>
+        </swiper-slide>
+      </swiper>
+    </div>
   </div>
 </template>
 
@@ -152,5 +156,67 @@ function playerSortScore(player: Player) {
 :deep(.swiper-slide) {
   width: auto;
   flex-shrink: 0;
+  scroll-snap-align: start;
+}
+
+/* Edge fade so cards softly trail off at both ends of the strip */
+.players-swiper-wrap {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 24px,
+    #000 calc(100% - 24px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 24px,
+    #000 calc(100% - 24px),
+    transparent 100%
+  );
+}
+
+.players-swiper-wrap :deep(.swiper) {
+  scroll-snap-type: x proximity;
+}
+
+/* Player-card hover halo + focus-visible ring (teal brand) */
+.player-card-shell {
+  position: relative;
+  border-radius: 12px;
+  outline: none;
+  transition:
+    transform 240ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 240ms ease;
+}
+
+.player-card-shell:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.4),
+    0 8px 28px rgba(45, 212, 191, 0.15);
+}
+
+.player-card-shell:focus-visible {
+  box-shadow:
+    0 0 0 2px rgba(45, 212, 191, 0.85),
+    0 8px 28px rgba(45, 212, 191, 0.2);
+}
+
+@media (hover: none) {
+  .player-card-shell:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .player-card-shell {
+    transition: none;
+  }
+  .player-card-shell:hover {
+    transform: none;
+  }
 }
 </style>

@@ -318,6 +318,34 @@ const onPlayClick = function (evt: PointerEvent) {
   padding: 10px;
   border: none;
   border-style: none !important;
+  /* Brand polish: overshoot easing for the lift, smooth halo for the glow */
+  transition:
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 220ms ease;
+}
+
+/* Teal halo + 1.02 lift on hover — brand accent #2dd4bf */
+.panel-item:hover {
+  transform: scale(1.02);
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.4),
+    0 8px 28px rgba(45, 212, 191, 0.15);
+}
+
+/* Keyboard focus ring on the card */
+.panel-item:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(45, 212, 191, 0.65),
+    0 8px 28px rgba(45, 212, 191, 0.18);
+}
+
+/* Touch devices: suppress hover lift/halo to avoid sticky states after tap */
+@media (hover: none) {
+  .panel-item:hover {
+    transform: none;
+    box-shadow: none;
+  }
 }
 
 .panel-item-checkbox {
@@ -348,8 +376,21 @@ panel-item-details :deep(.v-list-item__content) {
   height: 30px;
 }
 
+/*
+ * FIX: was `background-color: red;` — a pre-existing debug remnant that
+ * predated the streamloader fork (audit-flagged). Replaced with the brand
+ * teal hover wash so the active card reads as a polished selection state
+ * instead of a stop-sign block.
+ */
 .v-card--active {
-  background-color: red;
+  background-color: rgba(45, 212, 191, 0.08);
+}
+
+/* In-library / now-playing badge styling — keep consistent with siblings */
+.panel-item :deep(.v-chip),
+.panel-item :deep(.v-badge__badge) {
+  letter-spacing: 0.02em;
+  font-weight: 500;
 }
 
 .hiresicon {

@@ -31,9 +31,30 @@ const { buttonProps, buttonClasses } = useButton(props);
 </script>
 
 <style scoped>
+.button {
+  transition:
+    transform 200ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 200ms ease;
+}
+
 .button:focus-visible {
-  outline: 2px solid var(--v-theme-primary);
+  outline: 2px solid rgb(45, 212, 191);
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.25);
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+@media (hover: none) {
+  .button:hover:not(:disabled) {
+    transform: none;
+  }
 }
 
 @media (prefers-contrast: high) {
@@ -43,8 +64,11 @@ const { buttonProps, buttonClasses } = useButton(props);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .button {
+  .button,
+  .button:hover:not(:disabled),
+  .button:active:not(:disabled) {
     transition: none;
+    transform: none;
   }
 }
 
