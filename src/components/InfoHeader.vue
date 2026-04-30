@@ -104,7 +104,7 @@
             height="80"
             style="padding-left: 10px"
           />
-          <v-card-title v-else>
+          <v-card-title v-else tag="h1">
             <div class="sl-title-row">
               <!-- Streamloader-fork addition: pulsing teal LIVE indicator
                    for radio streams. Pure presentation dot — no data
@@ -113,9 +113,11 @@
                 v-if="item.media_type === MediaType.RADIO"
                 class="sl-live-indicator"
                 :title="$t('radio')"
+                role="img"
+                :aria-label="`${$t('radio')} — live`"
               >
-                <span class="sl-live-dot"></span>
-                <span class="sl-live-label">LIVE</span>
+                <span class="sl-live-dot" aria-hidden="true"></span>
+                <span class="sl-live-label" aria-hidden="true">LIVE</span>
               </span>
               <MarqueeText :sync="marqueeSync">
                 <div class="selectable">
@@ -418,7 +420,13 @@
                 :size="24"
                 class="cursor-pointer"
                 :title="$t('tooltip.favorite')"
+                role="button"
+                tabindex="0"
+                aria-pressed="true"
+                :aria-label="$t('tooltip.favorite')"
                 @click="api.toggleFavorite(item)"
+                @keydown.enter.prevent="api.toggleFavorite(item)"
+                @keydown.space.prevent="api.toggleFavorite(item)"
               />
               <IconHeart
                 v-else
@@ -426,7 +434,13 @@
                 :size="24"
                 class="cursor-pointer"
                 :title="$t('tooltip.favorite')"
+                role="button"
+                tabindex="0"
+                aria-pressed="false"
+                :aria-label="$t('tooltip.favorite')"
                 @click="api.toggleFavorite(item)"
+                @keydown.enter.prevent="api.toggleFavorite(item)"
+                @keydown.space.prevent="api.toggleFavorite(item)"
               />
               <!-- provider icon -->
               <provider-icon :domain="item.provider" :size="25" />
@@ -440,7 +454,12 @@
                 :size="22"
                 class="cursor-pointer -ml-1"
                 :title="$t('merge_into')"
+                role="button"
+                tabindex="0"
+                :aria-label="$t('merge_into')"
                 @click="mergeGenre"
+                @keydown.enter.prevent="mergeGenre"
+                @keydown.space.prevent="mergeGenre"
               />
               <!-- delete genre button (admin only) -->
               <Trash2
@@ -452,7 +471,12 @@
                 :size="22"
                 class="cursor-pointer ml-2"
                 :title="$t('delete_genre')"
+                role="button"
+                tabindex="0"
+                :aria-label="$t('delete_genre')"
                 @click="deleteGenre"
+                @keydown.enter.prevent="deleteGenre"
+                @keydown.space.prevent="deleteGenre"
               />
             </div>
           </div>

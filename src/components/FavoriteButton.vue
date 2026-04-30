@@ -16,7 +16,7 @@ const props = defineProps<Props>();
     variant="icon"
     :icon="item?.favorite ? 'mdi-heart' : 'mdi-heart-outline'"
     :title="$t('tooltip.favorite')"
-    :class="['favorite-btn', { 'favorite-btn--active': item?.favorite }]"
+    :class="{ 'favorite-btn': true, 'favorite-btn--active': !!item?.favorite }"
     @click="api.toggleFavorite(item)"
     @click.prevent
     @click.stop

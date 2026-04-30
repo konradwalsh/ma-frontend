@@ -6,13 +6,18 @@
     class="play-btn-icon"
     :disabled="!canPlayPause || isLoading"
     variant="button"
+    role="button"
+    :aria-label="isPlaying ? 'Pause' : $t('play')"
+    :aria-pressed="isPlaying"
+    :aria-disabled="!canPlayPause || isLoading"
     @click="api.playerCommandPlayPause(player.player_id)"
   >
-    <Pause v-if="isPlaying" :size="size" fill="currentColor" />
+    <Pause v-if="isPlaying" :size="size" fill="currentColor" aria-hidden="true" />
     <Play
       v-else
       :size="size"
       fill="currentColor"
+      aria-hidden="true"
       :style="{ marginLeft: `${compProps.playOffset}px` }"
     />
   </Icon>

@@ -21,6 +21,9 @@
       ])
     "
     variant="button"
+    role="button"
+    :aria-label="$t('select_repeat_mode')"
+    :aria-pressed="isRepeatActive"
     @click="
       api.queueCommandRepeat(
         playerQueue.queue_id || '',
@@ -35,12 +38,14 @@
     <IconRepeatOff
       v-if="playerQueue.repeat_mode == RepeatMode.OFF"
       :size="size"
+      aria-hidden="true"
     />
     <IconRepeat
       v-else-if="playerQueue.repeat_mode == RepeatMode.ALL"
       :size="size"
+      aria-hidden="true"
     />
-    <IconRepeatOnce v-else :size="size" />
+    <IconRepeatOnce v-else :size="size" aria-hidden="true" />
   </Icon>
 </template>
 

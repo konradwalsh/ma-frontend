@@ -16,7 +16,13 @@
       }
     "
   >
-    <v-card min-width="300" max-height="450" style="overflow-y: auto">
+    <v-card
+      min-width="300"
+      max-height="450"
+      style="overflow-y: auto"
+      role="menu"
+      aria-label="Item actions"
+    >
       <v-list density="compact" slim tile>
         <!-- play menu header -->
         <div v-if="showPlayMenuHeader" class="menurow">
@@ -86,7 +92,7 @@
     style="z-index: 999999"
     z-index="999999"
   >
-    <v-card min-width="260">
+    <v-card min-width="260" role="menu" aria-label="Submenu">
       <v-list density="compact" slim tile>
         <div
           v-for="subMenuItem of subMenuItems.filter((x) => !x.hide)"

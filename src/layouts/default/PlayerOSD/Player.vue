@@ -2,7 +2,11 @@
   <!-- Non-mobile: background gradient and player bar -->
   <template v-if="!useFloatingPlayer">
     <div class="mediacontrols-bg" :data-floating="useFloatingPlayer"></div>
-    <div class="mediacontrols">
+    <div
+      class="mediacontrols"
+      role="region"
+      aria-label="Now playing"
+    >
       <div class="mediacontrols-left">
         <PlayerTrackDetails
           :show-quality-details-btn="getBreakpointValue('bp9') ? true : false"
@@ -61,7 +65,12 @@
   </template>
 
   <!-- Mobile: floating player with volume slider inside container -->
-  <div v-else class="mediacontrols-mobile-container">
+  <div
+    v-else
+    class="mediacontrols-mobile-container"
+    role="region"
+    aria-label="Now playing"
+  >
     <div class="mediacontrols-bg" :data-floating="useFloatingPlayer"></div>
     <div class="mediacontrols" :data-mobile="true">
       <div class="mediacontrols-left">

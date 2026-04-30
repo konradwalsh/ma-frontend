@@ -3,12 +3,16 @@
     variant="icon"
     :ripple="false"
     icon
-    :class="['speaker-btn', { 'speaker-btn--active': isActive }]"
+    :class="{ 'speaker-btn': true, 'speaker-btn--active': isActive }"
+    :aria-label="$t('players')"
+    :aria-pressed="isActive"
+    :aria-haspopup="true"
     @click="openPlayersMenu"
   >
     <v-icon
       :color="iconColor"
       :size="24"
+      aria-hidden="true"
       :icon="
         store.activePlayer?.group_members.length
           ? 'mdi-speaker-multiple'

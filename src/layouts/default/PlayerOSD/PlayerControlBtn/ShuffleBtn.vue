@@ -16,6 +16,9 @@
       ])
     "
     variant="button"
+    role="button"
+    :aria-label="$t('shuffle')"
+    :aria-pressed="!!playerQueue.shuffle_enabled"
     @click="
       api.queueCommandShuffle(
         playerQueue.queue_id,
@@ -23,8 +26,8 @@
       )
     "
   >
-    <Shuffle v-if="playerQueue.shuffle_enabled" :size="size" />
-    <IconArrowsRight v-else :size="size" />
+    <Shuffle v-if="playerQueue.shuffle_enabled" :size="size" aria-hidden="true" />
+    <IconArrowsRight v-else :size="size" aria-hidden="true" />
   </Icon>
 </template>
 

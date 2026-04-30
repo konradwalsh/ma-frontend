@@ -21,8 +21,10 @@
       "
       class="in-library-badge"
       :title="$t('in_library')"
+      role="img"
+      :aria-label="$t('in_library')"
     >
-      <v-icon size="12" color="white">mdi-bookmark-check</v-icon>
+      <v-icon size="12" color="white" aria-hidden="true">mdi-bookmark-check</v-icon>
     </div>
   </div>
 </template>

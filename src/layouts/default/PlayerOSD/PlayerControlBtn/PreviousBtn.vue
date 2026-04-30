@@ -6,9 +6,12 @@
     class="prev-btn-icon"
     :disabled="!canPrevious || isLoading"
     variant="button"
+    role="button"
+    aria-label="Previous track"
+    :aria-disabled="!canPrevious || isLoading"
     @click="api.playerCommandPrevious(player.player_id)"
   >
-    <SkipBack :size="size" />
+    <SkipBack :size="size" aria-hidden="true" />
   </Icon>
 </template>
 

@@ -6,9 +6,12 @@
     class="next-btn-icon"
     :disabled="!canNext || isLoading"
     variant="button"
+    role="button"
+    aria-label="Next track"
+    :aria-disabled="!canNext || isLoading"
     @click="api.playerCommandNext(player.player_id)"
   >
-    <SkipForward :size="size" />
+    <SkipForward :size="size" aria-hidden="true" />
   </Icon>
 </template>
 

@@ -53,16 +53,22 @@ onUnmounted(() => {
     <SidebarHeader>
       <SidebarMenu>
         <div class="sidebar-header-row">
-          <div class="sidebar-header" @click="router.push('/')">
+          <button
+            type="button"
+            class="sidebar-header"
+            aria-label="streamloader — home"
+            @click="router.push('/')"
+          >
             <img
               src="@/assets/streamloader-mark.svg"
-              alt="streamloader"
+              alt=""
+              aria-hidden="true"
               class="sidebar-header-logo"
             />
             <div v-if="!collapsed" class="sidebar-header-title">
               streamloader
             </div>
-          </div>
+          </button>
         </div>
       </SidebarMenu>
     </SidebarHeader>
@@ -117,6 +123,20 @@ onUnmounted(() => {
   transition: opacity 0.3s ease;
   position: relative;
   cursor: pointer;
+  /* Reset native <button> chrome — the element is a button now (a11y) but
+     should keep its prior visual identity. */
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.sidebar-header:focus-visible {
+  outline: 2px solid #2dd4bf;
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 .ha-header-button {

@@ -886,7 +886,7 @@ const drawGrid = (ctx: CanvasRenderingContext2D, viewport: Viewport) => {
 
     // Draw frequency labels
     ctx.font =
-      '10px ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace';
+      "10px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace";
     ctx.textAlign = "center";
     ctx.fillText(
       freq >= 1000 ? `${freq / 1000}k` : freq.toString(),
@@ -913,7 +913,7 @@ const drawGrid = (ctx: CanvasRenderingContext2D, viewport: Viewport) => {
 
     // Draw gain labels
     ctx.font =
-      '10px ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace';
+      "10px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace";
     ctx.textAlign = "right";
     ctx.fillText(`${gain}dB`, viewport.padding_lr - 3, y + 3);
   }
@@ -960,12 +960,14 @@ onMounted(() => {
 
 /* Brand teal glow on the currently-edited band chip */
 .v-chip-group :deep(.v-chip.v-chip--selected) {
-  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.55),
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.55),
     0 0 12px rgba(45, 212, 191, 0.35);
 }
 
 .v-theme--light .v-chip-group :deep(.v-chip.v-chip--selected) {
-  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.55),
+  box-shadow:
+    0 0 0 1px rgba(15, 118, 110, 0.55),
     0 0 10px rgba(15, 118, 110, 0.25);
 }
 </style>

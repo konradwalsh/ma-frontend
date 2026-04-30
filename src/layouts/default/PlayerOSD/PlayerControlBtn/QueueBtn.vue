@@ -12,10 +12,12 @@
         !store.showQueueItems)
     "
     :color="activeColor"
-    :class="['queue-btn', { 'queue-btn--active': isActive }]"
+    :class="{ 'queue-btn': true, 'queue-btn--active': isActive }"
+    :aria-label="$t('queue')"
+    :aria-pressed="isActive"
     @click="onClick"
   >
-    <ListVideo :size="size" />
+    <ListVideo :size="size" aria-hidden="true" />
   </Button>
 </template>
 

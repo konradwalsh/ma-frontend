@@ -9,6 +9,10 @@
     :icon="item?.favorite ? 'mdi-heart' : 'mdi-heart-outline'"
     :title="$t('tooltip.favorite')"
     variant="button"
+    role="button"
+    :aria-label="$t('tooltip.favorite')"
+    :aria-pressed="!!item?.favorite"
+    :aria-disabled="disabled || !item"
     @click="onClick"
   />
 </template>
