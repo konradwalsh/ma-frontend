@@ -134,7 +134,7 @@ const handleLogout = () => {
 <style scoped>
 /* Brand teal: #2dd4bf (dark) / #0f766e (light) */
 .ha-menu-arrow {
-  color: rgb(var(--v-theme-primary, 3, 169, 244)) !important;
+  color: rgb(var(--v-theme-primary, 45, 212, 191)) !important;
 }
 
 /* Trigger row: subtle teal hover + open-state accent */

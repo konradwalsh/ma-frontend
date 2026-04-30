@@ -3,7 +3,9 @@
     <div class="space-y-2">
       <Item variant="outline" size="sm" class="justify-between">
         <ItemContent>
-          <ItemTitle>{{ $t("settings.scanner_status") }}</ItemTitle>
+          <ItemTitle class="text-sm font-semibold tracking-tight">{{
+            $t("settings.scanner_status")
+          }}</ItemTitle>
         </ItemContent>
         <ItemContent class="flex-none text-right">
           <span class="flex items-center gap-1.5 text-sm font-medium">
@@ -11,31 +13,42 @@
               v-if="status?.running"
               class="size-3 animate-spin text-primary"
             />
-            <span v-else class="size-2 rounded-full bg-green-500"></span>
-            {{
-              status?.running
-                ? $t("settings.scanner_running")
-                : $t("settings.scanner_idle")
-            }}
+            <span
+              v-else
+              class="size-2 rounded-full bg-primary shadow-[0_0_6px_var(--primary)]"
+            ></span>
+            <span :class="status?.running ? 'text-primary' : ''">
+              {{
+                status?.running
+                  ? $t("settings.scanner_running")
+                  : $t("settings.scanner_idle")
+              }}
+            </span>
           </span>
         </ItemContent>
       </Item>
 
       <Item variant="outline" size="sm" class="justify-between">
         <ItemContent>
-          <ItemTitle>{{ $t("settings.last_scan") }}</ItemTitle>
+          <ItemTitle class="text-sm font-semibold tracking-tight">{{
+            $t("settings.last_scan")
+          }}</ItemTitle>
         </ItemContent>
         <ItemContent class="flex-none text-right">
-          <span class="text-sm font-medium">{{ lastScanDisplay }}</span>
+          <span class="text-sm font-medium text-muted-foreground">{{
+            lastScanDisplay
+          }}</span>
         </ItemContent>
       </Item>
 
       <Item variant="outline" size="sm" class="justify-between">
         <ItemContent>
-          <ItemTitle>{{ $t("settings.last_scan_mapped") }}</ItemTitle>
+          <ItemTitle class="text-sm font-semibold tracking-tight">{{
+            $t("settings.last_scan_mapped")
+          }}</ItemTitle>
         </ItemContent>
         <ItemContent class="flex-none text-right">
-          <span class="text-sm font-medium">
+          <span class="text-sm font-medium tabular-nums text-primary">
             {{
               status?.last_scan_mapped != null ? status.last_scan_mapped : "..."
             }}
@@ -45,8 +58,8 @@
     </div>
 
     <Button
-      variant="outline"
       size="sm"
+      class="bg-primary text-primary-foreground hover:bg-primary/90"
       :disabled="triggering || !!status?.running"
       @click="$emit('trigger')"
     >

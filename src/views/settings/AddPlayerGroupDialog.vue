@@ -3,8 +3,12 @@
     <DialogContent
       class="add-player-group-dialog max-w-[800px] h-[60vh] max-h-[60vh] flex flex-col p-0"
     >
-      <DialogHeader class="px-6 pt-6 pb-4 flex-shrink-0">
-        <DialogTitle>{{ $t("settings.add_group_player") }}</DialogTitle>
+      <DialogHeader
+        class="px-6 pt-6 pb-4 flex-shrink-0 border-b border-primary/20"
+      >
+        <DialogTitle class="dialog-title-polished">
+          {{ $t("settings.add_group_player") }}
+        </DialogTitle>
       </DialogHeader>
 
       <div
@@ -121,6 +125,13 @@ watch(
   flex-direction: column;
 }
 
+.dialog-title-polished {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: rgb(var(--v-theme-on-surface));
+}
+
 .provider-list {
   display: flex;
   flex-direction: column;
@@ -140,8 +151,13 @@ watch(
 }
 
 .provider-item:hover {
-  background-color: rgba(var(--v-theme-primary), 0.04);
+  background-color: rgba(var(--v-theme-primary), 0.08);
   transform: translateY(-1px);
+}
+
+.provider-item:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-primary));
+  outline-offset: 2px;
 }
 
 .provider-icon {

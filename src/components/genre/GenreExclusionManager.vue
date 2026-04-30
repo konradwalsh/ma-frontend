@@ -1,30 +1,33 @@
 <template>
-  <section v-if="isAdmin" style="margin-bottom: 10px">
+  <section v-if="isAdmin" class="genre-exclusion-manager">
     <Toolbar
       :title="exclusionTitle"
       :menu-items="toolbarMenuItems"
+      class="genre-exclusion-toolbar"
       @title-clicked="toggleSection"
     />
     <v-divider />
     <Container v-if="sectionExpanded">
-      <v-list>
+      <div
+        v-if="exclusions.length === 0"
+        class="genre-exclusion-empty"
+      >
+        <GenreIcon class="genre-exclusion-empty-icon size-[36px]" />
+        <p class="genre-exclusion-empty-text">
+          {{ emptyStateText }}
+        </p>
+      </div>
+      <v-list v-else class="genre-exclusion-list">
         <ListItem
           v-for="genre in exclusions"
           :key="genre.item_id"
           show-menu-btn
+          class="genre-exclusion-row"
           @menu.stop="(evt) => onMenu(evt, genre)"
         >
           <template #prepend>
-            <div
-              style="
-                width: 30px;
-                margin-left: 10px;
-                margin-right: 10px;
-                display: flex;
-                align-items: center;
-              "
-            >
-              <GenreIcon class="size-[30px]" />
+            <div class="genre-exclusion-icon-wrap">
+              <GenreIcon class="size-[30px] genre-exclusion-icon" />
             </div>
           </template>
           <template #title>{{
@@ -66,6 +69,10 @@ const exclusions = ref<Genre[]>([]);
 
 const exclusionTitle = computed(
   () => `${t("genre_exclusions")} (${exclusions.value.length})`,
+);
+
+const emptyStateText = computed(() =>
+  te("no_genre_exclusions") ? t("no_genre_exclusions") : "No excluded genres yet.",
 );
 
 const toolbarMenuItems = computed<ToolBarMenuItem[]>(() => [
@@ -138,3 +145,72 @@ watch(
   () => loadExclusions(),
 );
 </script>
+
+<style scoped>
+.genre-exclusion-manager {
+  margin-bottom: 10px;
+}
+
+.genre-exclusion-manager :deep(.genre-exclusion-toolbar) .toolbar-title,
+.genre-exclusion-manager :deep(.toolbar-title) {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.genre-exclusion-list {
+  padding: 4px 0;
+}
+
+.genre-exclusion-row {
+  transition: background-color 0.15s ease;
+}
+
+.genre-exclusion-row:hover {
+  background-color: rgba(45, 212, 191, 0.08);
+}
+
+.genre-exclusion-icon-wrap {
+  width: 30px;
+  margin-left: 10px;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.genre-exclusion-icon {
+  color: rgb(15, 118, 110);
+}
+
+:global(.v-theme--dark) .genre-exclusion-icon {
+  color: rgb(45, 212, 191);
+}
+
+.genre-exclusion-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  gap: 12px;
+}
+
+.genre-exclusion-empty-icon {
+  color: rgb(15, 118, 110);
+  opacity: 0.7;
+}
+
+:global(.v-theme--dark) .genre-exclusion-empty-icon {
+  color: rgb(45, 212, 191);
+}
+
+.genre-exclusion-empty-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+  letter-spacing: -0.005em;
+}
+
+:global(.v-theme--dark) .genre-exclusion-empty-text {
+  color: rgba(255, 255, 255, 0.6);
+}
+</style>

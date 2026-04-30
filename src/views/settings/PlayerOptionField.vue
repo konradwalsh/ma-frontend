@@ -1,22 +1,30 @@
 <template>
   <!-- drop down for multiple options -->
-  <div v-if="playerOption.options && playerOption.options.length > 0">
+  <div
+    v-if="playerOption.options && playerOption.options.length > 0"
+    class="player-option-field"
+  >
     <v-select
       :model-value="playerOption.value"
       :items="translatedOptions"
       :label="getTranslatedLabel()"
       variant="outlined"
+      color="primary"
       :readonly="playerOption.read_only"
       @update:model-value="uiSetPlayerOption(playerOption.key, $event)"
     />
   </div>
 
   <!-- toggle for boolean values -->
-  <div v-else-if="playerOption.type === PlayerOptionType.BOOLEAN">
+  <div
+    v-else-if="playerOption.type === PlayerOptionType.BOOLEAN"
+    class="player-option-field player-option-field--switch"
+  >
     <v-switch
       :label="getTranslatedLabel()"
       :model-value="playerOption.value"
       :readonly="playerOption.read_only"
+      color="primary"
       hide-details
       @update:model-value="uiSetPlayerOption(playerOption.key, $event)"
     />
@@ -31,8 +39,9 @@
       playerOption.max_value &&
       playerOption.step
     "
+    class="player-option-field player-option-field--slider"
   >
-    <div style="padding-bottom: 25px">
+    <div class="player-option-field__label">
       {{ getTranslatedLabel() }}
     </div>
     <v-slider
@@ -40,6 +49,7 @@
       :min="playerOption.min_value"
       :max="playerOption.max_value"
       :step="playerOption.step"
+      color="primary"
       thumb-label="always"
       :thumb-size="20"
       show-ticks="always"
@@ -62,6 +72,7 @@
       playerOption.type === PlayerOptionType.INTEGER ||
       playerOption.type === PlayerOptionType.FLOAT
     "
+    class="player-option-field"
   >
     <v-text-field
       :model-value="playerOption.value"
@@ -72,6 +83,7 @@
       :step="playerOption.step"
       type="number"
       variant="outlined"
+      color="primary"
       density="comfortable"
       :readonly="playerOption.read_only"
       @update:model-value="uiSetPlayerOption(playerOption.key, $event)"
@@ -79,13 +91,17 @@
   </div>
 
   <!-- text field for string -->
-  <div v-else-if="playerOption.type === PlayerOptionType.STRING">
+  <div
+    v-else-if="playerOption.type === PlayerOptionType.STRING"
+    class="player-option-field"
+  >
     <v-text-field
       :model-value="playerOption.value"
       :label="getTranslatedLabel()"
       :clearable="false"
       type="string"
       variant="outlined"
+      color="primary"
       density="comfortable"
       :readonly="playerOption.read_only"
       @update:model-value="uiSetPlayerOption(playerOption.key, $event)"
@@ -173,3 +189,28 @@ const translatedOptions = computed(() => {
   return options;
 });
 </script>
+
+<style scoped>
+.player-option-field {
+  /* per-field wrapper for label/focus polish */
+}
+
+.player-option-field__label {
+  padding-bottom: 25px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+/* Switch label spacing/typography */
+.player-option-field--switch :deep(.v-label) {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  opacity: 0.92;
+}
+
+/* Slider readability — no behavior change */
+.player-option-field--slider :deep(.v-slider-thumb__label) {
+  font-weight: 600;
+}
+</style>

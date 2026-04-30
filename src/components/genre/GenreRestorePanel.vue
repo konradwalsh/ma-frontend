@@ -1,8 +1,13 @@
 <template>
   <Button
-    :variant="destructive ? 'destructive' : 'outline'"
+    :variant="destructive ? 'destructive' : 'default'"
     size="sm"
     :disabled="loading"
+    :class="
+      destructive
+        ? ''
+        : 'bg-primary text-primary-foreground hover:bg-primary/90'
+    "
     @click="$emit('restore')"
   >
     <Spinner v-if="loading" />

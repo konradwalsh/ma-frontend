@@ -1,26 +1,26 @@
 <template>
-  <section>
+  <section class="add-player-group-view">
     <v-card-text>
       <!-- header -->
-      <div style="margin-left: -5px; margin-right: -5px">
-        <v-card-title>
+      <div class="add-player-group-inner">
+        <v-card-title class="add-player-group-title">
           {{ $t("settings.add_group_player") }}
         </v-card-title>
         <v-card-subtitle
           v-if="providerDetails?.domain === 'universal_group'"
-          style="white-space: break-spaces"
+          class="add-player-group-subtitle"
           v-html="
             markdownToHtml($t('settings.add_group_player_desc_universal'))
           "
         />
         <v-card-subtitle
           v-else-if="providerDetails?.domain === 'sync_group'"
-          style="white-space: break-spaces"
+          class="add-player-group-subtitle"
           v-html="markdownToHtml($t('settings.add_group_player_desc_sync'))"
         />
         <v-card-subtitle
           v-else
-          style="white-space: break-spaces"
+          class="add-player-group-subtitle"
           v-html="
             markdownToHtml(
               $t('settings.add_group_player_desc', [providerDetails?.name]),
@@ -28,15 +28,16 @@
           "
         />
         <br />
-        <v-divider />
+        <v-divider class="add-player-group-divider" />
         <br />
         <br />
-        <v-form ref="form" v-model="valid" style="margin-right: 10px">
+        <v-form ref="form" v-model="valid" class="add-player-group-form">
           <!-- name field -->
           <v-text-field
             v-model="name"
             :label="$t('settings.player_name')"
             variant="outlined"
+            color="primary"
             clearable
             required
             :rules="[(v) => v.length > 0 || $t('settings.invalid_input')]"
@@ -46,6 +47,7 @@
             v-model="members"
             clearable
             multiple
+            color="primary"
             :items="syncPlayers"
             item-title="name"
             item-value="player_id"
@@ -59,12 +61,7 @@
           />
           <v-card-subtitle
             v-if="providerDetails?.domain !== 'universal_group'"
-            style="
-              white-space: break-spaces;
-              padding-left: 0;
-              margin-top: -25px;
-              margin-bottom: 35px;
-            "
+            class="add-player-group-dynamic-desc"
           >
             {{ $t("settings.dynamic_members.description") }}
           </v-card-subtitle>
@@ -72,6 +69,7 @@
           <v-btn
             block
             color="primary"
+            class="add-player-group-save-btn"
             :disabled="!valid || (members.length == 0 && !dynamic)"
             @click="onSubmit"
           >
@@ -79,7 +77,12 @@
           </v-btn>
         </v-form>
         <br />
-        <v-btn block @click="router.back()">
+        <v-btn
+          block
+          variant="outlined"
+          class="add-player-group-cancel-btn"
+          @click="router.back()"
+        >
           {{ $t("close") }}
         </v-btn>
       </div>
@@ -176,3 +179,65 @@ const onSubmit = async function () {
   router.push({ name: "playersettings" });
 };
 </script>
+
+<style scoped>
+.add-player-group-view {
+  /* page wrapper for the add player group view */
+}
+
+.add-player-group-inner {
+  margin-left: -5px;
+  margin-right: -5px;
+}
+
+.add-player-group-title {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: rgb(var(--v-theme-on-surface));
+  padding-bottom: 4px;
+}
+
+.add-player-group-subtitle {
+  white-space: break-spaces;
+  color: rgba(var(--v-theme-on-surface), 0.7);
+  line-height: 1.45;
+}
+
+.add-player-group-divider {
+  border-color: rgba(var(--v-theme-primary), 0.35);
+  opacity: 1;
+}
+
+.add-player-group-form {
+  margin-right: 10px;
+}
+
+.add-player-group-form :deep(.v-field--focused) {
+  --v-field-border-opacity: 1;
+}
+
+.add-player-group-form :deep(.v-field--focused .v-field__outline__start),
+.add-player-group-form :deep(.v-field--focused .v-field__outline__end),
+.add-player-group-form :deep(.v-field--focused .v-field__outline__notch::before),
+.add-player-group-form :deep(.v-field--focused .v-field__outline__notch::after) {
+  border-color: rgb(var(--v-theme-primary));
+}
+
+.add-player-group-dynamic-desc {
+  white-space: break-spaces;
+  padding-left: 0;
+  margin-top: -25px;
+  margin-bottom: 35px;
+  color: rgba(var(--v-theme-on-surface), 0.65);
+}
+
+.add-player-group-save-btn {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.add-player-group-cancel-btn {
+  text-transform: none;
+}
+</style>

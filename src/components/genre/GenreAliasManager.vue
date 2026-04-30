@@ -1,15 +1,27 @@
 <template>
-  <Container variant="default">
+  <Container variant="default" class="genre-alias-manager">
     <Toolbar
       :title="mappedAliasesTitle"
       :menu-items="aliasToolbarMenuItems"
+      class="genre-alias-toolbar"
       @title-clicked="toggleAliasSection"
     />
     <v-divider />
-    <v-list v-if="aliasSectionExpanded">
-      <ListItem v-for="alias in aliases" :key="alias">
+    <v-list v-if="aliasSectionExpanded" class="genre-alias-list">
+      <div
+        v-if="aliases.length === 0"
+        class="genre-alias-empty"
+      >
+        <Route :size="32" class="genre-alias-empty-icon" />
+        <p class="genre-alias-empty-text">{{ $t("no_aliases") }}</p>
+      </div>
+      <ListItem
+        v-for="alias in aliases"
+        :key="alias"
+        class="genre-alias-row"
+      >
         <template #prepend>
-          <Route :size="20" />
+          <Route :size="20" class="genre-alias-row-icon" />
         </template>
         <template #title>{{ formatAliasName(alias) }}</template>
         <template #append>
@@ -17,6 +29,7 @@
             v-if="canPromoteAlias(alias)"
             variant="ghost"
             size="icon-sm"
+            color="primary"
             :title="$t('promote_alias')"
             :disabled="operationInProgress"
             @click="confirmPromoteAlias(alias)"
@@ -28,6 +41,7 @@
             size="icon-sm"
             :title="$t('remove_alias')"
             :disabled="operationInProgress"
+            class="genre-alias-remove-btn"
             @click="confirmRemoveAlias(alias)"
           >
             <Trash2 :size="20" />
@@ -158,3 +172,69 @@ const toggleAliasSection = () => {
   aliasSectionExpanded.value = !aliasSectionExpanded.value;
 };
 </script>
+
+<style scoped>
+.genre-alias-manager :deep(.genre-alias-toolbar) .toolbar-title,
+.genre-alias-manager :deep(.toolbar-title) {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.genre-alias-list {
+  padding: 4px 0;
+}
+
+.genre-alias-row {
+  transition: background-color 0.15s ease;
+}
+
+.genre-alias-row:hover {
+  background-color: rgba(45, 212, 191, 0.08);
+}
+
+.genre-alias-row-icon {
+  color: rgb(15, 118, 110);
+}
+
+:global(.v-theme--dark) .genre-alias-row-icon {
+  color: rgb(45, 212, 191);
+}
+
+.genre-alias-remove-btn {
+  color: rgb(220, 38, 38);
+}
+
+.genre-alias-remove-btn:hover {
+  color: rgb(185, 28, 28);
+  background-color: rgba(220, 38, 38, 0.08);
+}
+
+.genre-alias-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  gap: 12px;
+}
+
+.genre-alias-empty-icon {
+  color: rgb(15, 118, 110);
+  opacity: 0.7;
+}
+
+:global(.v-theme--dark) .genre-alias-empty-icon {
+  color: rgb(45, 212, 191);
+}
+
+.genre-alias-empty-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.6);
+  letter-spacing: -0.005em;
+}
+
+:global(.v-theme--dark) .genre-alias-empty-text {
+  color: rgba(255, 255, 255, 0.6);
+}
+</style>

@@ -3,7 +3,11 @@
   <Dialog v-model:open="showRestoreDialog">
     <DialogContent class="sm:max-w-[520px]">
       <DialogHeader>
-        <DialogTitle>{{ $t("settings.restore_missing_defaults") }}</DialogTitle>
+        <DialogTitle class="text-base font-semibold tracking-tight">
+          <span class="border-l-2 border-primary pl-2">{{
+            $t("settings.restore_missing_defaults")
+          }}</span>
+        </DialogTitle>
         <DialogDescription>{{
           $t("settings.confirm_restore_defaults")
         }}</DialogDescription>
@@ -12,7 +16,11 @@
         <Button variant="outline" @click="showRestoreDialog = false">
           {{ $t("cancel") }}
         </Button>
-        <Button :disabled="restoreInProgress" @click="handleRestore">
+        <Button
+          class="bg-primary text-primary-foreground hover:bg-primary/90"
+          :disabled="restoreInProgress"
+          @click="handleRestore"
+        >
           {{ $t("settings.restore_missing_defaults") }}
         </Button>
       </DialogFooter>
@@ -23,7 +31,11 @@
   <Dialog v-model:open="showFullRestoreDialog">
     <DialogContent class="sm:max-w-[520px]">
       <DialogHeader>
-        <DialogTitle>{{ $t("settings.full_restore_genres") }}</DialogTitle>
+        <DialogTitle class="text-base font-semibold tracking-tight">
+          <span class="border-l-2 border-destructive pl-2">{{
+            $t("settings.full_restore_genres")
+          }}</span>
+        </DialogTitle>
         <DialogDescription>{{
           $t("settings.confirm_full_restore")
         }}</DialogDescription>
@@ -43,7 +55,11 @@
   <Dialog v-model:open="showFullRestoreDialog2">
     <DialogContent class="sm:max-w-[520px]">
       <DialogHeader>
-        <DialogTitle>{{ $t("settings.full_restore_genres") }}</DialogTitle>
+        <DialogTitle class="text-base font-semibold tracking-tight">
+          <span class="border-l-2 border-destructive pl-2">{{
+            $t("settings.full_restore_genres")
+          }}</span>
+        </DialogTitle>
         <DialogDescription>{{
           $t("settings.confirm_full_restore_2")
         }}</DialogDescription>

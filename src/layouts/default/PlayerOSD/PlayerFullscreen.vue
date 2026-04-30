@@ -323,7 +323,7 @@
                     </div>
                   </template>
                   <template #append>
-                    <PartyPlayerBadge
+                    <PartyRequestBadge
                       v-if="item.extra_attributes?.party_guest === true"
                       :type="
                         item.extra_attributes?.party_boosted === true
@@ -551,7 +551,7 @@ import LyricsViewer from "@/components/LyricsViewer.vue";
 import MarqueeText from "@/components/MarqueeText.vue";
 import MediaItemThumb from "@/components/MediaItemThumb.vue";
 import NowPlayingBadge from "@/components/NowPlayingBadge.vue";
-import PartyPlayerBadge from "@/components/party/PartyPlayerBadge.vue";
+import PartyRequestBadge from "@/components/party/PartyRequestBadge.vue";
 import QualityDetailsBtn from "@/components/QualityDetailsBtn.vue";
 import { useLyricsElapsedTime } from "@/composables/useLyricsElapsedTime";
 import { usePartyConfig } from "@/composables/usePartyConfig";

@@ -146,7 +146,7 @@ const isCollapsed = computed(() => state.value === "collapsed");
 }
 
 .ha-menu-arrow {
-  color: rgb(var(--v-theme-primary, 3, 169, 244)) !important;
+  color: rgb(var(--v-theme-primary, 45, 212, 191)) !important;
 }
 
 .trigger-container.flex-col {
