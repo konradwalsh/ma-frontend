@@ -320,6 +320,21 @@ watch(
 );
 </script>
 
+<!--
+  Hoisted to unscoped block: Vue's `scoped` attribute appends [data-v-hash]
+  to every selector, so `:root.light .user-card:hover` would become
+  `:root.light[data-v-hash] .user-card:hover[data-v-hash]` — and `<html>`
+  never carries the data-v attribute, so the rule never applied.
+  Class names are component-specific (.user-card), so leakage risk is nil.
+-->
+<style>
+:root.light .user-card:hover,
+.light .user-card:hover {
+  background-color: rgba(15, 118, 110, 0.06);
+  border-color: rgba(15, 118, 110, 0.35);
+}
+</style>
+
 <style scoped>
 .user-card {
   transition:
@@ -330,12 +345,6 @@ watch(
 .user-card:hover {
   background-color: rgba(45, 212, 191, 0.08);
   border-color: rgba(45, 212, 191, 0.4);
-}
-
-:root.light .user-card:hover,
-.light .user-card:hover {
-  background-color: rgba(15, 118, 110, 0.06);
-  border-color: rgba(15, 118, 110, 0.35);
 }
 
 .user-active-dot {
