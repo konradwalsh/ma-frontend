@@ -44,7 +44,12 @@ export default defineConfig({
         short_name: "Streamloader",
         description:
           "Streamloader is a media library manager (built on Music Assistant) that connects to your streaming services and a wide range of connected speakers.",
-        theme_color: "#424242",
+        // Streamloader-fork branding: theme_color drives the PWA splash
+        // background and Android task-switcher chrome. Aligned with the
+        // teal used in favicon.svg / streamloader-mark.svg / index.html so
+        // the install + splash experience matches the rest of the brand.
+        theme_color: "#0f766e",
+        background_color: "#0f766e",
         icons: [
           {
             src: "pwa-192x192.png",
