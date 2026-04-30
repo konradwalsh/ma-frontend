@@ -165,3 +165,15 @@ const UpdateItemInDb = async function () {
   });
 };
 </script>
+
+<style scoped>
+/* Streamloader: subtle page-level polish for the artist view.
+   The artist hero (InfoHeader), albums + tracks listings (ItemsListing),
+   image manager and provider details all handle their own internal
+   styling. We only nudge the bottom of the page so the last section
+   doesn't crowd the playerbar, and ensure the section root doesn't
+   inherit any awkward overflow from parent layouts. */
+section {
+  padding-bottom: 16px;
+}
+</style>

@@ -2,7 +2,7 @@
   <div>
     <Toolbar :icon="Settings">
       <template #title>
-        <v-breadcrumbs :items="breadcrumbItems" class="pa-0" />
+        <v-breadcrumbs :items="breadcrumbItems" class="pa-0 settings-breadcrumbs" />
       </template>
       <template #append>
         <v-btn
@@ -912,6 +912,22 @@ const documentationUrl = computed(() => {
   margin: 0 auto;
 }
 
+.settings-breadcrumbs :deep(.v-breadcrumbs-item) {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-size: 0.95rem;
+}
+
+.settings-breadcrumbs :deep(.v-breadcrumbs-item--disabled) {
+  opacity: 1;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.settings-breadcrumbs :deep(.v-breadcrumbs-divider) {
+  opacity: 0.5;
+  padding: 0 4px;
+}
+
 .settings-card-view {
   display: flex;
   flex-direction: column;
@@ -964,8 +980,10 @@ const documentationUrl = computed(() => {
   transform: translateY(-4px);
   box-shadow:
     0 12px 24px rgba(0, 0, 0, 0.15),
-    0 4px 8px rgba(0, 0, 0, 0.1);
-  border-color: rgba(var(--v-theme-primary), 0.3);
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(var(--v-theme-primary), 0.18),
+    0 8px 28px -10px rgba(var(--v-theme-primary), 0.35);
+  border-color: rgba(var(--v-theme-primary), 0.45);
 }
 
 .setting-header-top {
@@ -996,6 +1014,12 @@ const documentationUrl = computed(() => {
   font-weight: 600;
   margin-bottom: 4px;
   line-height: 1.3;
+  letter-spacing: -0.01em;
+  transition: color 0.2s ease;
+}
+
+.setting-card:hover .setting-title {
+  color: rgb(var(--v-theme-primary));
 }
 
 .setting-description {
@@ -1045,10 +1069,19 @@ const documentationUrl = computed(() => {
   min-height: 80px;
   border-bottom: none;
   background: transparent;
+  border-radius: 10px;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .settings-list-item:hover {
-  background-color: rgba(var(--v-theme-on-surface), 0.05);
+  background-color: rgba(var(--v-theme-primary), 0.06);
+  box-shadow: inset 3px 0 0 rgba(var(--v-theme-primary), 0.55);
+}
+
+.settings-list-item:hover :deep(.v-list-item-title) {
+  color: rgb(var(--v-theme-primary));
 }
 
 .list-item-main {
@@ -1198,6 +1231,7 @@ const documentationUrl = computed(() => {
   font-weight: 600;
   margin: 0 0 8px 0;
   color: rgb(var(--v-theme-on-surface));
+  letter-spacing: -0.015em;
 }
 
 .onboarding-subtitle {
@@ -1235,13 +1269,15 @@ const documentationUrl = computed(() => {
 }
 
 .section-icon.music {
-  background: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+  background: linear-gradient(135deg, #0f766e 0%, #2dd4bf 100%);
   color: white;
+  box-shadow: 0 4px 14px rgba(45, 212, 191, 0.35);
 }
 
 .section-icon.player {
   background: linear-gradient(135deg, #5c6bc0 0%, #7986cb 100%);
   color: white;
+  box-shadow: 0 4px 14px rgba(92, 107, 192, 0.3);
 }
 
 .section-content {
