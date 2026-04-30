@@ -227,11 +227,18 @@
       </div>
 
       <DialogFooter>
-        <Button variant="outline" :disabled="saving" @click="open = false">
+        <Button
+          variant="outline"
+          :disabled="saving"
+          class="schedule-cancel-btn"
+          @click="open = false"
+        >
           {{ t("cancel") }}
         </Button>
         <Button
+          color="primary"
           :disabled="saving || !!validationError || !task"
+          class="schedule-save-btn"
           @click="onSave"
         >
           {{ t("settings.save") }}
@@ -431,16 +438,45 @@ const onSave = () => {
 .weekday-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 14px;
+  gap: 8px 12px;
 }
 
 .weekday-option {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
   font-size: 14px;
   color: rgba(var(--v-theme-on-surface), 0.8);
   cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease;
+}
+
+.weekday-option:hover {
+  background: rgba(45, 212, 191, 0.08);
+  border-color: rgba(45, 212, 191, 0.25);
+}
+
+.weekday-option:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.4);
+}
+
+.schedule-save-btn:focus-visible,
+.schedule-cancel-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.4);
+}
+
+@media (hover: none) {
+  .weekday-option:hover {
+    background: transparent;
+    border-color: transparent;
+  }
 }
 
 @media (min-width: 640px) {

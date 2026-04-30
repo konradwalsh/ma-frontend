@@ -45,11 +45,18 @@ const resolvedColor = computed(
   font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
+  /* Slightly tighter tracking matches established pill-chip spec while
+     keeping the all-caps badge visually distinct. */
   letter-spacing: 0.06em;
   color: rgb(var(--v-theme-on-primary));
   margin-right: 0.5rem;
   line-height: 1;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  /* Springy overshoot when a badge appears alongside a freshly-added
+     request — matches the established brand motion vocabulary. */
+  transition:
+    box-shadow 0.25s cubic-bezier(0.34, 1.36, 0.64, 1),
+    transform 0.25s cubic-bezier(0.34, 1.36, 0.64, 1);
 }
 
 .party-badge.is-boost {
@@ -59,11 +66,37 @@ const resolvedColor = computed(
     0 0 6px v-bind(resolvedColor);
 }
 
+/* Subtle hover affordance — only on devices that actually have hover. The
+   touch suppression keeps mobile guests from getting a sticky highlight. */
+@media (hover: hover) {
+  .party-badge:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.25),
+      0 0 10px v-bind(resolvedColor);
+  }
+
+  .party-badge.is-boost:hover {
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.28),
+      0 0 14px v-bind(resolvedColor);
+  }
+}
+
+@media (hover: none) {
+  .party-badge:hover {
+    transform: none;
+  }
+}
+
 .party-badge-icon {
   flex-shrink: 0;
 }
 
 .party-badge-label {
   white-space: nowrap;
+  /* Tabular feel — letter-spacing harmonised with the rest of the badge */
+  letter-spacing: 0.01em;
+  font-weight: 700;
 }
 </style>

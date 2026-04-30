@@ -3,7 +3,7 @@
     <DialogContent
       class="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] gap-0 overflow-hidden p-0 sm:max-w-[1120px] xl:max-w-[1280px]"
     >
-      <DialogHeader class="gap-3 px-8 pt-8 pb-4 text-left">
+      <DialogHeader class="details-header gap-3 px-8 pt-8 pb-4 text-left">
         <DialogTitle class="truncate pr-8">
           {{
             task
@@ -21,7 +21,7 @@
                 {{ resultLabel }}
               </div>
               <div class="detail-value detail-value--stacked">
-                <Badge variant="outline">
+                <Badge variant="outline" class="status-pill">
                   {{ formattedStatus }}
                 </Badge>
                 <span v-if="task?.last_error" class="detail-error">
@@ -427,6 +427,31 @@ const formatDate = (value: string | undefined) =>
 
 .detail-link:hover {
   text-decoration: underline;
+}
+
+.detail-link:focus-visible,
+.detail-inline-action:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.4);
+  border-radius: 4px;
+}
+
+.details-header {
+  border-bottom: 1px solid rgba(45, 212, 191, 0.18);
+}
+
+.status-pill {
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  background: rgba(45, 212, 191, 0.1);
+  color: rgb(var(--v-theme-primary));
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+@media (hover: none) {
+  .detail-link:hover {
+    text-decoration: none;
+  }
 }
 
 .detail-error {

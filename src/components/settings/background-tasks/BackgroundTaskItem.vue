@@ -186,9 +186,22 @@ const {
 </script>
 
 <style scoped>
+/* Streamloader brand teal — defined locally so we don't depend on theme tokens.
+   Light theme uses the deeper #0f766e for legible contrast; dark uses #2dd4bf. */
+:root {
+  --sl-teal: #0f766e;
+  --sl-teal-rgb: 15, 118, 110;
+}
+:deep(.v-theme--dark) {
+  --sl-teal: #2dd4bf;
+  --sl-teal-rgb: 45, 212, 191;
+}
+
 .task-name {
   font-weight: 500;
-  font-size: 16px;
+  /* slightly tighter than 16px for denser list scan, with snug tracking */
+  font-size: 15px;
+  letter-spacing: -0.005em;
 }
 
 .task-status-indicator {
@@ -237,12 +250,16 @@ const {
   gap: 16px;
   font-size: 12px;
   color: rgba(var(--v-theme-on-surface), 0.6);
+  /* tabular figures keep the percentage width stable while it ticks up */
+  font-variant-numeric: tabular-nums;
 }
 
 .task-progress-value {
   flex-shrink: 0;
-  font-weight: 500;
-  color: rgb(var(--v-theme-on-surface));
+  font-weight: 600;
+  /* teal accent ties the live counter to the brand */
+  color: var(--sl-teal);
+  font-variant-numeric: tabular-nums;
 }
 
 .task-error {
@@ -258,15 +275,38 @@ const {
 }
 
 .task-card {
+  /* overshoot easing on the lift gives the card a subtle "pop" on hover —
+     matches the ALACarte motion language used elsewhere in the polish */
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.2s cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
   cursor: pointer;
+  position: relative;
+  /* transparent border reserves the layout slot so the teal hover border
+     doesn't shift the card by 1px when it appears */
+  border: 1px solid transparent;
 }
 
 .task-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: rgba(var(--sl-teal-rgb), 0.35);
+}
+
+/* touch devices fire :hover on tap and leave it stuck — kill the affordance */
+@media (hover: none) {
+  .task-card:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: transparent;
+  }
+}
+
+.task-card:focus-visible {
+  outline: none;
+  border-color: var(--sl-teal);
+  box-shadow: 0 0 0 2px rgba(var(--sl-teal-rgb), 0.4);
 }
 
 .task-card--disabled {
@@ -295,8 +335,9 @@ const {
 
 .task-card-title {
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.35;
+  letter-spacing: -0.01em;
 }
 
 .task-card-summary {
@@ -310,6 +351,23 @@ const {
   flex-shrink: 0;
   align-self: flex-start;
   margin: -4px -8px 0 0;
+  transition: color 0.15s ease;
+}
+
+.task-card-menu:hover {
+  color: var(--sl-teal);
+}
+
+@media (hover: none) {
+  .task-card-menu:hover {
+    color: inherit;
+  }
+}
+
+.task-card-menu:focus-visible {
+  outline: 2px solid var(--sl-teal);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 .task-card-progress-text {
@@ -329,7 +387,9 @@ const {
   align-items: center;
   justify-content: space-between;
   margin-top: auto;
-  padding-top: 4px;
+  /* hairline separator above the chip row to visually anchor the footer */
+  padding-top: 8px;
+  border-top: 1px solid rgba(var(--v-theme-on-surface), 0.06);
 }
 
 .task-card-footer .task-status-chips {

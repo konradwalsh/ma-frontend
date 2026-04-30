@@ -68,6 +68,18 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* Streamloader brand teal — declared locally so this component doesn't
+   depend on theme tokens. Light uses #0f766e for AA contrast on white;
+   dark uses the brighter #2dd4bf so the focus ring still reads on slate. */
+:root {
+  --sl-teal: #0f766e;
+  --sl-teal-rgb: 15, 118, 110;
+}
+:deep(.v-theme--dark) {
+  --sl-teal: #2dd4bf;
+  --sl-teal-rgb: 45, 212, 191;
+}
+
 .filters-container {
   display: flex;
   align-items: stretch;
@@ -80,6 +92,34 @@ onBeforeUnmount(() => {
   flex: 1 1 auto;
   min-width: 250px;
   max-width: 400px;
+  /* the wrapper itself handles the focus ring so the teal halo wraps the
+     full input + icon addon as a single visual unit */
+  border-radius: 8px;
+  transition:
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+/* lift the input chrome subtly on hover so the search field feels live;
+   we use background, not border, to avoid layout shift */
+.search-field:hover:not(:focus-within) {
+  background-color: rgba(var(--sl-teal-rgb), 0.04);
+}
+
+@media (hover: none) {
+  .search-field:hover:not(:focus-within) {
+    background-color: transparent;
+  }
+}
+
+.search-field:focus-within {
+  box-shadow: 0 0 0 2px rgba(var(--sl-teal-rgb), 0.35);
+}
+
+/* the lucide search icon is a child of the addon — tint it teal when the
+   user is actively typing to reinforce that the field is the focus */
+.search-field:focus-within :deep(svg) {
+  color: var(--sl-teal);
 }
 
 @media (max-width: 960px) {
