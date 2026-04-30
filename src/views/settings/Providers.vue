@@ -7,7 +7,7 @@
     </Button>
   </div>
 
-  <div class="pl-5 font-weight-medium">
+  <div class="providers-total pl-5">
     {{
       $t("settings.providers_total", [
         getAllFilteredProviders().length,
@@ -27,6 +27,7 @@
         :show-menu-btn="true"
         :class="{
           'provider-disabled': !item.enabled,
+          'provider-streamloader': item.domain === 'streamloader',
         }"
         @click="editProvider(item.instance_id)"
         @menu="(evt) => onMenu(evt, item)"
@@ -84,7 +85,8 @@
               v-if="isProviderSyncing(item.instance_id)"
               icon="mdi-sync"
               size="20"
-              color="grey"
+              color="primary"
+              class="provider-sync-icon"
               :title="$t('settings.sync_running')"
             />
             <v-icon
@@ -141,7 +143,10 @@
       >
         <v-card
           class="flex-fill rounded-lg provider-card d-flex flex-column"
-          :class="{ 'player-provider-card': item.type === ProviderType.PLAYER }"
+          :class="{
+            'player-provider-card': item.type === ProviderType.PLAYER,
+            'provider-streamloader-card': item.domain === 'streamloader',
+          }"
           min-height="200px"
           @click="editProvider(item.instance_id)"
         >
@@ -162,7 +167,9 @@
               icon
               :title="$t('settings.sync_running')"
             >
-              <v-icon color="grey"> mdi-sync </v-icon>
+              <v-icon color="primary" class="provider-sync-icon">
+                mdi-sync
+              </v-icon>
             </v-btn>
 
             <!-- provider disabled -->
@@ -270,7 +277,12 @@
     </v-row>
 
     <div v-if="getAllFilteredProviders().length === 0" class="empty-state">
-      <v-icon icon="mdi-puzzle-outline" size="64" class="empty-icon" />
+      <v-icon
+        icon="mdi-puzzle-outline"
+        size="64"
+        color="primary"
+        class="empty-icon"
+      />
       <div class="empty-title">{{ $t("no_content") }}</div>
       <div class="empty-message">
         {{ $t("no_content_filter") }}
@@ -764,8 +776,8 @@ const getAllFilteredProviders = function () {
 }
 
 .empty-icon {
-  color: rgba(var(--v-theme-on-surface), 0.3);
   margin-bottom: 16px;
+  opacity: 0.85;
 }
 
 .empty-title {
@@ -779,5 +791,84 @@ const getAllFilteredProviders = function () {
   font-size: 14px;
   color: rgba(var(--v-theme-on-surface), 0.5);
   line-height: 1.4;
+}
+
+/* Page header polish */
+.providers-total {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  color: rgba(var(--v-theme-on-surface), 0.65);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* Streamloader provider — subtle home-provider treatment (list view) */
+.provider-streamloader {
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--v-theme-primary), 0.06) 0%,
+    rgba(var(--v-theme-primary), 0) 60%
+  );
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.provider-streamloader::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: rgb(var(--v-theme-primary));
+}
+
+.provider-streamloader:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--v-theme-primary), 0.1) 0%,
+    rgba(var(--v-theme-primary), 0) 70%
+  );
+}
+
+/* Streamloader provider — card view */
+.provider-streamloader-card {
+  position: relative;
+  border: 1px solid rgba(var(--v-theme-primary), 0.35);
+  box-shadow: 0 0 0 1px rgba(var(--v-theme-primary), 0.05);
+}
+
+.provider-streamloader-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: rgb(var(--v-theme-primary));
+}
+
+.provider-streamloader-card:hover {
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.18),
+    0 0 0 1px rgba(var(--v-theme-primary), 0.4);
+}
+
+/* Subtle spin so the teal sync icon reads as an active healthy state */
+.provider-sync-icon {
+  animation: provider-sync-spin 1.6s linear infinite;
+}
+
+@keyframes provider-sync-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

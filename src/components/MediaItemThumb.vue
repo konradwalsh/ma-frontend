@@ -1,14 +1,30 @@
 <template>
-  <v-img
-    loading="lazy"
-    :height="size || '100%'"
-    :width="size || '100%'"
-    aspect-ratio="1"
-    :src="imgData"
-    :class="{ rounded: rounded }"
-    contain
-    :lazy-src="theme.current.value.dark ? imgCoverDark : imgCoverLight"
-  />
+  <div class="media-item-thumb-wrapper">
+    <v-img
+      loading="lazy"
+      :height="size || '100%'"
+      :width="size || '100%'"
+      aspect-ratio="1"
+      :src="imgData"
+      :class="{ rounded: rounded }"
+      contain
+      :lazy-src="theme.current.value.dark ? imgCoverDark : imgCoverLight"
+    />
+    <!-- In Library badge (hoisted from wrappers so it appears everywhere
+         a cover is rendered: grid, list, carousels, search, etc.) -->
+    <div
+      v-if="
+        !hideInLibraryBadge &&
+        item &&
+        'in_library' in item &&
+        (item as any).in_library
+      "
+      class="in-library-badge"
+      :title="$t('in_library')"
+    >
+      <v-icon size="12" color="white">mdi-bookmark-check</v-icon>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -33,6 +49,7 @@ export interface Props {
   fallback?: string;
   rounded?: boolean;
   thumbnail?: boolean;
+  hideInLibraryBadge?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -41,6 +58,7 @@ const props = withDefaults(defineProps<Props>(), {
   fallback: undefined,
   rounded: true,
   thumbnail: true,
+  hideInLibraryBadge: false,
 });
 
 const theme = useTheme();
@@ -103,5 +121,30 @@ export const getAvatarImage = function (
 .v-avatar.v-avatar--density-default {
   height: 100% !important;
   width: 100% !important;
+}
+
+.media-item-thumb-wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* In-Library badge: small teal pill in the bottom-right corner of the cover.
+   Appears on every MediaItemThumb render (grid, list, carousels, search). */
+.in-library-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  z-index: 2;
 }
 </style>

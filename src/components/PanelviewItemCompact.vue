@@ -43,14 +43,6 @@
             :size="20"
           />
         </div>
-        <!-- In Library badge -->
-        <div
-          v-if="'in_library' in item && item.in_library"
-          class="in-library-badge"
-          :title="$t('in_library')"
-        >
-          <v-icon size="14" color="white">mdi-bookmark-check</v-icon>
-        </div>
         <!-- Now Playing Badge -->
         <NowPlayingBadge
           v-if="isPlaying"
@@ -246,23 +238,6 @@ const onPlayClick = function (evt: PointerEvent) {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-/* In-Library badge: small teal pill in the top-right corner of the cover */
-.in-library-badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
-  box-shadow: 0 1px 4px rgba(15, 118, 110, 0.5);
-  pointer-events: none;
 }
 
 .play-button-overlay {

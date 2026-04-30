@@ -4,7 +4,7 @@
       class="add-provider-dialog h-[60vh] max-h-[60vh] flex flex-col p-0"
     >
       <DialogHeader class="px-6 pt-6 pb-4 flex-shrink-0">
-        <DialogTitle>{{ dialogTitle }}</DialogTitle>
+        <DialogTitle class="add-provider-title">{{ dialogTitle }}</DialogTitle>
       </DialogHeader>
 
       <div class="px-6 pb-2 flex-shrink-0">
@@ -38,6 +38,11 @@
             v-for="provider in filteredProviders"
             :key="provider.domain"
             class="provider-item"
+            :class="{
+              'provider-item--streamloader': provider.domain === 'streamloader',
+              'provider-item--selected':
+                selectedDomain === provider.domain,
+            }"
             @click="addProvider(provider)"
           >
             <provider-icon
@@ -129,6 +134,7 @@ const providerConfigs = ref<ProviderConfig[]>([]);
 const searchQuery = ref("");
 const selectedProviderStages = ref<string[]>([]);
 const searchInput = ref<{ focus: () => void } | null>(null);
+const selectedDomain = ref<string | null>(null);
 
 const activeTypeFilter = computed(() => (route.query.types as string) || null);
 
@@ -234,6 +240,7 @@ const loadItems = async function () {
 };
 
 const addProvider = function (provider: ProviderManifest) {
+  selectedDomain.value = provider.domain;
   if (provider.depends_on) {
     if (!api.getProvider(provider.depends_on)) {
       const depProvName = api.getProviderName(provider.depends_on);
@@ -291,6 +298,7 @@ watch(
     if (!isOpen) {
       selectedProviderStages.value = [];
       searchQuery.value = "";
+      selectedDomain.value = null;
     }
 
     if (isOpen) {
@@ -310,8 +318,20 @@ watch(
   flex-direction: column;
 }
 
+.add-provider-title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
 .search-field {
   width: 100%;
+}
+
+.search-field :deep(input):focus-visible,
+.search-field :deep(input):focus {
+  outline: none;
+  border-color: rgba(var(--v-theme-primary), 0.6);
+  box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.18);
 }
 
 .filter-buttons {
@@ -332,8 +352,11 @@ watch(
   gap: 12px;
   padding: 12px;
   border-radius: 8px;
+  border: 1px solid transparent;
   transition:
     background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
     transform 0.2s ease;
   cursor: pointer;
 }
@@ -341,6 +364,24 @@ watch(
 .provider-item:hover {
   background-color: rgba(var(--v-theme-primary), 0.04);
   transform: translateY(-1px);
+}
+
+/* Streamloader-branded provider tile: subtle teal accent on hover + faint glow on the icon */
+.provider-item--streamloader:hover {
+  background-color: rgba(var(--v-theme-primary), 0.08);
+  border-color: rgba(var(--v-theme-primary), 0.35);
+}
+
+.provider-item--streamloader:hover .provider-icon {
+  filter: drop-shadow(0 0 6px rgba(var(--v-theme-primary), 0.45));
+}
+
+/* Selected (clicked) state — teal border + tint to confirm the pick */
+.provider-item--selected,
+.provider-item--selected:hover {
+  background-color: rgba(var(--v-theme-primary), 0.1);
+  border-color: rgba(var(--v-theme-primary), 0.55);
+  box-shadow: 0 0 0 1px rgba(var(--v-theme-primary), 0.25);
 }
 
 .provider-icon {
@@ -392,7 +433,7 @@ watch(
 .empty-icon {
   width: 48px;
   height: 48px;
-  color: rgba(var(--v-theme-on-surface), 0.3);
+  color: rgba(var(--v-theme-primary), 0.45);
   margin-bottom: 16px;
 }
 

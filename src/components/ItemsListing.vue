@@ -157,26 +157,33 @@
       </v-infinite-scroll>
 
       <!-- show alert if no item found -->
-      <div v-if="!loading && pagedItems.length == 0">
-        <v-alert
-          v-if="
-            !loading &&
-            pagedItems.length == 0 &&
-            (params.search || params.favoritesOnly)
-          "
-          :title="$t('no_content_filter')"
+      <div v-if="!loading && pagedItems.length == 0" class="empty-state">
+        <div
+          v-if="params.search || params.favoritesOnly"
+          class="empty-state__inner"
         >
+          <v-icon class="empty-state__icon" size="48">
+            {{
+              params.search ? "mdi-magnify-close" : "mdi-heart-off-outline"
+            }}
+          </v-icon>
+          <div class="empty-state__title">{{ $t("no_content_filter") }}</div>
           <v-btn
             v-if="params.search"
-            style="margin-top: 15px"
+            color="primary"
+            variant="tonal"
+            class="empty-state__action"
             @click="redirectSearch"
           >
             {{ $t("try_global_search") }}
           </v-btn>
-        </v-alert>
-        <v-alert v-else-if="!loading && pagedItems.length == 0">
-          {{ $t("no_content") }}
-        </v-alert>
+        </div>
+        <div v-else class="empty-state__inner">
+          <v-icon class="empty-state__icon" size="48">
+            mdi-music-note-off
+          </v-icon>
+          <div class="empty-state__title">{{ $t("no_content") }}</div>
+        </div>
       </div>
 
       <!-- box shown when item(s) selected -->
@@ -1725,5 +1732,66 @@ defineExpose({
   max-width: 10%;
   flex-basis: 10%;
   padding: 8px;
+}
+
+/* Streamloader: teal-tint search input focus */
+:deep(#searchInput) {
+  caret-color: rgb(var(--v-theme-primary));
+}
+:deep(.v-field--focused .v-field__outline) {
+  --v-field-border-opacity: 1;
+}
+:deep(.v-field--focused) {
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.35);
+  transition: box-shadow 200ms ease;
+}
+
+/* Streamloader: teal-tint skeleton pulse */
+:deep(.v-skeleton-loader__bone) {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(45, 212, 191, 0.04) 0%,
+      rgba(45, 212, 191, 0.12) 50%,
+      rgba(45, 212, 191, 0.04) 100%
+    ) !important;
+}
+
+/* Streamloader: empty state */
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+}
+.empty-state__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  max-width: 360px;
+}
+.empty-state__icon {
+  color: rgb(var(--v-theme-primary)) !important;
+  opacity: 0.85;
+  background: rgba(45, 212, 191, 0.08);
+  border-radius: 50%;
+  padding: 18px;
+  width: 84px;
+  height: 84px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.empty-state__title {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: rgba(var(--v-theme-on-surface), 0.85);
+  letter-spacing: 0.01em;
+}
+.empty-state__action {
+  margin-top: 6px;
+  border-radius: 999px;
 }
 </style>

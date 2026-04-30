@@ -30,14 +30,6 @@
       </div>
       <div v-else class="media-thumb listitem-media-thumb">
         <MediaItemThumb size="50" :item="isAvailable ? item : undefined" />
-        <!-- In Library badge -->
-        <div
-          v-if="'in_library' in item && item.in_library"
-          class="in-library-badge"
-          :title="$t('in_library')"
-        >
-          <v-icon size="12" color="white">mdi-bookmark-check</v-icon>
-        </div>
       </div>
     </template>
 
@@ -396,21 +388,5 @@ const onPlayClick = function (evt: PointerEvent) {
 
 .listitem-media-thumb {
   position: relative;
-}
-
-.in-library-badge {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-  pointer-events: none;
-  z-index: 2;
 }
 </style>
