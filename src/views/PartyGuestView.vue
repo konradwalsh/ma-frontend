@@ -1,8 +1,14 @@
 <template>
   <div class="guest-view">
-    <!-- Logo -->
+    <!-- streamloader-branded welcome header -->
     <div class="guest-logo">
-      <img :src="logoSrc" alt="Music Assistant" class="logo-img" />
+      <img
+        :src="streamloaderMarkSrc"
+        alt=""
+        class="brand-mark"
+        aria-hidden="true"
+      />
+      <span class="brand-wordmark">streamloader</span>
     </div>
 
     <!-- Search Section -->
@@ -234,14 +240,12 @@ import {
   watch,
 } from "vue";
 import { toast } from "vue-sonner";
-import { useTheme } from "vuetify";
 const searchBarRef = ref<InstanceType<typeof PartySearchBar> | null>(null);
-const theme = useTheme();
-const logoSrc = computed(() =>
-  theme.current.value.dark
-    ? new URL("@/assets/logo/logo.svg", import.meta.url).href
-    : new URL("@/assets/logo/logo-dark.svg", import.meta.url).href,
-);
+// streamloader brand mark used in the guest welcome header
+const streamloaderMarkSrc = new URL(
+  "@/assets/streamloader-mark.svg",
+  import.meta.url,
+).href;
 
 // --- Composables ---
 const { config: partyConfig, fetchConfig } = usePartyConfig();
@@ -600,21 +604,35 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* streamloader-branded welcome header */
 .guest-logo {
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 0.55rem;
   padding-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   flex-shrink: 0;
 }
 
-.logo-img {
+.brand-mark {
   height: 28px;
   width: auto;
-  opacity: 0.85;
-  margin-bottom: 1rem;
+  /* subtle teal halo around the streamloader mark */
+  filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.35));
+}
+
+.brand-wordmark {
+  /* lowercase wordmark per streamloader brand */
+  text-transform: lowercase;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: rgb(var(--v-theme-primary));
 }
 
 .guest-view {
+  position: relative;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
@@ -626,6 +644,27 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+}
+
+/* Soft streamloader teal halo so the guest view always reads as branded,
+   even when the page is opened standalone via the QR code. */
+.guest-view::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(
+      ellipse 60% 40% at 50% -10%,
+      rgba(45, 212, 191, 0.12),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 40% 30% at 50% 110%,
+      rgba(15, 118, 110, 0.08),
+      transparent 70%
+    );
 }
 
 .section-header {
@@ -642,7 +681,14 @@ onBeforeUnmount(() => {
   font-weight: 600;
   margin: 0;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid rgba(var(--v-theme-primary), 0.2);
+  /* streamloader teal accent — gradient gives the underline a brand glow */
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(
+      90deg,
+      rgba(var(--v-theme-primary), 0.55),
+      rgba(var(--v-theme-primary), 0.05)
+    )
+    1;
   flex: 1;
 }
 
@@ -695,24 +741,44 @@ onBeforeUnmount(() => {
 }
 
 .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   padding: 4rem 2rem;
-  opacity: 0.6;
+  gap: 0.75rem;
+}
+
+/* Teal halo on the empty-state icon — friendly and clearly streamloader */
+.empty-state :deep(svg) {
+  color: rgb(var(--v-theme-primary));
+  opacity: 0.85;
+  filter: drop-shadow(0 0 18px rgba(45, 212, 191, 0.35));
 }
 
 .empty-state p {
   font-size: 1.125rem;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
+  opacity: 0.85;
 }
 
 .empty-hint {
   font-size: 0.875rem;
-  opacity: 0.7;
+  opacity: 0.65;
 }
 
 @media (max-width: 768px) {
-  .logo-img {
-    height: 25px;
+  .brand-mark {
+    height: 24px;
+  }
+
+  .brand-wordmark {
+    font-size: 1.1rem;
+  }
+
+  .guest-logo {
+    padding-bottom: 0.4rem;
     margin-bottom: 0.2rem;
   }
 

@@ -103,7 +103,9 @@
           class="karaoke-qr"
           :style="swapped ? { left: 'auto', right: '2vw' } : undefined"
         >
-          <PartyQR :qr-dark="qrDarkColor" @available="qrAvailable = $event" />
+          <div class="qr-glow-frame qr-glow-frame--karaoke">
+            <PartyQR :qr-dark="qrDarkColor" @available="qrAvailable = $event" />
+          </div>
         </div>
 
         <div
@@ -137,7 +139,9 @@
             v-if="!store.curQueueItem && !visibleItems.length"
             class="empty-state empty-state--karaoke"
           >
-            <Music :size="60" class="empty-icon" />
+            <div class="empty-icon-halo empty-icon-halo--small">
+              <Music :size="60" class="empty-icon" />
+            </div>
             <h2 class="empty-title">
               {{ $t("providers.party.nothing_playing") }}
             </h2>
@@ -180,7 +184,15 @@
             class="qr-wrapper"
             :style="swapped && displayLyrics ? { order: 1 } : undefined"
           >
-            <PartyQR :qr-dark="qrDarkColor" @available="qrAvailable = $event" />
+            <div class="qr-glow-frame">
+              <PartyQR :qr-dark="qrDarkColor" @available="qrAvailable = $event" />
+              <img
+                :src="streamloaderMarkSrc"
+                alt=""
+                class="qr-brand-mark"
+                aria-hidden="true"
+              />
+            </div>
           </div>
           <div
             v-if="displayLyrics"
@@ -211,10 +223,13 @@
             v-if="!store.curQueueItem && !visibleItems.length"
             class="empty-state"
           >
-            <Music :size="120" class="empty-icon" />
+            <div class="empty-icon-halo">
+              <Music :size="120" class="empty-icon" />
+            </div>
             <h2 class="empty-title">
               {{ $t("providers.party.nothing_playing") }}
             </h2>
+            <div class="empty-divider" aria-hidden="true"></div>
             <p class="empty-message">
               {{ $t("providers.party.get_started") }}
             </p>
@@ -334,6 +349,10 @@ const { config: partyConfig, fetchConfig } = usePartyConfig();
 const logoSrc = new URL("@/assets/logo/logo.svg", import.meta.url).href;
 const logoDarkSrc = new URL("@/assets/logo/logo-dark.svg", import.meta.url)
   .href;
+const streamloaderMarkSrc = new URL(
+  "@/assets/streamloader-mark.svg",
+  import.meta.url,
+).href;
 
 const refreshPartyPlayer = async () => {
   const partyPlayerId = await api.sendCommand<string | null>("party/player");
@@ -984,6 +1003,57 @@ watch(
   justify-content: center;
 }
 
+/* Streamloader-branded teal glow around the QR card */
+.qr-glow-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 0.75rem;
+  border-radius: 1.25rem;
+  background: radial-gradient(
+    circle at center,
+    rgba(45, 212, 191, 0.18) 0%,
+    rgba(45, 212, 191, 0.06) 55%,
+    transparent 75%
+  );
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.18),
+    0 0 32px rgba(45, 212, 191, 0.18),
+    0 0 80px rgba(45, 212, 191, 0.08);
+  transition: box-shadow 0.4s ease;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.qr-glow-frame:hover {
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.28),
+    0 0 40px rgba(45, 212, 191, 0.28),
+    0 0 100px rgba(45, 212, 191, 0.12);
+}
+
+.qr-glow-frame--karaoke {
+  padding: 0.4rem;
+  gap: 0.4rem;
+  border-radius: 0.85rem;
+}
+
+.qr-brand-mark {
+  width: clamp(28px, 4vw, 56px);
+  height: auto;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.45));
+  user-select: none;
+  pointer-events: none;
+}
+
+.party-content--light-text .qr-brand-mark {
+  filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.6));
+}
+
 .qr-section--with-lyrics {
   flex-direction: column;
   height: 100%;
@@ -1052,22 +1122,76 @@ watch(
   animation: fadeIn 0.6s ease-in-out;
 }
 
+.empty-icon-halo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  margin-bottom: 1.75rem;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    rgba(45, 212, 191, 0.22) 0%,
+    rgba(45, 212, 191, 0.08) 55%,
+    transparent 80%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(45, 212, 191, 0.18),
+    0 0 40px rgba(45, 212, 191, 0.12);
+  animation: emptyHaloPulse 4s ease-in-out infinite;
+}
+
+.empty-icon-halo--small {
+  padding: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
 .empty-icon {
-  opacity: 0.5;
-  margin-bottom: 1.5rem;
+  opacity: 0.85;
+  color: #2dd4bf;
 }
 
 .empty-title {
-  font-size: 2rem;
-  font-weight: 600;
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
   margin-bottom: 1rem;
-  color: rgba(var(--v-theme-on-surface), 0.9);
+  color: rgba(var(--v-theme-on-surface), 0.95);
+  line-height: 1.15;
+}
+
+.empty-divider {
+  width: clamp(60px, 8vw, 120px);
+  height: 2px;
+  margin: 0.25rem auto 1.25rem;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(45, 212, 191, 0.6) 50%,
+    transparent 100%
+  );
+  border-radius: 9999px;
 }
 
 .empty-message {
-  font-size: 1.25rem;
-  color: rgba(var(--v-theme-on-surface), 0.7);
-  max-width: 500px;
+  font-size: clamp(1.1rem, 1.5vw, 1.5rem);
+  color: rgba(var(--v-theme-on-surface), 0.75);
+  max-width: 600px;
+  line-height: 1.5;
+}
+
+@keyframes emptyHaloPulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 1px rgba(45, 212, 191, 0.18),
+      0 0 40px rgba(45, 212, 191, 0.12);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px rgba(45, 212, 191, 0.28),
+      0 0 64px rgba(45, 212, 191, 0.2);
+  }
 }
 
 @keyframes fadeIn {

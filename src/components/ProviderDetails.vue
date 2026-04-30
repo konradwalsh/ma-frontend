@@ -4,6 +4,7 @@
       :title="$t('mapped_providers')"
       :menu-items="toolbarMenuItems"
       @title-clicked="toggleExpand"
+      class="provider-details-toolbar"
     />
     <v-divider />
     <Container v-if="expanded">
@@ -15,6 +16,10 @@
             !providerMapping.available ||
             !api.getProvider(providerMapping.provider_instance)
           "
+          :class="{
+            'provider-mapping-streamloader':
+              providerMapping.provider_domain === 'streamloader',
+          }"
           show-menu-btn
           @menu.stop="(evt) => onMenu(evt, providerMapping)"
         >
@@ -30,10 +35,38 @@
               v-if="providerMapping.in_library"
               size="x-small"
               density="compact"
-              class="ml-2"
+              class="ml-2 quality-pill"
               :title="$t('tooltip.in_provider_library')"
             >
               {{ $t("library") }}
+            </v-chip>
+            <v-chip
+              v-if="
+                providerMapping.audio_format &&
+                providerMapping.audio_format.bit_depth > 16
+              "
+              size="x-small"
+              density="compact"
+              class="ml-2 quality-pill quality-pill-hires"
+              :title="$t('tooltip.hires_audio') || 'Hi-Res'"
+            >
+              Hi-Res
+            </v-chip>
+            <v-chip
+              v-else-if="
+                providerMapping.audio_format &&
+                ['flac', 'alac', 'wav', 'aiff'].includes(
+                  String(
+                    providerMapping.audio_format.content_type,
+                  ).toLowerCase(),
+                )
+              "
+              size="x-small"
+              density="compact"
+              class="ml-2 quality-pill quality-pill-lossless"
+              :title="$t('tooltip.lossless_audio') || 'Lossless'"
+            >
+              Lossless
             </v-chip>
           </template>
           <template #subtitle>
@@ -325,5 +358,65 @@ const toolbarMenuItems = computed(() => {
   margin-top: 5px;
   margin-right: 15px;
   margin-left: 15px;
+}
+
+/* Section header typography polish */
+.provider-details-toolbar :deep(.toolbar-title),
+.provider-details-toolbar :deep(.v-toolbar-title) {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+/* Streamloader provider row — subtle teal accent matching Settings/Providers.vue */
+.provider-mapping-streamloader {
+  position: relative;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--v-theme-primary), 0.06) 0%,
+    rgba(var(--v-theme-primary), 0) 60%
+  );
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.provider-mapping-streamloader::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: rgb(var(--v-theme-primary));
+  z-index: 1;
+}
+
+.provider-mapping-streamloader:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--v-theme-primary), 0.1) 0%,
+    rgba(var(--v-theme-primary), 0) 70%
+  );
+}
+
+/* Quality / library pill styling — subtle teal-tinted */
+.quality-pill.v-chip {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  border: 1px solid rgba(var(--v-theme-primary), 0.35);
+  background: rgba(var(--v-theme-primary), 0.08);
+  color: rgb(var(--v-theme-primary));
+}
+
+.quality-pill-hires.v-chip {
+  border-color: rgba(var(--v-theme-primary), 0.55);
+  background: rgba(var(--v-theme-primary), 0.14);
+}
+
+.quality-pill-lossless.v-chip {
+  border-color: rgba(var(--v-theme-primary), 0.4);
+  background: rgba(var(--v-theme-primary), 0.06);
 }
 </style>

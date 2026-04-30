@@ -44,14 +44,14 @@
 
 :root {
   --radius: 0.625rem;
-  /* Light theme - matching Vuetify light */
+  /* Light theme - matching Vuetify light (streamloader teal brand) */
   --background: #f5f5f5;
   --foreground: #000000;
   --card: #ffffff;
   --card-foreground: #000000;
   --popover: #ffffff;
   --popover-foreground: #000000;
-  --primary: #03a9f4;
+  --primary: #0f766e;
   --primary-foreground: #ffffff;
   --secondary: #e7e7e7;
   --secondary-foreground: #000000;
@@ -62,8 +62,8 @@
   --destructive: #d23939;
   --border: #d4d4d4;
   --input: #d4d4d4;
-  --ring: #03a9f4;
-  --chart-1: #03a9f4;
+  --ring: #0f766e;
+  --chart-1: #0f766e;
   --chart-2: #4caf50;
   --chart-3: #ff9800;
   --chart-4: #9c27b0;
@@ -79,15 +79,15 @@
 }
 
 .dark {
-  /* Dark theme - matching Vuetify dark */
+  /* Dark theme - matching Vuetify dark (streamloader teal brand) */
   --background: #181818;
   --foreground: #ffffff;
   --card: #232323;
   --card-foreground: #ffffff;
   --popover: #232323;
   --popover-foreground: #ffffff;
-  --primary: #03a9f4;
-  --primary-foreground: #ffffff;
+  --primary: #2dd4bf;
+  --primary-foreground: #06342f;
   --secondary: #2d2d2d;
   --secondary-foreground: #ffffff;
   --muted: #2d2d2d;
@@ -97,8 +97,8 @@
   --destructive: #ef4444;
   --border: #3d3d3d;
   --input: #3d3d3d;
-  --ring: #03a9f4;
-  --chart-1: #03a9f4;
+  --ring: #2dd4bf;
+  --chart-1: #2dd4bf;
   --chart-2: #4caf50;
   --chart-3: #ff9800;
   --chart-4: #9c27b0;

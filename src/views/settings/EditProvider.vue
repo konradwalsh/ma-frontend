@@ -23,10 +23,22 @@
       </v-alert>
 
       <!-- Header card -->
-      <v-card class="header-card mb-4" elevation="0">
+      <v-card
+        class="header-card mb-4"
+        :class="{ 'header-card-streamloader': isStreamloader }"
+        elevation="0"
+      >
         <div class="header-content">
           <div class="header-icon">
-            <provider-icon :domain="config.domain" :size="48" />
+            <img
+              v-if="isStreamloader"
+              :src="streamloaderMark"
+              alt="Streamloader"
+              class="streamloader-mark"
+              width="48"
+              height="48"
+            />
+            <provider-icon v-else :domain="config.domain" :size="48" />
           </div>
           <div class="header-info">
             <div class="header-title-row">
@@ -37,6 +49,9 @@
                   api.providerManifests[config.domain].name
                 }}
               </h2>
+              <span v-if="isStreamloader" class="streamloader-wordmark"
+                >streamloader</span
+              >
               <v-btn
                 icon="mdi-pencil"
                 variant="text"
@@ -76,14 +91,19 @@
       </v-card>
     </div>
 
-    <edit-config
+    <div
       v-if="config"
-      :config-entries="allConfigEntries"
-      :disabled="!config.enabled"
-      @submit="onSubmit"
-      @action="onAction"
-      @immediate-apply="onImmediateApply"
-    />
+      class="edit-config-wrapper"
+      :class="{ 'edit-config-wrapper-streamloader': isStreamloader }"
+    >
+      <edit-config
+        :config-entries="allConfigEntries"
+        :disabled="!config.enabled"
+        @submit="onSubmit"
+        @action="onAction"
+        @immediate-apply="onImmediateApply"
+      />
+    </div>
 
     <!-- Rename dialog -->
     <v-dialog v-model="showRenameDialog" max-width="400">
@@ -139,6 +159,7 @@
 
 <script setup lang="ts">
 import ProviderIcon from "@/components/ProviderIcon.vue";
+import streamloaderMark from "@/assets/streamloader-mark.svg";
 import { markdownToHtml } from "@/helpers/utils";
 import { api } from "@/plugins/api";
 import {
@@ -171,6 +192,10 @@ const props = defineProps<{
 const allConfigEntries = computed(() => {
   if (!config.value) return [];
   return Object.values(config.value.values);
+});
+
+const isStreamloader = computed(() => {
+  return config.value?.domain === "streamloader";
 });
 
 onMounted(() => {
@@ -354,6 +379,52 @@ const saveRename = function () {
 .header-card {
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
   border-radius: 12px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+/* Streamloader-aware header treatment */
+.header-card-streamloader {
+  position: relative;
+  border-color: rgba(var(--v-theme-primary), 0.4);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--v-theme-primary), 0.06) 0%,
+    rgba(var(--v-theme-primary), 0) 60%
+  );
+  box-shadow: 0 0 0 1px rgba(var(--v-theme-primary), 0.05);
+}
+
+.header-card-streamloader::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 16px;
+  bottom: 16px;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: rgb(var(--v-theme-primary));
+}
+
+.streamloader-mark {
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.streamloader-wordmark {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgb(var(--v-theme-primary));
+  padding: 2px 8px;
+  border: 1px solid rgba(var(--v-theme-primary), 0.4);
+  border-radius: 4px;
+  background: rgba(var(--v-theme-primary), 0.08);
+  margin-left: 4px;
 }
 
 .header-content {
@@ -383,6 +454,7 @@ const saveRename = function () {
   font-weight: 600;
   margin: 0;
   color: rgb(var(--v-theme-on-surface));
+  letter-spacing: 0.2px;
 }
 
 .rename-btn {
@@ -403,9 +475,9 @@ const saveRename = function () {
 
 .header-description {
   font-size: 0.875rem;
-  color: rgba(var(--v-theme-on-surface), 0.7);
+  color: rgba(var(--v-theme-on-surface), 0.72);
   margin: 0 0 12px 0;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .header-authors {
@@ -422,10 +494,47 @@ const saveRename = function () {
   text-decoration: underline;
 }
 
+/* Edit config wrapper — subtle teal section dividers + form polish */
+.edit-config-wrapper :deep(.v-divider) {
+  border-color: rgba(var(--v-theme-primary), 0.18);
+  opacity: 0.85;
+}
+
+.edit-config-wrapper :deep(.v-list-subheader),
+.edit-config-wrapper :deep(.v-card-title) {
+  letter-spacing: 0.3px;
+  font-weight: 600;
+}
+
+/* Inline help / hint text — slightly stronger contrast for legibility */
+.edit-config-wrapper :deep(.v-messages),
+.edit-config-wrapper :deep(.v-input__details) {
+  font-size: 0.78rem;
+  letter-spacing: 0.15px;
+  line-height: 1.45;
+}
+
+/* Streamloader-specific polish: a tiny accent on each section header */
+.edit-config-wrapper-streamloader :deep(.v-list-subheader)::before,
+.edit-config-wrapper-streamloader :deep(.v-card-title)::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 0.9em;
+  background: rgb(var(--v-theme-primary));
+  border-radius: 2px;
+  margin-right: 8px;
+  vertical-align: -2px;
+}
+
 @media (max-width: 600px) {
   .header-content {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .streamloader-wordmark {
+    margin-left: 0;
   }
 }
 </style>
