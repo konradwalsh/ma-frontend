@@ -157,7 +157,7 @@
           :disabled="!hasChanges || updating"
           :loading="updating"
         >
-          {{ $t("auth.save_changes") || "Save changes" }}
+          {{ te("auth.save_changes") ? $t("auth.save_changes") : "Save changes" }}
         </Button>
       </Field>
     </CardFooter>
@@ -200,7 +200,7 @@
           {{ $t("cancel") }}
         </Button>
         <Button color="primary" @click="handleAvatarChange">
-          {{ $t("auth.save_changes") || "Save changes" }}
+          {{ te("auth.save_changes") ? $t("auth.save_changes") : "Save changes" }}
         </Button>
       </DialogFooter>
     </DialogContent>
@@ -245,7 +245,7 @@ import { profileSettingsSchema } from "@/lib/forms/profile";
 import { api } from "@/plugins/api";
 import { store } from "@/plugins/store";
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 
 const user = computed(() => store.currentUser);
 const isIngressSession = computed(() => store.isIngressSession);

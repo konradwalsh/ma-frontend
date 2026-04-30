@@ -31,7 +31,7 @@ defineProps<{
     v-if="column.getCanSort()"
     :class="
       cn(
-        'flex items-center',
+        'data-table-column-header flex items-center',
         align === 'right' ? 'justify-end' : '',
         $attrs.class ?? '',
       )
@@ -44,21 +44,22 @@ defineProps<{
           size="sm"
           :class="
             cn(
-              'h-8 data-[state=open]:bg-accent',
+              'dtch-trigger h-8 data-[state=open]:bg-accent',
               align === 'right' ? '-mr-3' : '-ml-3',
+              column.getIsSorted() ? 'is-sorted' : '',
             )
           "
         >
           <span>{{ title }}</span>
           <ArrowDown
             v-if="column.getIsSorted() === 'desc'"
-            class="ml-2 size-4"
+            class="dtch-sort-icon ml-2 size-4"
           />
           <ArrowUp
             v-else-if="column.getIsSorted() === 'asc'"
-            class="ml-2 size-4"
+            class="dtch-sort-icon ml-2 size-4"
           />
-          <ChevronsUpDown v-else class="ml-2 size-4" />
+          <ChevronsUpDown v-else class="dtch-idle-icon ml-2 size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
@@ -84,3 +85,58 @@ defineProps<{
     {{ title }}
   </div>
 </template>
+
+<style>
+.data-table-column-header .dtch-trigger {
+  position: relative;
+  transition:
+    color 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    background-color 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.data-table-column-header .dtch-trigger .dtch-sort-icon,
+.data-table-column-header .dtch-trigger .dtch-idle-icon {
+  transition:
+    color 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.data-table-column-header .dtch-trigger.is-sorted .dtch-sort-icon {
+  color: #2dd4bf;
+}
+
+@media (prefers-color-scheme: light) {
+  .data-table-column-header .dtch-trigger.is-sorted .dtch-sort-icon {
+    color: #0f766e;
+  }
+}
+
+@media (hover: hover) {
+  .data-table-column-header .dtch-trigger:hover {
+    background-color: rgba(45, 212, 191, 0.08);
+    color: #2dd4bf;
+  }
+  .data-table-column-header .dtch-trigger:hover .dtch-sort-icon,
+  .data-table-column-header .dtch-trigger:hover .dtch-idle-icon {
+    color: #2dd4bf;
+    transform: translateY(-1px);
+  }
+}
+
+.data-table-column-header .dtch-trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.55);
+  border-radius: 6px;
+}
+
+@media (hover: none) {
+  .data-table-column-header .dtch-trigger:hover {
+    background-color: transparent;
+    color: inherit;
+  }
+  .data-table-column-header .dtch-trigger:hover .dtch-sort-icon,
+  .data-table-column-header .dtch-trigger:hover .dtch-idle-icon {
+    transform: none;
+  }
+}
+</style>

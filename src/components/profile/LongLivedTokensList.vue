@@ -70,7 +70,7 @@
                   class="size-1.5 rounded-full bg-[#0f766e] dark:bg-[#2dd4bf]"
                   aria-hidden="true"
                 />
-                {{ $t("auth.active") || "Active" }}
+                {{ te("auth.active") ? $t("auth.active") : "Active" }}
               </span>
             </div>
             <div class="text-sm text-muted-foreground flex flex-wrap gap-2">
@@ -86,7 +86,7 @@
           <Button
             variant="ghost"
             size="icon"
-            :aria-label="$t('auth.revoke_token') || 'Revoke token'"
+            :aria-label="te('auth.revoke_token') ? $t('auth.revoke_token') : 'Revoke token'"
             class="text-red-600 hover:text-red-700 hover:bg-red-500/10 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-500/15"
             @click.stop="emit('revoke', token)"
           >
@@ -117,7 +117,7 @@ import { Key, Plus, Trash2 } from "lucide-vue-next";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 
 defineProps<{
   tokens: AuthToken[];

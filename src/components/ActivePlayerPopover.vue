@@ -148,13 +148,26 @@ onUnmounted(() => {
 .player-tip .tip-player-name {
   font-weight: 600;
   font-size: 0.95rem;
-  color: rgb(var(--v-theme-primary));
+  letter-spacing: 0.01em;
+  color: #0f766e;
+}
+
+.v-theme--dark .player-tip .tip-player-name {
+  color: #2dd4bf;
 }
 
 .player-tip .tip-hint {
   font-size: 0.7rem;
   opacity: 0.7;
   margin-top: 4px;
+}
+
+/* Subtle teal halo around the tip itself for brand polish */
+.player-tip {
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.35),
+    0 8px 28px rgba(45, 212, 191, 0.18);
+  transition: box-shadow 0.22s cubic-bezier(0.34, 1.36, 0.64, 1);
 }
 
 .player-tip .tip-arrow {

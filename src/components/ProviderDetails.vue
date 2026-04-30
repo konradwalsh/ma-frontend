@@ -48,7 +48,7 @@
               size="x-small"
               density="compact"
               class="ml-2 quality-pill quality-pill-hires"
-              :title="$t('tooltip.hires_audio') || 'Hi-Res'"
+              :title="te('tooltip.hires_audio') ? $t('tooltip.hires_audio') : 'Hi-Res'"
             >
               Hi-Res
             </v-chip>
@@ -64,7 +64,7 @@
               size="x-small"
               density="compact"
               class="ml-2 quality-pill quality-pill-lossless"
-              :title="$t('tooltip.lossless_audio') || 'Lossless'"
+              :title="te('tooltip.lossless_audio') ? $t('tooltip.lossless_audio') : 'Lossless'"
             >
               Lossless
             </v-chip>
@@ -194,7 +194,7 @@ export interface Props {
 }
 const props = defineProps<Props>();
 
-const { t } = useI18n();
+const { t, te } = useI18n();
 const expanded = ref(false);
 const mappingSearchInProgress = ref(false);
 

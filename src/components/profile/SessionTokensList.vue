@@ -55,7 +55,7 @@
                   class="size-1.5 rounded-full bg-[#0f766e] dark:bg-[#2dd4bf] animate-pulse"
                   aria-hidden="true"
                 />
-                {{ $t("auth.current_session") || "Current session" }}
+                {{ te("auth.current_session") ? $t("auth.current_session") : "Current session" }}
               </span>
             </div>
             <div class="text-sm text-muted-foreground flex flex-wrap gap-2">
@@ -72,7 +72,7 @@
             v-if="!isCurrentSession(token)"
             variant="ghost"
             size="icon"
-            :aria-label="$t('auth.revoke_session') || 'Revoke session'"
+            :aria-label="te('auth.revoke_session') ? $t('auth.revoke_session') : 'Revoke session'"
             class="text-red-600 hover:text-red-700 hover:bg-red-500/10 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-500/15"
             @click.stop="emit('revoke', token)"
           >
@@ -97,6 +97,9 @@ import type { AuthToken } from "@/plugins/api/interfaces";
 import { authManager } from "@/plugins/auth";
 import { Monitor, MonitorOff, Trash2 } from "lucide-vue-next";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { te } = useI18n();
 
 defineProps<{
   tokens: AuthToken[];

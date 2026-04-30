@@ -197,6 +197,14 @@ initializeFromUrl();
   flex: 1 1 auto;
   min-width: 250px;
   max-width: 400px;
+  border-radius: 8px;
+  transition: box-shadow 0.18s cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.search-field:focus-within {
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.55),
+    0 0 0 4px rgba(45, 212, 191, 0.15);
 }
 
 .filter-buttons {
@@ -208,12 +216,53 @@ initializeFromUrl();
 
 .filter-buttons .v-btn {
   min-width: 100px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
   border-color: rgba(var(--v-theme-on-surface), 0.2);
-  color: rgba(var(--v-theme-on-surface), 0.6);
+  color: rgba(var(--v-theme-on-surface), 0.7);
+  background-color: rgba(45, 212, 191, 0.05);
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s cubic-bezier(0.34, 1.36, 0.64, 1),
+    color 0.18s ease;
+}
+
+.filter-buttons .v-btn:hover {
+  background-color: rgba(45, 212, 191, 0.12);
+  border-color: rgba(45, 212, 191, 0.45);
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.filter-buttons .v-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.55),
+    0 0 0 4px rgba(45, 212, 191, 0.18);
 }
 
 .filter-buttons .v-btn .v-icon {
   color: rgba(var(--v-theme-on-surface), 0.6);
+  transition: color 0.18s ease;
+}
+
+.filter-buttons .v-btn:hover .v-icon {
+  color: #0f766e;
+}
+
+.v-theme--dark .filter-buttons .v-btn:hover .v-icon {
+  color: #2dd4bf;
+}
+
+@media (hover: none) {
+  .filter-buttons .v-btn:hover {
+    background-color: rgba(45, 212, 191, 0.05);
+    border-color: rgba(var(--v-theme-on-surface), 0.2);
+    color: rgba(var(--v-theme-on-surface), 0.7);
+  }
+  .filter-buttons .v-btn:hover .v-icon {
+    color: rgba(var(--v-theme-on-surface), 0.6);
+  }
 }
 
 .filter-btn {

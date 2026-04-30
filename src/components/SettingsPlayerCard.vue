@@ -89,7 +89,7 @@
           <span
             v-else
             class="status-dot status-dot--online"
-            :title="$t('settings.player_online') || 'Online'"
+            :title="te('settings.player_online') ? $t('settings.player_online') : 'Online'"
           />
         </div>
       </div>
@@ -103,6 +103,9 @@ import { api } from "@/plugins/api";
 import { PlayerConfig } from "@/plugins/api/interfaces";
 import { $t } from "@/plugins/i18n";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { te } = useI18n();
 
 const props = withDefaults(
   defineProps<{
