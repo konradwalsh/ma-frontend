@@ -105,11 +105,32 @@
             style="padding-left: 10px"
           />
           <v-card-title v-else>
-            <MarqueeText :sync="marqueeSync">
-              <div class="selectable">
-                {{ headerTitle }}
-              </div>
-            </MarqueeText>
+            <div class="sl-title-row">
+              <!-- Streamloader-fork addition: pulsing teal LIVE indicator
+                   for radio streams. Pure presentation dot — no data
+                   needed because radio is by definition a live source. -->
+              <span
+                v-if="item.media_type === MediaType.RADIO"
+                class="sl-live-indicator"
+                :title="$t('radio')"
+              >
+                <span class="sl-live-dot"></span>
+                <span class="sl-live-label">LIVE</span>
+              </span>
+              <MarqueeText :sync="marqueeSync">
+                <div class="selectable">
+                  {{ headerTitle }}
+                </div>
+              </MarqueeText>
+              <!-- Streamloader-fork addition: subtle teal PLAYLIST badge
+                   — playlist signature counterpart to album's vinyl
+                   reveal. Lightest-touch option (no cover overlay). -->
+              <span
+                v-if="item.media_type === MediaType.PLAYLIST"
+                class="sl-playlist-badge"
+                >PLAYLIST</span
+              >
+            </div>
           </v-card-title>
 
           <!-- other details -->
@@ -287,6 +308,60 @@
             </v-card-subtitle>
           </div>
 
+          <!-- Streamloader-fork addition: audiobook listening progress.
+               Shows a teal-tinted progress bar + "% listened" + "Resume
+               from chapter X" hint when resume_position_ms > 0 (uses
+               metadata.chapters[] to compute the chapter label). -->
+          <div
+            v-if="
+              item.media_type === MediaType.AUDIOBOOK &&
+              audiobookProgressPct !== null
+            "
+            class="sl-audiobook-progress"
+          >
+            <div class="sl-audiobook-progress-row">
+              <v-progress-linear
+                :model-value="audiobookProgressPct"
+                height="6"
+                rounded
+                color="primary"
+                bg-color="rgba(45, 212, 191, 0.15)"
+                class="sl-audiobook-bar"
+              />
+              <span class="sl-audiobook-pct"
+                >{{ Math.round(audiobookProgressPct) }}%</span
+              >
+            </div>
+            <div v-if="audiobookResumeChapter" class="sl-audiobook-resume">
+              <v-icon
+                size="14"
+                color="primary"
+                icon="mdi-play-circle-outline"
+              />
+              <span>{{ audiobookResumeChapter }}</span>
+            </div>
+          </div>
+
+          <!-- Streamloader-fork addition: podcast episode count chip.
+               Surfaces total_episodes when present. -->
+          <div
+            v-if="
+              item.media_type === MediaType.PODCAST &&
+              'total_episodes' in item &&
+              item.total_episodes
+            "
+            class="sl-podcast-meta"
+          >
+            <v-chip
+              size="small"
+              color="primary"
+              variant="tonal"
+              prepend-icon="mdi-podcast"
+            >
+              {{ item.total_episodes }} {{ $t("episodes") }}
+            </v-chip>
+          </div>
+
           <!-- play/info buttons -->
           <div
             style="
@@ -315,6 +390,26 @@
               @click="playButtonClick"
               @menu="playButtonClick(true)"
             />
+
+            <!-- Streamloader-fork addition: podcast subscribe toggle.
+                 No dedicated `subscribed` field on Podcast in interfaces.ts
+                 yet — re-uses MediaItem.favorite as the subscribe-state
+                 source-of-truth (matches MA's library-add semantics) but
+                 surfaces it as a labelled, teal-styled button so podcast
+                 details feel distinct from a generic "favorite this album". -->
+            <v-btn
+              v-if="item.media_type === MediaType.PODCAST"
+              :color="item.favorite ? 'primary' : 'default'"
+              :variant="item.favorite ? 'flat' : 'outlined'"
+              :prepend-icon="
+                item.favorite ? 'mdi-check-circle' : 'mdi-rss'
+              "
+              class="sl-podcast-subscribe"
+              style="margin-right: 8px; margin-bottom: 4px"
+              @click="api.toggleFavorite(item)"
+            >
+              {{ item.favorite ? $t("subscribed") : $t("subscribe") }}
+            </v-btn>
 
             <div class="flex items-center gap-2">
               <!-- favorite (heart) icon -->
@@ -448,6 +543,7 @@ import { api } from "@/plugins/api";
 import type {
   Album,
   Artist,
+  Audiobook,
   Genre,
   ItemMapping,
   MediaItemType,
@@ -662,6 +758,50 @@ const artistLogo = computed(() => {
   return getImageThumbForItem(compProps.item, ImageType.LOGO);
 });
 
+// Streamloader-fork addition: audiobook listening progress.
+// resume_position_ms is in milliseconds; Audiobook.duration is in
+// seconds (matches Track.duration semantics on MA's existing models).
+const audiobookProgressPct = computed<number | null>(() => {
+  if (!compProps.item) return null;
+  if (compProps.item.media_type !== MediaType.AUDIOBOOK) return null;
+  const ab = compProps.item as Audiobook;
+  if (!ab.duration) return null;
+  if (ab.fully_played) return 100;
+  const resumeMs = ab.resume_position_ms ?? 0;
+  if (resumeMs <= 0) return null;
+  const pct = (resumeMs / 1000 / ab.duration) * 100;
+  if (!isFinite(pct)) return null;
+  return Math.max(0, Math.min(100, pct));
+});
+
+// Streamloader-fork addition: chapter label at the audiobook's current
+// resume position. Walks metadata.chapters[] (start is in seconds) and
+// picks the chapter whose [start, end) range contains the resume point.
+const audiobookResumeChapter = computed<string | null>(() => {
+  if (!compProps.item) return null;
+  if (compProps.item.media_type !== MediaType.AUDIOBOOK) return null;
+  const ab = compProps.item as Audiobook;
+  const resumeMs = ab.resume_position_ms ?? 0;
+  if (resumeMs <= 0) return null;
+  const chapters = ab.metadata?.chapters;
+  const resumeLabel = te("resume") ? t("resume") : "Resume";
+  if (!chapters || chapters.length === 0) {
+    return resumeLabel;
+  }
+  const resumeSec = resumeMs / 1000;
+  const current = chapters.find((c) => {
+    const end = c.end ?? Number.POSITIVE_INFINITY;
+    return resumeSec >= c.start && resumeSec < end;
+  });
+  if (!current) return resumeLabel;
+  // Prefer translated "Resume from chapter X" if the i18n key exists,
+  // otherwise fall back to a literal English label so the hint always
+  // renders even before the locale catalog is updated.
+  return te("resume_from_chapter")
+    ? t("resume_from_chapter", { chapter: current.name })
+    : `${resumeLabel} — ${current.name}`;
+});
+
 const isAdmin = computed(() => authManager.isAdmin());
 
 const mergeGenre = () => {
@@ -782,5 +922,150 @@ const deleteGenre = () => {
   .sl-vinyl-wrapper:hover {
     transform: none;
   }
+}
+
+/* ─── Streamloader-fork addition: media-type-specific title affordances.
+       LIVE pulse for radio, PLAYLIST badge for playlists. */
+
+.sl-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+/* Radio LIVE indicator. Brand teal; soft breathing pulse. */
+.sl-live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.45);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #2dd4bf;
+  flex-shrink: 0;
+}
+
+.sl-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2dd4bf;
+  box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.8);
+  animation: sl-live-pulse 1.6s ease-out infinite;
+}
+
+.sl-live-label {
+  line-height: 1;
+}
+
+@keyframes sl-live-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.7);
+    opacity: 1;
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(45, 212, 191, 0);
+    opacity: 0.85;
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(45, 212, 191, 0);
+    opacity: 1;
+  }
+}
+
+/* Light-theme-aware tweak: deeper teal so the pill stays legible
+   over the lighter background gradient. */
+:global(.v-theme--light) .sl-live-indicator {
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.5);
+  background: rgba(15, 118, 110, 0.08);
+}
+:global(.v-theme--light) .sl-live-dot {
+  background: #0f766e;
+}
+
+/* Playlist signature badge. Lightest-touch alternative to a cover
+   ribbon — sits inline with the title so it doesn't fight the layout. */
+.sl-playlist-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: linear-gradient(
+    135deg,
+    rgba(45, 212, 191, 0.18),
+    rgba(45, 212, 191, 0.06)
+  );
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  color: #2dd4bf;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  flex-shrink: 0;
+}
+
+:global(.v-theme--light) .sl-playlist-badge {
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.4);
+  background: linear-gradient(
+    135deg,
+    rgba(15, 118, 110, 0.14),
+    rgba(15, 118, 110, 0.04)
+  );
+}
+
+/* ─── Audiobook listening progress bar + resume-from-chapter hint. */
+
+.sl-audiobook-progress {
+  margin: 0 16px 12px 16px;
+  max-width: 420px;
+}
+
+.sl-audiobook-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sl-audiobook-bar {
+  flex: 1 1 auto;
+}
+
+.sl-audiobook-pct {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2dd4bf;
+  min-width: 32px;
+  text-align: right;
+}
+
+:global(.v-theme--light) .sl-audiobook-pct {
+  color: #0f766e;
+}
+
+.sl-audiobook-resume {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+/* ─── Podcast: episode count chip + subscribe-button polish. */
+
+.sl-podcast-meta {
+  margin: 0 16px 10px 16px;
+}
+
+.sl-podcast-subscribe {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: 600;
 }
 </style>

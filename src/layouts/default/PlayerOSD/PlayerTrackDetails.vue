@@ -51,20 +51,28 @@
           cursor: 'pointer',
           color: primaryColor,
         }"
-        class="d-flex align-center"
+        class="d-flex align-center player-device-line"
       >
-        <div v-if="store.activePlayer && store.activePlayer?.powered != false">
+        <div
+          v-if="store.activePlayer && store.activePlayer?.powered != false"
+          class="player-device-name"
+        >
           {{ getPlayerName(store.activePlayer) }}
         </div>
         <!-- player name as title if its powered off-->
         <div
           v-else-if="store.activePlayer?.powered == false"
+          class="player-device-name player-device-name--off"
           @click="store.showPlayersMenu = true"
         >
           {{ store.activePlayer?.name }}
         </div>
         <!-- no player selected message -->
-        <div v-else @click="store.showPlayersMenu = true">
+        <div
+          v-else
+          class="player-device-name player-device-name--off"
+          @click="store.showPlayersMenu = true"
+        >
           {{ $t("no_player") }}
         </div>
         <NowPlayingBadge
@@ -100,19 +108,20 @@
           cursor: 'pointer',
           color: primaryColor,
         }"
+        class="player-track-meta"
         @click="store.showFullscreenPlayer = true"
       >
         <!-- player powered off -->
-        <div v-if="store.activePlayer?.powered == false">
+        <div v-if="store.activePlayer?.powered == false" class="track-artist">
           {{ $t("off") }}
         </div>
         <template v-else-if="store.activePlayer?.current_media?.title">
-          <div class="ma-line-clamp-1">
+          <div class="ma-line-clamp-1 track-title">
             <MarqueeText :sync="marqueeSync">
               {{ store.activePlayer.current_media.title }}
             </MarqueeText>
           </div>
-          <div class="ma-line-clamp-1">
+          <div class="ma-line-clamp-1 track-artist">
             <MarqueeText :sync="marqueeSync">
               <!-- artists(s) + album -->
               <span
@@ -122,8 +131,11 @@
                   !props.showOnlyArtist
                 "
               >
-                {{ store.activePlayer?.current_media?.artist }} •
-                {{ store.activePlayer?.current_media?.album }}
+                {{ store.activePlayer?.current_media?.artist }}
+                <span class="track-sep">•</span>
+                <span class="track-album">{{
+                  store.activePlayer?.current_media?.album
+                }}</span>
               </span>
               <!-- artists(s) only -->
               <span v-else-if="store.activePlayer?.current_media?.artist">
@@ -131,7 +143,9 @@
               </span>
               <!-- album only -->
               <span v-else-if="store.activePlayer?.current_media?.album">
-                {{ store.activePlayer?.current_media?.album }}
+                <span class="track-album">{{
+                  store.activePlayer?.current_media?.album
+                }}</span>
               </span>
             </MarqueeText>
           </div>
@@ -143,7 +157,7 @@
             !store.activePlayerQueue &&
             store.activePlayer?.active_source
           "
-          class="ma-line-clamp-1"
+          class="ma-line-clamp-1 track-artist"
         >
           {{
             $t("external_source_active", [getSourceName(store.activePlayer)])
@@ -154,11 +168,11 @@
           v-else-if="
             store.activePlayerQueue && store.activePlayerQueue.items == 0
           "
-          class="ma-line-clamp-1"
+          class="ma-line-clamp-1 track-artist"
         >
           {{ $t("queue_empty") }}
         </div>
-        <div v-else-if="store.activePlayer">
+        <div v-else-if="store.activePlayer" class="track-artist">
           {{ store.activePlayer?.name }}
         </div>
       </div>
@@ -234,6 +248,62 @@ const streamDetails = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* "Now playing on [device]" line — small, slight teal accent on device name */
+.player-device-line {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+.player-device-name {
+  font-weight: 500;
+  color: rgb(var(--v-theme-primary));
+  transition: color 0.18s ease;
+}
+.player-device-name--off {
+  color: rgba(var(--v-theme-on-surface), 0.55);
+  font-weight: 400;
+}
+.player-device-name:hover {
+  color: rgb(var(--v-theme-primary));
+  filter: brightness(1.15);
+}
+
+/* track + artist hierarchy */
+.player-track-meta {
+  padding-top: 2px;
+}
+.track-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+  color: rgba(var(--v-theme-on-surface), 0.95);
+}
+.track-artist {
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  line-height: 1.35;
+  color: rgba(var(--v-theme-on-surface), 0.7);
+  margin-top: 1px;
+}
+.track-sep {
+  display: inline-block;
+  margin: 0 6px;
+  color: rgba(var(--v-theme-on-surface), 0.4);
+}
+.track-album {
+  color: rgba(var(--v-theme-on-surface), 0.62);
+  transition:
+    color 0.18s ease,
+    text-decoration-color 0.18s ease;
+  text-decoration: underline transparent 1px;
+  text-underline-offset: 2px;
+}
+.track-album:hover {
+  color: rgb(var(--v-theme-primary));
+  text-decoration-color: rgb(var(--v-theme-primary));
 }
 </style>
 
