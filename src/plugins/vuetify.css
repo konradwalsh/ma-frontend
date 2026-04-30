@@ -14,26 +14,39 @@
    gets a much softer tint so we don't break readability. */
 
 .v-application.v-theme--dark {
+  /* Bumped from 0.06/0.05 alpha to 0.18/0.14 for an actually-visible halo.
+     The top halo is wider (1600px vs 1200px) and reaches further down
+     (50% extent vs 65%) — feels intentional, not accidental. */
   background:
     radial-gradient(
-      ellipse 1200px 800px at 50% -200px,
-      rgba(45, 212, 191, 0.06) 0%,
+      ellipse 1600px 1100px at 50% -200px,
+      rgba(45, 212, 191, 0.18) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 1200px 900px at 100% 100%,
+      rgba(15, 118, 110, 0.14) 0%,
       transparent 65%
     ),
     radial-gradient(
-      ellipse 800px 600px at 100% 100%,
-      rgba(15, 118, 110, 0.05) 0%,
+      ellipse 800px 600px at 0% 50%,
+      rgba(45, 212, 191, 0.06) 0%,
       transparent 70%
     ),
-    #181818;
+    #0e0e0e;
   background-attachment: fixed;
 }
 
 .v-application.v-theme--light {
   background:
     radial-gradient(
-      ellipse 1200px 800px at 50% -200px,
-      rgba(15, 118, 110, 0.04) 0%,
+      ellipse 1600px 1100px at 50% -200px,
+      rgba(15, 118, 110, 0.1) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 1200px 900px at 100% 100%,
+      rgba(15, 118, 110, 0.06) 0%,
       transparent 65%
     ),
     #f5f5f5;
@@ -86,4 +99,51 @@
   font-weight: 500;
   letter-spacing: 0.01em;
   border-radius: 999px;
+}
+
+/* 5. Card hover glow.
+   Make album/artist tiles feel interactive with a teal halo on hover.
+   Bigger, more visible affordance than the default Vuetify .v-card hover
+   elevation (which is a flat shadow). */
+
+.v-theme--dark .v-card:hover {
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.4),
+    0 8px 28px rgba(45, 212, 191, 0.15) !important;
+  transition:
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+
+.v-theme--light .v-card:hover {
+  box-shadow:
+    0 0 0 1px rgba(15, 118, 110, 0.35),
+    0 8px 24px rgba(15, 118, 110, 0.12) !important;
+  transition:
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+
+/* 6. Primary button glow.
+   The primary action button is the user's most-clicked surface — give
+   it a subtle teal glow halo so it reads as "this is THE button to
+   press" without being shouty. Filter approach (drop-shadow on color)
+   instead of box-shadow so it follows the button's actual rounded
+   shape, not just the bounding box. */
+
+.v-theme--dark .v-btn--variant-flat.text-primary,
+.v-theme--dark .v-btn--variant-elevated.bg-primary,
+.v-theme--dark .v-btn[color="primary"] {
+  box-shadow:
+    0 4px 16px rgba(45, 212, 191, 0.35),
+    0 0 0 0 transparent;
+  transition: box-shadow 200ms ease;
+}
+
+.v-theme--dark .v-btn--variant-flat.text-primary:hover,
+.v-theme--dark .v-btn--variant-elevated.bg-primary:hover,
+.v-theme--dark .v-btn[color="primary"]:hover {
+  box-shadow:
+    0 6px 22px rgba(45, 212, 191, 0.5),
+    0 0 0 2px rgba(45, 212, 191, 0.25);
 }

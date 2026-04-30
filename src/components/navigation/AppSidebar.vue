@@ -55,12 +55,12 @@ onUnmounted(() => {
         <div class="sidebar-header-row">
           <div class="sidebar-header" @click="router.push('/')">
             <img
-              src="@/assets/icon.svg"
-              alt="Music Assistant"
+              src="@/assets/streamloader-mark.svg"
+              alt="streamloader"
               class="sidebar-header-logo"
             />
             <div v-if="!collapsed" class="sidebar-header-title">
-              Music Assistant
+              streamloader
             </div>
           </div>
         </div>
@@ -85,19 +85,27 @@ onUnmounted(() => {
 }
 
 .sidebar-header-logo {
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
+  /* Bumped from 30px to 36px so the streamloader mark reads at sidebar
+     scale. Subtle teal glow under the disc reinforces the brand without
+     stealing focus from the nav. */
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.35));
 }
 
 .sidebar-header-title {
-  font-size: 1.2rem;
-  font-weight: bold;
-  margin: 3px 0 0 10px;
+  /* Brand convention (per memory brand.md): lowercase, sans-serif,
+     slight letter-spacing for the "streamloader" wordmark feel. */
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 3px 0 0 12px;
   white-space: nowrap;
   overflow: hidden;
   transition: opacity 0.2s ease;
+  color: #2dd4bf;
 }
 
 .sidebar-header {
