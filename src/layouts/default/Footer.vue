@@ -52,7 +52,21 @@ import Player from "./PlayerOSD/Player.vue";
   margin: 5px;
   margin-bottom: 0px;
   width: calc(100% - 10px) !important;
-  border-radius: 10px !important;
+  border-radius: 12px !important;
+  /* streamloader: subtle teal halo on the floating mobile player */
+  box-shadow: 0 4px 20px rgba(45, 212, 191, 0.12),
+    0 0 0 1px rgba(45, 212, 191, 0.08) !important;
+}
+
+/* streamloader: subtle teal 1px top border to anchor the desktop footer */
+.mediacontrols-player-default {
+  border-top: 1px solid rgba(45, 212, 191, 0.18) !important;
+}
+
+/* streamloader: a touch more breathing room around the player on desktop */
+.v-footer.mediacontrols-player-default {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
 }
 
 .gradient-dark {

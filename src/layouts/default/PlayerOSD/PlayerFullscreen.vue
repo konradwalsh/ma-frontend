@@ -68,15 +68,29 @@
             class="main-media-details-image"
           >
             <!-- current media image -->
-            <v-img
+            <!-- Streamloader-fork addition: wrap the now-playing cover in a
+                 vinyl-emerging-from-cover hover effect, mirroring the
+                 InfoHeader.vue ALACarte pattern. Applied unconditionally on
+                 the fullscreen "now playing" view because in this context
+                 the user IS playing an album track regardless of the
+                 reported media_type, and the vinyl is iconic of that act.
+                 Touch-suppression handled in the scoped CSS below. -->
+            <div
               v-if="
                 store.activePlayer?.powered != false &&
                 store.activePlayer?.current_media?.image_url
               "
-              :src="
-                getMediaImageUrl(store.activePlayer.current_media.image_url)
-              "
-            />
+              class="sl-vinyl-wrapper"
+            >
+              <img :src="vinylSvg" alt="" class="sl-vinyl-disc" />
+              <div class="sl-vinyl-cover">
+                <v-img
+                  :src="
+                    getMediaImageUrl(store.activePlayer.current_media.image_url)
+                  "
+                />
+              </div>
+            </div>
             <!-- fallback: display player icon in box -->
             <div v-else class="icon-thumb-large">
               <v-icon
@@ -378,12 +392,21 @@
           class="main-queue-items"
         >
           <div class="main-media-details-image main-media-details-image-alt">
-            <v-img
+            <!-- Streamloader-fork addition: same vinyl-cover hover reveal
+                 as the primary media-image position above. -->
+            <div
               v-if="store.activePlayer?.current_media?.image_url"
-              :src="
-                getMediaImageUrl(store.activePlayer.current_media.image_url)
-              "
-            />
+              class="sl-vinyl-wrapper"
+            >
+              <img :src="vinylSvg" alt="" class="sl-vinyl-disc" />
+              <div class="sl-vinyl-cover">
+                <v-img
+                  :src="
+                    getMediaImageUrl(store.activePlayer.current_media.image_url)
+                  "
+                />
+              </div>
+            </div>
             <!-- fallback: display player icon in box -->
             <div v-else class="icon-thumb-large">
               <v-icon
@@ -585,6 +608,11 @@ import SpeakerBtn from "./PlayerControlBtn/SpeakerBtn.vue";
 import PlayerTimeline from "./PlayerTimeline.vue";
 
 const { name } = useDisplay();
+
+// Streamloader-fork addition: vinyl asset for the now-playing cover hover
+// reveal (sl-vinyl-* classes in the template/style below). Mirrors the
+// pattern shipped on the album-detail page in InfoHeader.vue.
+const vinylSvg = new URL("@/assets/vinyl.svg", import.meta.url).href;
 
 const MIN_HEIGHT_SHOW_FULL_DETAILS = 750;
 const showAlbumSubtitle = computed(
@@ -1820,6 +1848,77 @@ button {
 
   .main-media-details-track-info {
     padding: 8px 0;
+  }
+}
+
+/* ─── Streamloader-fork addition: vinyl-emerging-from-cover hover reveal,
+       applied unconditionally to the now-playing cover (album OR track —
+       in this context the user IS playing an album track regardless of
+       media_type). Mirrors the InfoHeader.vue pattern, scaled for the
+       larger fullscreen cover. Cubic-bezier easing exits with a tiny
+       overshoot for the slight "spring out" feel. */
+
+.sl-vinyl-wrapper {
+  position: relative;
+  display: inline-block;
+  overflow: visible;
+  /* Inherit the cover's container-query sizing so the vinyl/cover unit
+     fills the .main-media-details-image box exactly like the original
+     <v-img> did. */
+  width: min(100cqi, 100cqh);
+  height: min(100cqi, 100cqh);
+  flex: 0 0 auto;
+  transition: transform 700ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.sl-vinyl-cover {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sl-vinyl-cover :deep(.v-img) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.sl-vinyl-disc {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 96%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  transform: translate(0, -50%) rotate(-40deg);
+  transform-origin: center center;
+  transition: transform 700ms cubic-bezier(0.34, 1.36, 0.64, 1);
+  z-index: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5));
+}
+
+.sl-vinyl-wrapper:hover .sl-vinyl-disc {
+  /* Peek out ~40% of the vinyl's width to the right on hover, matching
+     the InfoHeader.vue effect proportionally. */
+  transform: translate(45%, -50%) rotate(0deg);
+}
+
+.sl-vinyl-wrapper:hover {
+  transform: rotate(-3deg) scale(1.03);
+}
+
+/* Touch devices: disable the hover reveal entirely. The effect is a
+   desktop-mouse affordance; on touch, finger-drag would either always-
+   trigger or never-trigger it depending on browser, neither of which
+   adds anything. */
+@media (hover: none) {
+  .sl-vinyl-wrapper:hover .sl-vinyl-disc {
+    transform: translate(0, -50%) rotate(-40deg);
+  }
+  .sl-vinyl-wrapper:hover {
+    transform: none;
   }
 }
 </style>

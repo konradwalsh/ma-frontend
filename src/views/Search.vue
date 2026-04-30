@@ -4,6 +4,7 @@
       <v-text-field
         id="searchInput"
         v-model="store.globalSearchTerm"
+        class="streamloader-search-input"
         clearable
         prepend-inner-icon="mdi-magnify"
         :label="$t('type_to_search')"
@@ -15,6 +16,7 @@
 
       <v-chip-group
         v-model="selectedSearchType"
+        class="streamloader-search-chips"
         style="margin-top: 10px; margin-left: 10px"
         selected-class="text-primary"
         mandatory
@@ -40,12 +42,25 @@
 
       <v-progress-linear
         v-if="loading"
-        color="accent"
-        height="4"
+        color="primary"
+        height="3"
         indeterminate
         rounded
         style="margin-top: 15px"
       />
+
+      <!-- empty state when no search term yet -->
+      <div
+        v-if="!store.globalSearchTerm && !loading"
+        class="streamloader-search-empty"
+      >
+        <v-icon size="48" class="streamloader-search-empty-icon">
+          mdi-magnify
+        </v-icon>
+        <div class="streamloader-search-empty-text">
+          {{ $t("type_to_search") }}
+        </div>
+      </div>
 
       <!-- compact all-media-types searchresult -->
       <div v-if="!store.globalSearchType">
@@ -303,3 +318,60 @@ const filteredItems = function (mediaType: MediaType) {
   return [];
 };
 </script>
+
+<style scoped>
+/* lighter, ALACarte-style border on the search input + teal focus ring */
+.streamloader-search-input :deep(.v-field--variant-outlined .v-field__outline__start),
+.streamloader-search-input :deep(.v-field--variant-outlined .v-field__outline__end),
+.streamloader-search-input :deep(.v-field--variant-outlined .v-field__outline__notch::before),
+.streamloader-search-input :deep(.v-field--variant-outlined .v-field__outline__notch::after) {
+  opacity: 0.5;
+}
+.streamloader-search-input :deep(.v-field--focused .v-field__outline) {
+  --v-field-border-opacity: 1;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.18);
+  border-radius: 6px;
+  transition: box-shadow 0.18s ease;
+}
+
+/* tighter chip group, teal underline accent on the active filter chip */
+.streamloader-search-chips :deep(.v-chip) {
+  transition: transform 0.15s ease;
+}
+.streamloader-search-chips :deep(.v-chip.text-primary) {
+  position: relative;
+  font-weight: 600;
+}
+.streamloader-search-chips :deep(.v-chip.text-primary)::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: -4px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(var(--v-theme-primary));
+  opacity: 0.85;
+}
+
+/* gentle empty-state for the initial (no search term) view */
+.streamloader-search-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px 40px;
+  text-align: center;
+  opacity: 0.55;
+}
+.streamloader-search-empty-icon {
+  color: rgb(var(--v-theme-primary));
+  opacity: 0.65;
+  margin-bottom: 12px;
+}
+.streamloader-search-empty-text {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
+</style>

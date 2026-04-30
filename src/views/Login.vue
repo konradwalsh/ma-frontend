@@ -8,11 +8,11 @@
               <!-- Logo -->
               <div class="text-center login-header">
                 <img
-                  src="@/assets/icon.svg"
-                  alt="Music Assistant"
+                  src="@/assets/streamloader-mark.svg"
+                  alt="streamloader"
                   class="login-logo"
                 />
-                <h1 class="login-title font-weight-bold">Music Assistant</h1>
+                <h1 class="login-title font-weight-bold">streamloader</h1>
                 <p class="login-subtitle text-medium-emphasis">
                   Your Music, Your Way
                 </p>
@@ -44,7 +44,7 @@
                     {{
                       $t(
                         "login.remote_only_info",
-                        "Connect to your Music Assistant server remotely",
+                        "Connect to your streamloader server remotely",
                       )
                     }}
                   </p>
@@ -74,7 +74,7 @@
                     {{
                       $t(
                         "login.server_address_hint",
-                        "Enter the full URL of your Music Assistant server",
+                        "Enter the full URL of your streamloader server",
                       )
                     }}
                   </p>
@@ -344,7 +344,7 @@
                     {{
                       $t(
                         "login.scan_qr_hint",
-                        "Point your camera at the QR code shown in your Music Assistant server settings.",
+                        "Point your camera at the QR code shown in your streamloader server settings.",
                       )
                     }}
                   </p>
@@ -385,8 +385,8 @@
                     class="ohf-icon"
                   />
                   <span class="ohf-text"
-                    >Music Assistant is a product from the Open Home
-                    Foundation</span
+                    >streamloader is built on Music Assistant, a product from
+                    the Open Home Foundation</span
                   >
                 </p>
               </a>
@@ -1769,7 +1769,7 @@ const onQrCodeDetected = (detectedCodes: { rawValue: string }[]) => {
   } else {
     qrScannerError.value = t(
       "login.qr_invalid",
-      "Invalid QR code. Please scan a Music Assistant QR code.",
+      "Invalid QR code. Please scan a streamloader QR code.",
     );
   }
 };
@@ -1845,17 +1845,19 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* CSS Variables matching Music Assistant server styling */
+/* CSS Variables — streamloader brand styling */
 .login-background {
   --fg: #000000;
   --background: #f5f5f5;
   --panel: #ffffff;
-  --primary: #03a9f4;
+  /* streamloader teal — light mode uses the deeper teal for AA contrast on white */
+  --primary: #0f766e;
   --text-secondary: rgba(0, 0, 0, 0.6);
   --text-tertiary: rgba(0, 0, 0, 0.4);
   --border: rgba(0, 0, 0, 0.1);
   --input-bg: rgba(0, 0, 0, 0.03);
-  --input-focus-bg: rgba(3, 169, 244, 0.05);
+  --input-focus-bg: rgba(15, 118, 110, 0.06);
+  --glow: rgba(15, 118, 110, 0.18);
   --error-text: #d32f2f;
   --success: #4caf50;
 
@@ -1892,13 +1894,17 @@ onMounted(() => {
 @media (prefers-color-scheme: dark) {
   .login-background {
     --fg: #ffffff;
-    --background: #181818;
-    --panel: #232323;
+    /* streamloader dark navy background */
+    --background: #0e0e0e;
+    --panel: #1a1a1a;
+    /* brighter teal pops on dark backgrounds */
+    --primary: #2dd4bf;
     --text-secondary: rgba(255, 255, 255, 0.7);
     --text-tertiary: rgba(255, 255, 255, 0.4);
     --border: rgba(255, 255, 255, 0.08);
     --input-bg: rgba(255, 255, 255, 0.05);
-    --input-focus-bg: rgba(3, 169, 244, 0.08);
+    --input-focus-bg: rgba(45, 212, 191, 0.1);
+    --glow: rgba(45, 212, 191, 0.22);
     --error-text: #ff6b6b;
     --success: #66bb6a;
   }
@@ -1908,6 +1914,21 @@ onMounted(() => {
   background: var(--panel) !important;
   border: 1px solid var(--border);
   padding: 2rem;
+  /* subtle streamloader teal glow */
+  box-shadow:
+    0 10px 40px rgba(0, 0, 0, 0.18),
+    0 0 0 1px var(--glow),
+    0 0 60px -10px var(--glow) !important;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
+}
+
+.login-card:hover {
+  box-shadow:
+    0 14px 48px rgba(0, 0, 0, 0.22),
+    0 0 0 1px var(--glow),
+    0 0 80px -8px var(--glow) !important;
 }
 
 /* Mobile responsive padding */
@@ -1931,6 +1952,8 @@ onMounted(() => {
   width: 80px;
   height: 80px;
   margin-bottom: 1rem;
+  /* teal halo behind the streamloader mark */
+  filter: drop-shadow(0 0 18px var(--glow));
 }
 
 /* Smaller logo on mobile */
@@ -1944,6 +1967,10 @@ onMounted(() => {
 
 .login-title {
   font-size: 1.5rem;
+  /* lowercase wordmark per streamloader brand */
+  text-transform: lowercase;
+  letter-spacing: -0.01em;
+  color: var(--primary);
 }
 
 @media (max-width: 500px) {
