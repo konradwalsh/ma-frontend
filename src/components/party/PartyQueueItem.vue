@@ -155,6 +155,7 @@ const badgeLabel = computed(() =>
 
 <style scoped>
 .queue-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -162,7 +163,10 @@ const badgeLabel = computed(() =>
   background: rgba(var(--v-theme-surface-variant), 0.05);
   border-radius: 12px;
   min-height: 72px;
-  transition: background 0.2s ease;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .queue-item--clickable {
@@ -170,11 +174,14 @@ const badgeLabel = computed(() =>
 }
 
 .queue-item--clickable:hover {
-  background: rgba(var(--v-theme-surface-variant), 0.12);
+  /* Subtle teal tint on hover for upcoming items */
+  background: rgba(var(--v-theme-primary), 0.08);
+  box-shadow: inset 0 0 0 1px rgba(var(--v-theme-primary), 0.16);
 }
 
 .queue-item--expanded {
-  background: rgba(var(--v-theme-primary), 0.1);
+  background: rgba(var(--v-theme-primary), 0.12);
+  box-shadow: inset 0 0 0 1px rgba(var(--v-theme-primary), 0.24);
 }
 
 .queue-item-info {
@@ -198,12 +205,39 @@ const badgeLabel = computed(() =>
   letter-spacing: 0.5px;
   background-color: var(--btn-bg) !important;
   color: rgb(var(--v-theme-on-primary)) !important;
+  /* Teal glow when the boost button is active/enabled */
+  box-shadow:
+    0 0 0 1px rgba(var(--v-theme-primary), 0.35),
+    0 0 14px rgba(var(--v-theme-primary), 0.35),
+    0 4px 18px rgba(var(--v-theme-primary), 0.22);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.15s ease,
+    filter 0.2s ease;
+}
+
+.queue-item-actions .boost-btn:not(:disabled):hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(var(--v-theme-primary), 0.55),
+    0 0 22px rgba(var(--v-theme-primary), 0.5),
+    0 6px 24px rgba(var(--v-theme-primary), 0.32);
+}
+
+.queue-item-actions .boost-btn:disabled {
+  box-shadow: none;
+  opacity: 0.45;
 }
 
 .queue-item-current {
-  background: rgba(var(--v-theme-primary), 0.15);
-  border-left: 6px solid rgb(var(--v-theme-primary));
-  padding-left: calc(0.75rem - 3px);
+  /* Match the .v-list-item--active 3px teal left-edge pattern */
+  background: rgba(var(--v-theme-primary), 0.16);
+  box-shadow:
+    inset 3px 0 0 0 rgb(var(--v-theme-primary)),
+    inset 0 0 0 1px rgba(var(--v-theme-primary), 0.3),
+    0 0 18px rgba(var(--v-theme-primary), 0.18);
+  padding-left: calc(0.75rem + 3px);
 }
 
 .queue-item-played {
@@ -226,8 +260,18 @@ const badgeLabel = computed(() =>
 }
 
 .queue-number {
-  font-size: 0.875rem;
-  opacity: 0.6;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  opacity: 0.55;
+  color: rgba(var(--v-theme-on-surface), 0.85);
+}
+
+.queue-item-current .queue-number,
+.queue-item--expanded .queue-number {
+  color: rgb(var(--v-theme-primary));
+  opacity: 1;
 }
 
 .queue-avatar {

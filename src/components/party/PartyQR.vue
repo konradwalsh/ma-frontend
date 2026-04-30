@@ -8,19 +8,21 @@
       class="qr-display"
       :style="{ '--qr-size': qrSize + 'px' }"
     >
-      <div class="qr-link" @click="copyUrlToClipboard">
-        <canvas ref="qrCanvas"></canvas>
-        <Transition name="copy-toast">
-          <div v-if="copyFeedback" class="copy-bubble">
-            <Check :size="16" />
-            {{ copyFeedback }}
-          </div>
-        </Transition>
+      <div class="qr-frame">
+        <div class="qr-link" @click="copyUrlToClipboard">
+          <canvas ref="qrCanvas"></canvas>
+          <Transition name="copy-toast">
+            <div v-if="copyFeedback" class="copy-bubble">
+              <Check :size="16" />
+              {{ copyFeedback }}
+            </div>
+          </Transition>
+        </div>
       </div>
       <p
         v-if="qrText"
-        :style="{ width: qrSize + 'px', textAlign: 'center' }"
-        class=""
+        :style="{ maxWidth: qrSize + 'px' }"
+        class="qr-caption"
       >
         {{ qrText }}
       </p>
@@ -208,6 +210,12 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .qr-container {
+  --sl-teal: #2dd4bf;
+  --sl-teal-strong: #0f766e;
+  --sl-teal-glow: rgba(45, 212, 191, 0.22);
+  --sl-teal-soft: rgba(45, 212, 191, 0.08);
+  --sl-teal-edge: rgba(45, 212, 191, 0.35);
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -220,8 +228,39 @@ onBeforeUnmount(() => {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.85rem;
   padding: 1rem;
   padding-bottom: 0.5rem;
+}
+
+/* Subtle teal-tinted card framing the QR. The dashboard's `qr-glow-frame`
+   sits OUTSIDE this component, so we keep the frame whisper-light to avoid
+   visual conflict — just enough to lift the QR off album-art backgrounds. */
+.qr-frame {
+  position: relative;
+  padding: 14px;
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      135deg,
+      var(--sl-teal-soft) 0%,
+      rgba(0, 0, 0, 0.18) 100%
+    );
+  border: 1px solid var(--sl-teal-edge);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 8px 24px rgba(0, 0, 0, 0.25);
+  transition:
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.qr-frame:hover {
+  border-color: var(--sl-teal);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 0 18px var(--sl-teal-glow),
+    0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .qr-link {
@@ -234,8 +273,8 @@ onBeforeUnmount(() => {
 }
 
 .qr-link:hover {
-  transform: scale(1.05);
-  opacity: 0.9;
+  transform: scale(1.03);
+  opacity: 0.95;
 }
 
 .copy-bubble {
@@ -279,6 +318,19 @@ onBeforeUnmount(() => {
   display: block;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Soft, on-brand caption — light weight, wide tracking, gentle teal tint. */
+.qr-caption {
+  margin: 0;
+  width: 100%;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.78);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
 }
 
 .qr-error {

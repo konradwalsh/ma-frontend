@@ -308,7 +308,9 @@ watch(
   --opacity: 1;
   --z-index: 3;
   background: rgba(var(--v-theme-on-surface), 0.1);
-  box-shadow: 0 0.8vh 3.2vh rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 0.8vh 3.2vh rgba(0, 0, 0, 0.25),
+    0 0 2.4vh rgba(var(--v-theme-primary), 0.18);
 }
 
 .track-card.position-next-1 {
@@ -369,7 +371,15 @@ watch(
   overflow: hidden;
   transition:
     width 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-    height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    height 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.track-card.position-current .track-artwork {
+  /* Subtle teal halo to lift cover art off the dark background at TV distance */
+  box-shadow:
+    0 0.6vh 1.6vh rgba(0, 0, 0, 0.45),
+    0 0 1.8vh rgba(var(--v-theme-primary), 0.28);
 }
 
 .now-playing-overlay {
@@ -411,22 +421,39 @@ watch(
 
 .track-name {
   font-weight: 600;
-  margin-bottom: 0.3em;
+  margin-bottom: 0.25em;
+  /* Slightly larger ceiling for TV-distance read; tightened tracking for big type */
   font-size: clamp(1.4rem, 3vh, 3.5rem);
-  color: rgba(var(--v-theme-on-surface), 0.95);
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  color: rgba(var(--v-theme-on-surface), 0.98);
+}
+
+.track-card.position-current .track-name {
+  /* Hero treatment for the now-playing track */
+  font-size: clamp(1.8rem, 3.6vh, 4.25rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
 }
 
 .track-artist {
   font-size: clamp(1.1rem, 2.2vh, 2.5rem);
-  color: rgba(var(--v-theme-on-surface), 0.7);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: rgba(var(--v-theme-on-surface), 0.65);
+}
+
+.track-card.position-current .track-artist {
+  font-size: clamp(1.2rem, 2.4vh, 2.75rem);
 }
 
 .white-text .track-name {
-  color: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.98);
 }
 
 .white-text .track-artist {
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .progress-bar {
@@ -434,7 +461,8 @@ watch(
   bottom: 0;
   left: 0;
   right: 0;
-  height: 0.6vh;
+  height: 0.7vh;
+  background: rgba(var(--v-theme-on-surface), 0.08);
   overflow: hidden;
   /* Make sure it sits behind the content */
   z-index: -1;
@@ -442,7 +470,12 @@ watch(
 
 .progress-fill {
   height: 100%;
-  background: rgb(var(--v-theme-primary));
+  background: linear-gradient(
+    90deg,
+    rgb(var(--v-theme-primary)) 0%,
+    rgba(var(--v-theme-primary), 0.85) 100%
+  );
+  box-shadow: 0 0 1.2vh rgba(var(--v-theme-primary), 0.55);
   border-bottom-left-radius: 1.2vh;
   transform-origin: left center;
   transform: scaleX(var(--progress-scale, 0));

@@ -12,11 +12,12 @@
     </Button>
 
     <InputGroup class="search-input-group">
-      <InputGroupAddon>
-        <Search />
+      <InputGroupAddon class="search-leading">
+        <Search :size="18" />
       </InputGroupAddon>
       <InputGroupInput
         ref="inputRef"
+        class="party-search-input"
         :model-value="searchQuery"
         :placeholder="$t('providers.party.guest_page.search_placeholder')"
         autofocus
@@ -29,6 +30,8 @@
         <InputGroupButton
           v-if="searchQuery"
           size="icon-sm"
+          class="clear-btn"
+          aria-label="Clear search"
           @click="$emit('clear')"
         >
           <X :size="16" />
@@ -102,6 +105,15 @@ const filters = computed(() => [
 </script>
 
 <style scoped>
+/* Streamloader brand teal tokens (scoped fallback) */
+.search-section,
+.filter-section {
+  --sl-teal: #2dd4bf;
+  --sl-teal-strong: #0f766e;
+  --sl-teal-glow: rgba(45, 212, 191, 0.28);
+  --sl-teal-soft: rgba(45, 212, 191, 0.12);
+}
+
 .search-section {
   display: flex;
   align-items: center;
@@ -112,6 +124,19 @@ const filters = computed(() => [
 
 .back-arrow {
   flex-shrink: 0;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.back-arrow:not(:disabled):hover {
+  color: var(--sl-teal);
+  background-color: var(--sl-teal-soft);
+}
+
+.back-arrow:not(:disabled):active {
+  transform: translateX(-1px);
 }
 
 .back-arrow:disabled {
@@ -120,6 +145,56 @@ const filters = computed(() => [
 
 .search-input-group {
   flex: 1;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+  border-radius: 0.5rem;
+}
+
+.search-input-group:focus-within {
+  box-shadow:
+    0 0 0 2px var(--sl-teal-glow),
+    0 0 12px var(--sl-teal-soft);
+  border-color: var(--sl-teal);
+}
+
+.search-leading {
+  color: hsl(var(--muted-foreground));
+  transition: color 0.2s ease;
+}
+
+.search-input-group:focus-within .search-leading {
+  color: var(--sl-teal);
+}
+
+.party-search-input {
+  font-size: 0.95rem;
+  letter-spacing: 0.005em;
+}
+
+.party-search-input::placeholder {
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  opacity: 0.65;
+  transition: opacity 0.2s ease;
+}
+
+.party-search-input:focus::placeholder {
+  opacity: 0.45;
+}
+
+.clear-btn {
+  color: hsl(var(--muted-foreground));
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.clear-btn:hover {
+  color: var(--sl-teal);
+  background-color: var(--sl-teal-soft);
+  transform: scale(1.06);
 }
 
 .filter-section {
@@ -135,7 +210,14 @@ const filters = computed(() => [
 
 .filter-chip {
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition:
+    all 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.filter-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--sl-teal-glow);
 }
 
 @media (max-width: 768px) {
