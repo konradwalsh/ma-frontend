@@ -1,1 +1,89 @@
 @import "vuetify/styles";
+
+/* ─── Streamloader-fork app-wide polish (batch 2, 2026-04-30) ──────────
+       App-wide CSS overrides that push MA toward the ALACarte aesthetic
+       (memory: alacarte_inspiration.md). Kept in one file so all visual
+       polish lives in one place — easy to audit, easy to revert, easy
+       to merge upstream. Per-component tweaks live in their components
+       (HealthPill, vinyl wrapper); this file is the global layer. */
+
+/* 1. Subtle dark radial gradient on the app shell.
+   ALACarte has a deep-navy + faint blue-purple radial halo. Done here
+   with a fixed background-attachment so it doesn't scroll with content
+   (the halo stays anchored top-center even on long pages). Light theme
+   gets a much softer tint so we don't break readability. */
+
+.v-application.v-theme--dark {
+  background:
+    radial-gradient(
+      ellipse 1200px 800px at 50% -200px,
+      rgba(45, 212, 191, 0.06) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 800px 600px at 100% 100%,
+      rgba(15, 118, 110, 0.05) 0%,
+      transparent 70%
+    ),
+    #181818;
+  background-attachment: fixed;
+}
+
+.v-application.v-theme--light {
+  background:
+    radial-gradient(
+      ellipse 1200px 800px at 50% -200px,
+      rgba(15, 118, 110, 0.04) 0%,
+      transparent 65%
+    ),
+    #f5f5f5;
+  background-attachment: fixed;
+}
+
+/* 2. List-row hover polish.
+   Vuetify default is a flat alpha overlay. ALACarte's track rows have
+   a subtle teal-tinted hover that reads as "this is interactive +
+   on-brand" rather than the default neutral grey wash.
+   Using ::before so we don't fight Vuetify's own .v-list-item__overlay
+   stack — we layer underneath with a lower z and a teal hue. */
+
+.v-theme--dark .v-list-item:hover::after {
+  background: rgba(45, 212, 191, 0.08) !important;
+  opacity: 1 !important;
+}
+
+.v-theme--light .v-list-item:hover::after {
+  background: rgba(15, 118, 110, 0.08) !important;
+  opacity: 1 !important;
+}
+
+/* 3. Active list item — when a row is selected (e.g. current playing
+   track in the queue), give it a left-edge teal stripe. Same affordance
+   streamloader's web UI uses for current-row indication. */
+
+.v-theme--dark .v-list-item--active {
+  box-shadow: inset 3px 0 0 #2dd4bf;
+}
+
+.v-theme--light .v-list-item--active {
+  box-shadow: inset 3px 0 0 #0f766e;
+}
+
+/* 4. Chip pill polish.
+   ALACarte's chips use a tinted-bg + matching-color-border + medium-
+   weight text recipe. Vuetify's default is heavier visual weight.
+   Tightening to feel more like a content tag than a UI control. The
+   :where() selector keeps specificity at 0 so component-level chip
+   styles still win when they want to. */
+
+:where(.v-theme--dark .v-chip:not(.v-chip--variant-elevated)) {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border-radius: 999px;
+}
+
+:where(.v-theme--light .v-chip:not(.v-chip--variant-elevated)) {
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border-radius: 999px;
+}
