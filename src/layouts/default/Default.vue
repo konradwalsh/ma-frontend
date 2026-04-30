@@ -5,6 +5,12 @@
       <MainView />
       <Footer />
     </template>
+    <!-- Streamloader-fork addition: ALACarte-style status pill anchored
+         top-right, lives at v-app root so it overlays every page.
+         Hidden in frameless (HA ingress companion) mode to avoid
+         duplicating status indication when a host shell already
+         provides its own. -->
+    <StreamloaderHealthPill v-if="!store.frameless" />
   </v-app>
   <reload-prompt />
 </template>
@@ -13,6 +19,7 @@
 import MainView from "./View.vue";
 import Footer from "./Footer.vue";
 import ReloadPrompt from "./ReloadPrompt.vue";
+import StreamloaderHealthPill from "@/components/StreamloaderHealthPill.vue";
 import { store } from "@/plugins/store";
 import { watch } from "vue";
 import api from "@/plugins/api";
