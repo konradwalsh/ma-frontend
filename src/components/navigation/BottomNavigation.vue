@@ -5,14 +5,16 @@
     bg-color="default"
     grow
     role="navigation"
+    class="streamloader-bottom-nav"
   >
     <v-btn
       aria-label="Menu"
       tabindex="0"
       variant="text"
+      class="bn-btn"
       @click="handleMenuClick"
     >
-      <Menu class="w-5 h-5" />
+      <Menu class="w-5 h-5 bn-icon" />
       <span class="menuButton">Menu</span>
     </v-btn>
 
@@ -22,9 +24,15 @@
       variant="text"
       :active="isActive('discover')"
       active-color="fg"
+      class="bn-btn"
+      :class="{ 'bn-btn--active': isActive('discover') }"
       @click="handleDiscoverClick"
     >
-      <Compass class="w-5 h-5" :stroke-width="isActive('discover') ? 2.5 : 2" />
+      <Compass
+        class="w-5 h-5 bn-icon"
+        :class="{ 'bn-icon--active': isActive('discover') }"
+        :stroke-width="isActive('discover') ? 2.5 : 2"
+      />
       <span
         class="menuButton"
         :class="{ 'menuButton--active': isActive('discover') }"
@@ -38,9 +46,15 @@
       variant="text"
       :active="isActive('search')"
       active-color="fg"
+      class="bn-btn"
+      :class="{ 'bn-btn--active': isActive('search') }"
       @click="handleSearchClick"
     >
-      <Search class="w-5 h-5" :stroke-width="isActive('search') ? 2.5 : 2" />
+      <Search
+        class="w-5 h-5 bn-icon"
+        :class="{ 'bn-icon--active': isActive('search') }"
+        :stroke-width="isActive('search') ? 2.5 : 2"
+      />
       <span
         class="menuButton"
         :class="{ 'menuButton--active': isActive('search') }"
@@ -59,9 +73,10 @@
       :aria-label="$t('players')"
       tabindex="0"
       variant="text"
+      class="bn-btn"
       @click="handlePlayersClick"
     >
-      <Speaker class="w-5 h-5" />
+      <Speaker class="w-5 h-5 bn-icon" />
       <span class="menuButton">{{ $t("players") }}</span>
     </v-btn>
   </v-bottom-navigation>
@@ -114,20 +129,92 @@ function closePlayersMenu() {
 </script>
 
 <style>
+/* Brand teal: #2dd4bf (dark) / #0f766e (light) */
 .menuButton {
   font-weight: 350;
   font-size: x-small;
   font-stretch: condensed;
   text-transform: none;
   margin-top: 5px;
+  transition: color 150ms ease;
 }
 
 .menuButton--active {
   font-weight: 600;
+  color: #0f766e;
 }
 
-.v-btn--active > .v-btn__overlay {
-  background: rgb(var(--v-theme-default)) !important;
+.v-theme--dark .menuButton--active,
+.v-theme--ma-dark .menuButton--active {
+  color: #2dd4bf;
+}
+
+/* Active tab: teal underline + filled overlay neutralised so teal reads */
+.streamloader-bottom-nav .v-btn--active > .v-btn__overlay {
+  background: transparent !important;
+}
+
+.streamloader-bottom-nav .bn-btn--active::after {
+  content: "";
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: #0f766e;
+  transition: background-color 150ms ease;
+}
+
+.v-theme--dark .streamloader-bottom-nav .bn-btn--active::after,
+.v-theme--ma-dark .streamloader-bottom-nav .bn-btn--active::after {
+  background: #2dd4bf;
+}
+
+/* Icon teal when active */
+.bn-icon {
+  transition: color 150ms ease;
+}
+
+.bn-icon--active {
+  color: #0f766e;
+}
+
+.v-theme--dark .bn-icon--active,
+.v-theme--ma-dark .bn-icon--active {
+  color: #2dd4bf;
+}
+
+/* Hover / focus tint — touch devices fall back to :focus-visible */
+.streamloader-bottom-nav .bn-btn {
+  position: relative;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+@media (hover: hover) {
+  .streamloader-bottom-nav .bn-btn:hover .bn-icon,
+  .streamloader-bottom-nav .bn-btn:hover .menuButton {
+    color: #0f766e;
+  }
+
+  .v-theme--dark .streamloader-bottom-nav .bn-btn:hover .bn-icon,
+  .v-theme--dark .streamloader-bottom-nav .bn-btn:hover .menuButton,
+  .v-theme--ma-dark .streamloader-bottom-nav .bn-btn:hover .bn-icon,
+  .v-theme--ma-dark .streamloader-bottom-nav .bn-btn:hover .menuButton {
+    color: #2dd4bf;
+  }
+}
+
+.streamloader-bottom-nav .bn-btn:focus-visible {
+  outline: 2px solid #0f766e;
+  outline-offset: -2px;
+}
+
+.v-theme--dark .streamloader-bottom-nav .bn-btn:focus-visible,
+.v-theme--ma-dark .streamloader-bottom-nav .bn-btn:focus-visible {
+  outline-color: #2dd4bf;
 }
 
 .v-slide-group-item--active {

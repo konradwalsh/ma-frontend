@@ -2,7 +2,9 @@
   <Dialog v-model:open="isOpen">
     <DialogContent class="sm:max-w-[500px] max-h-[90vh] flex flex-col p-0">
       <DialogHeader class="px-6 pt-6 pb-4">
-        <DialogTitle>{{ $t("auth.edit_user") }}</DialogTitle>
+        <DialogTitle class="text-lg font-semibold tracking-tight">
+          {{ $t("auth.edit_user") }}
+        </DialogTitle>
       </DialogHeader>
       <div ref="scrollContainer" class="flex-1 overflow-y-auto px-6">
         <form id="form-edit-user" @submit.prevent="handleFormSubmit">
@@ -228,12 +230,13 @@
         </form>
       </div>
       <DialogFooter class="px-6 pb-6 pt-4 border-t shrink-0">
-        <Button variant="outline" @click="handleClose">
+        <Button variant="ghost" @click="handleClose">
           {{ $t("cancel") }}
         </Button>
         <Button
           type="submit"
           form="form-edit-user"
+          variant="default"
           :disabled="loading"
           :loading="loading"
         >

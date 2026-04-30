@@ -2,7 +2,7 @@
   <Dialog :open="modelValue" @update:open="emit('update:modelValue', $event)">
     <DialogContent class="sm:max-w-md">
       <DialogHeader>
-        <DialogTitle>
+        <DialogTitle class="text-lg font-semibold tracking-tight">
           {{ createdToken ? tokenName : $t("auth.create_token") }}
         </DialogTitle>
         <DialogDescription v-if="!createdToken">
@@ -31,6 +31,7 @@
                   :placeholder="$t('auth.token_name_hint')"
                   autofocus
                   autocomplete="off"
+                  class="focus-visible:border-primary focus-visible:ring-primary/40"
                   @blur="field.handleBlur"
                   @input="
                     (e: Event) => {
@@ -53,28 +54,36 @@
         <p class="text-sm text-muted-foreground mb-4">
           {{ $t("auth.copy_new_token_hint") }}
         </p>
-        <InputGroup>
-          <InputGroupInput
-            :model-value="createdToken"
-            readonly
-            class="font-mono text-sm"
-          />
-          <InputGroupAddon align="inline-end">
-            <InputGroupButton size="icon-sm" variant="ghost" @click="copyToken">
-              <Copy :size="16" />
-            </InputGroupButton>
-          </InputGroupAddon>
-        </InputGroup>
+        <div class="rounded-md border border-primary/30 bg-primary/10 p-1">
+          <InputGroup>
+            <InputGroupInput
+              :model-value="createdToken"
+              readonly
+              class="font-mono text-sm bg-transparent border-0 text-primary focus-visible:ring-0"
+            />
+            <InputGroupAddon align="inline-end">
+              <InputGroupButton
+                size="icon-sm"
+                variant="ghost"
+                class="text-primary hover:bg-primary/20 hover:text-primary"
+                @click="copyToken"
+              >
+                <Copy :size="16" />
+              </InputGroupButton>
+            </InputGroupAddon>
+          </InputGroup>
+        </div>
       </div>
 
       <DialogFooter>
         <template v-if="!createdToken">
-          <Button variant="outline" @click="handleClose">
+          <Button variant="ghost" @click="handleClose">
             {{ $t("cancel") }}
           </Button>
           <Button
             type="submit"
             form="form-create-token"
+            color="primary"
             :disabled="!canCreate"
             :loading="loading"
           >
@@ -82,7 +91,7 @@
           </Button>
         </template>
         <template v-else>
-          <Button variant="default" @click="handleClose">
+          <Button variant="default" color="primary" @click="handleClose">
             {{ $t("close") }}
           </Button>
         </template>

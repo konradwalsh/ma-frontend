@@ -2,7 +2,9 @@
   <Dialog :open="modelValue" @update:open="emit('update:modelValue', $event)">
     <DialogContent class="sm:max-w-md">
       <DialogHeader>
-        <DialogTitle>
+        <DialogTitle
+          class="text-lg font-semibold tracking-tight text-destructive"
+        >
           {{
             token?.is_long_lived
               ? $t("auth.revoke_token")
@@ -18,12 +20,17 @@
               : $t("auth.revoke_session_confirm")
           }}
         </p>
-        <div v-if="token" class="rounded-md bg-destructive/10 p-4">
-          <p class="font-medium">{{ token.name }}</p>
+        <div
+          v-if="token"
+          class="rounded-md border border-destructive/30 bg-destructive/10 p-4"
+        >
+          <p class="font-medium font-mono text-sm break-all">
+            {{ token.name }}
+          </p>
         </div>
       </div>
       <DialogFooter>
-        <Button variant="outline" @click="emit('update:modelValue', false)">
+        <Button variant="ghost" @click="emit('update:modelValue', false)">
           {{ $t("cancel") }}
         </Button>
         <Button variant="destructive" :loading="loading" @click="handleRevoke">

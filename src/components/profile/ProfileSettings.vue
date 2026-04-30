@@ -11,8 +11,10 @@
         <FieldGroup>
           <div class="flex flex-col sm:flex-row gap-6 mb-6">
             <div class="flex flex-col items-center gap-3">
-              <div class="relative">
-                <Avatar class="size-32">
+              <div class="relative group">
+                <Avatar
+                  class="size-32 ring-2 ring-transparent group-hover:ring-[#0f766e]/40 dark:group-hover:ring-[#2dd4bf]/40 transition-all duration-200 shadow-sm"
+                >
                   <AvatarImage
                     v-if="
                       currentAvatarUrl ||
@@ -42,11 +44,25 @@
                   type="button"
                   variant="outline"
                   size="icon"
-                  class="absolute bottom-0 right-0 size-8 rounded-full border-2 border-background bg-background shadow-md hover:bg-accent"
+                  class="absolute bottom-0 right-0 size-8 rounded-full border-2 border-background bg-background shadow-md hover:bg-[#0f766e]/10 dark:hover:bg-[#2dd4bf]/10 hover:border-[#0f766e] dark:hover:border-[#2dd4bf] hover:text-[#0f766e] dark:hover:text-[#2dd4bf] transition-colors"
                   @click="showAvatarDialog = true"
                 >
                   <Camera :size="14" />
                 </Button>
+              </div>
+              <div
+                v-if="user"
+                class="flex flex-col items-center gap-0.5 text-center"
+              >
+                <span class="text-base font-semibold tracking-tight">
+                  {{ user.display_name || user.username }}
+                </span>
+                <span
+                  v-if="user.display_name"
+                  class="text-xs text-muted-foreground"
+                >
+                  @{{ user.username }}
+                </span>
               </div>
             </div>
 
@@ -137,6 +153,7 @@
         <Button
           type="submit"
           form="form-profile-settings"
+          color="primary"
           :disabled="!hasChanges || updating"
           :loading="updating"
         >
@@ -182,7 +199,7 @@
         <Button variant="outline" @click="closeAvatarDialog">
           {{ $t("cancel") }}
         </Button>
-        <Button @click="handleAvatarChange">
+        <Button color="primary" @click="handleAvatarChange">
           {{ $t("auth.save_changes") || "Save changes" }}
         </Button>
       </DialogFooter>

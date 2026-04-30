@@ -61,8 +61,9 @@ const handleClick = (item: NavItem, event: Event) => {
             :tooltip="item.title"
             :disabled="item.disabled"
             :class="[
+              'nav-main-button transition-colors',
               isActive(item.url)
-                ? 'no-underline font-bold text-sm'
+                ? 'no-underline font-bold text-sm nav-main-button--active'
                 : 'no-underline font-medium text-sm',
               item.disabled ? 'opacity-50 cursor-not-allowed' : '',
             ]"
@@ -71,7 +72,8 @@ const handleClick = (item: NavItem, event: Event) => {
             <component
               :is="item.icon"
               v-if="item.icon"
-              class="mr-1"
+              class="mr-1 nav-main-icon"
+              :class="{ 'nav-main-icon--active': isActive(item.url) }"
               :stroke-width="isActive(item.url) ? 2.5 : 2"
             />
             <span>{{ item.title }}</span>
@@ -83,6 +85,7 @@ const handleClick = (item: NavItem, event: Event) => {
 </template>
 
 <style scoped>
+/* Brand teal: #2dd4bf (dark) / #0f766e (light) */
 :deep(a) {
   text-decoration: none !important;
   color: inherit !important;
@@ -107,5 +110,62 @@ const handleClick = (item: NavItem, event: Event) => {
 :deep([data-sidebar="menu-item"]) {
   display: flex !important;
   flex-direction: column !important;
+}
+
+/* Teal accent for nav items (active + hover) */
+:deep(.nav-main-button) {
+  position: relative;
+  border-left: 3px solid transparent;
+  border-radius: 0 0.5rem 0.5rem 0;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+:deep(.nav-main-button:hover:not([data-disabled])) {
+  background-color: rgba(15, 118, 110, 0.08) !important;
+}
+
+:deep(.dark .nav-main-button:hover:not([data-disabled])),
+:where(.dark) :deep(.nav-main-button:hover:not([data-disabled])) {
+  background-color: rgba(45, 212, 191, 0.1) !important;
+}
+
+:deep(.nav-main-button--active) {
+  border-left-color: #0f766e !important;
+  background-color: rgba(15, 118, 110, 0.12) !important;
+  color: #0f766e !important;
+}
+
+:deep(.dark .nav-main-button--active),
+:where(.dark) :deep(.nav-main-button--active) {
+  border-left-color: #2dd4bf !important;
+  background-color: rgba(45, 212, 191, 0.14) !important;
+  color: #2dd4bf !important;
+}
+
+:deep(.nav-main-icon) {
+  transition: color 150ms ease;
+}
+
+:deep(.nav-main-icon--active) {
+  color: #0f766e !important;
+}
+
+:deep(.dark .nav-main-icon--active),
+:where(.dark) :deep(.nav-main-icon--active) {
+  color: #2dd4bf !important;
+}
+
+/* Keyboard focus ring in teal for accessibility */
+:deep(.nav-main-button:focus-visible) {
+  outline: 2px solid #0f766e;
+  outline-offset: -2px;
+}
+
+:deep(.dark .nav-main-button:focus-visible),
+:where(.dark) :deep(.nav-main-button:focus-visible) {
+  outline-color: #2dd4bf;
 }
 </style>

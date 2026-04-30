@@ -2,9 +2,12 @@
   <Dialog v-model:open="isOpen">
     <DialogContent class="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle>
-          {{ $t("auth.tokens") }} -
-          {{ user?.display_name || user?.username }}
+        <DialogTitle class="text-lg font-semibold tracking-tight">
+          <span>{{ $t("auth.tokens") }}</span>
+          <span class="text-muted-foreground font-normal mx-1.5">/</span>
+          <span class="text-primary">
+            {{ user?.display_name || user?.username }}
+          </span>
         </DialogTitle>
       </DialogHeader>
 
@@ -22,9 +25,9 @@
             class="flex flex-col items-center justify-center py-12 border-2 border-dashed rounded-lg"
           >
             <div
-              class="size-16 rounded-full bg-blue-900/20 flex items-center justify-center mb-3"
+              class="size-16 rounded-full bg-primary/10 flex items-center justify-center mb-3"
             >
-              <Monitor :size="32" class="text-blue-500" />
+              <Monitor :size="32" class="text-primary" />
             </div>
             <p class="text-sm text-muted-foreground">
               {{ $t("auth.no_active_sessions") }}
@@ -34,20 +37,24 @@
             <Card
               v-for="token in sessionTokens"
               :key="token.token_id"
-              class="p-4"
+              class="p-4 transition-colors hover:bg-primary/5 hover:border-primary/30"
             >
               <div class="flex items-center gap-4">
                 <div
-                  class="size-10 rounded-full bg-blue-900/20 flex items-center justify-center shrink-0"
+                  class="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0 relative"
                 >
-                  <Monitor :size="20" class="text-blue-500" />
+                  <Monitor :size="20" class="text-primary" />
+                  <span
+                    class="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-primary ring-2 ring-background"
+                    :title="$t('auth.active_sessions')"
+                  />
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="font-medium text-sm truncate">
+                  <div class="font-mono font-medium text-sm truncate">
                     {{ token.name }}
                   </div>
                   <div
-                    class="text-xs text-muted-foreground flex items-center gap-2 flex-wrap"
+                    class="text-xs text-muted-foreground flex items-center gap-2 flex-wrap mt-0.5"
                   >
                     <span>
                       {{ $t("created") }}: {{ formatDate(token.created_at) }}
@@ -67,7 +74,7 @@
                 <Button
                   variant="ghost"
                   size="icon"
-                  class="text-destructive hover:text-destructive"
+                  class="text-destructive hover:text-destructive hover:bg-destructive/10"
                   @click.stop="emit('revoke', token)"
                 >
                   <Trash2 :size="16" />
@@ -90,6 +97,7 @@
             <Button
               v-if="!showCreateForm"
               size="sm"
+              color="primary"
               @click="showCreateForm = true"
             >
               <Plus :size="16" />
@@ -97,7 +105,7 @@
             </Button>
             <Button
               v-else
-              variant="outline"
+              variant="ghost"
               size="sm"
               @click="showCreateForm = false"
             >
@@ -105,7 +113,7 @@
             </Button>
           </div>
 
-          <Card v-if="showCreateForm" class="p-4 mb-4 border-primary/20">
+          <Card v-if="showCreateForm" class="p-4 mb-4 border-primary/30 bg-primary/5">
             <form id="form-create-token" @submit.prevent="handleCreateToken">
               <form.Field
                 name="tokenName"
@@ -126,6 +134,7 @@
                       :placeholder="$t('auth.token_name_hint')"
                       autofocus
                       autocomplete="off"
+                      class="focus-visible:border-primary focus-visible:ring-primary/40"
                       @blur="field.handleBlur"
                       @input="
                         (e: Event) => {
@@ -144,11 +153,12 @@
                 </template>
               </form.Field>
               <div class="flex justify-end gap-2 mt-4">
-                <Button variant="outline" @click="showCreateForm = false">
+                <Button variant="ghost" @click="showCreateForm = false">
                   {{ $t("cancel") }}
                 </Button>
                 <Button
                   type="submit"
+                  color="primary"
                   :disabled="!canCreate"
                   :loading="creating"
                 >
@@ -160,21 +170,22 @@
 
           <Card
             v-if="createdToken"
-            class="p-4 mb-4 bg-destructive/10 border-destructive/20"
+            class="p-4 mb-4 bg-primary/10 border-primary/30"
           >
-            <p class="text-sm text-muted-foreground">
+            <p class="text-sm text-muted-foreground mb-2">
               {{ $t("auth.copy_new_token_hint") }}
             </p>
             <InputGroup>
               <InputGroupInput
                 :model-value="createdToken"
                 readonly
-                class="font-mono text-sm"
+                class="font-mono text-sm text-primary bg-background/60"
               />
               <InputGroupAddon align="inline-end">
                 <InputGroupButton
                   size="icon-sm"
                   variant="ghost"
+                  class="text-primary hover:bg-primary/20 hover:text-primary"
                   @click="copyToken"
                 >
                   <Copy :size="16" />
@@ -182,7 +193,7 @@
               </InputGroupAddon>
             </InputGroup>
             <Button
-              variant="outline"
+              variant="ghost"
               class="mt-4 w-full"
               @click="handleCloseCreateForm"
             >
@@ -195,9 +206,9 @@
             class="flex flex-col items-center justify-center py-12 border-2 border-dashed rounded-lg"
           >
             <div
-              class="size-16 rounded-full bg-purple-900/20 flex items-center justify-center mb-3"
+              class="size-16 rounded-full bg-muted flex items-center justify-center mb-3"
             >
-              <Key :size="32" class="text-purple-500" />
+              <Key :size="32" class="text-muted-foreground" />
             </div>
             <p class="text-sm text-muted-foreground">
               {{ $t("auth.no_long_lived_tokens") }}
@@ -207,20 +218,20 @@
             <Card
               v-for="token in longLivedTokens"
               :key="token.token_id"
-              class="p-4"
+              class="p-4 transition-colors hover:bg-primary/5 hover:border-primary/30"
             >
               <div class="flex items-center gap-4">
                 <div
-                  class="size-10 rounded-full bg-purple-900/20 flex items-center justify-center shrink-0"
+                  class="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0"
                 >
-                  <Key :size="20" class="text-purple-500" />
+                  <Key :size="20" class="text-primary" />
                 </div>
                 <div class="flex-1 min-w-0">
-                  <div class="font-medium text-sm truncate">
+                  <div class="font-mono font-medium text-sm truncate">
                     {{ token.name }}
                   </div>
                   <div
-                    class="text-xs text-muted-foreground flex items-center gap-2 flex-wrap"
+                    class="text-xs text-muted-foreground flex items-center gap-2 flex-wrap mt-0.5"
                   >
                     <span>
                       {{ $t("created") }}: {{ formatDate(token.created_at) }}
@@ -240,7 +251,7 @@
                 <Button
                   variant="ghost"
                   size="icon"
-                  class="text-destructive hover:text-destructive"
+                  class="text-destructive hover:text-destructive hover:bg-destructive/10"
                   @click.stop="emit('revoke', token)"
                 >
                   <Trash2 :size="16" />
@@ -252,7 +263,7 @@
       </div>
 
       <DialogFooter>
-        <Button variant="outline" @click="emit('update:modelValue', false)">
+        <Button variant="ghost" @click="emit('update:modelValue', false)">
           {{ $t("close") }}
         </Button>
       </DialogFooter>

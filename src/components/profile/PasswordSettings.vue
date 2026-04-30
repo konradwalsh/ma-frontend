@@ -22,16 +22,56 @@
                 <FieldLabel :for="field.name">
                   {{ $t("auth.new_password") }}
                 </FieldLabel>
-                <Input
-                  :id="field.name"
-                  :name="field.name"
-                  :model-value="field.state.value"
-                  type="password"
-                  :aria-invalid="isInvalid(field)"
-                  autocomplete="new-password"
-                  @blur="field.handleBlur"
-                  @input="handleNewPasswordInput($event, field)"
-                />
+                <div class="relative">
+                  <Input
+                    :id="field.name"
+                    :name="field.name"
+                    :model-value="field.state.value"
+                    :type="showNewPassword ? 'text' : 'password'"
+                    :aria-invalid="isInvalid(field)"
+                    autocomplete="new-password"
+                    class="pr-10 focus-visible:ring-[#0f766e] dark:focus-visible:ring-[#2dd4bf] focus-visible:ring-offset-0 focus-visible:border-[#0f766e] dark:focus-visible:border-[#2dd4bf]"
+                    @blur="field.handleBlur"
+                    @input="handleNewPasswordInput($event, field)"
+                  />
+                  <button
+                    type="button"
+                    tabindex="-1"
+                    :aria-label="
+                      showNewPassword
+                        ? $t('auth.hide_password') || 'Hide password'
+                        : $t('auth.show_password') || 'Show password'
+                    "
+                    class="absolute right-2 top-1/2 -translate-y-1/2 inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-[#0f766e]/10 dark:hover:bg-[#2dd4bf]/10 hover:text-[#0f766e] dark:hover:text-[#2dd4bf] transition-colors"
+                    @click="showNewPassword = !showNewPassword"
+                  >
+                    <EyeOff v-if="showNewPassword" :size="16" />
+                    <Eye v-else :size="16" />
+                  </button>
+                </div>
+                <div
+                  v-if="currentNewPassword.length > 0"
+                  class="mt-2 space-y-1"
+                  aria-live="polite"
+                >
+                  <div
+                    class="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+                  >
+                    <div
+                      class="h-full transition-all duration-300 ease-out"
+                      :class="strengthBarClass"
+                      :style="{ width: `${strengthPercent}%` }"
+                    />
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span
+                      class="text-xs font-medium"
+                      :class="strengthLabelClass"
+                    >
+                      {{ strengthLabel }}
+                    </span>
+                  </div>
+                </div>
                 <FieldError
                   v-if="isInvalid(field)"
                   :errors="field.state.meta.errors"
@@ -46,16 +86,33 @@
                 <FieldLabel :for="field.name">
                   {{ $t("auth.confirm_password") }}
                 </FieldLabel>
-                <Input
-                  :id="field.name"
-                  :name="field.name"
-                  :model-value="field.state.value"
-                  type="password"
-                  :aria-invalid="isInvalid(field)"
-                  autocomplete="new-password"
-                  @blur="field.handleBlur"
-                  @input="handleConfirmPasswordInput($event, field)"
-                />
+                <div class="relative">
+                  <Input
+                    :id="field.name"
+                    :name="field.name"
+                    :model-value="field.state.value"
+                    :type="showConfirmPassword ? 'text' : 'password'"
+                    :aria-invalid="isInvalid(field)"
+                    autocomplete="new-password"
+                    class="pr-10 focus-visible:ring-[#0f766e] dark:focus-visible:ring-[#2dd4bf] focus-visible:ring-offset-0 focus-visible:border-[#0f766e] dark:focus-visible:border-[#2dd4bf]"
+                    @blur="field.handleBlur"
+                    @input="handleConfirmPasswordInput($event, field)"
+                  />
+                  <button
+                    type="button"
+                    tabindex="-1"
+                    :aria-label="
+                      showConfirmPassword
+                        ? $t('auth.hide_password') || 'Hide password'
+                        : $t('auth.show_password') || 'Show password'
+                    "
+                    class="absolute right-2 top-1/2 -translate-y-1/2 inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-[#0f766e]/10 dark:hover:bg-[#2dd4bf]/10 hover:text-[#0f766e] dark:hover:text-[#2dd4bf] transition-colors"
+                    @click="showConfirmPassword = !showConfirmPassword"
+                  >
+                    <EyeOff v-if="showConfirmPassword" :size="16" />
+                    <Eye v-else :size="16" />
+                  </button>
+                </div>
                 <FieldError
                   v-if="isInvalid(field)"
                   :errors="field.state.meta.errors"
@@ -70,6 +127,7 @@
       <Button
         type="submit"
         form="form-password-settings"
+        color="primary"
         :disabled="!canChangePassword || changing"
         :loading="changing"
       >
@@ -82,6 +140,7 @@
 <script setup lang="ts">
 import type { AnyFieldApi } from "@tanstack/form-core";
 import { useForm } from "@tanstack/vue-form";
+import { Eye, EyeOff } from "lucide-vue-next";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
@@ -112,6 +171,68 @@ const changing = ref(false);
 
 const currentNewPassword = ref("");
 const currentConfirmPassword = ref("");
+
+const showNewPassword = ref(false);
+const showConfirmPassword = ref(false);
+
+const strengthScore = computed(() => {
+  const pwd = currentNewPassword.value;
+  if (!pwd) return 0;
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (pwd.length >= 12) score++;
+  if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score++;
+  if (/\d/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  return Math.min(score, 4);
+});
+
+const strengthPercent = computed(() => (strengthScore.value / 4) * 100);
+
+// Brand teal: #2dd4bf dark / #0f766e light. Amber + red for weaker tiers.
+const strengthBarClass = computed(() => {
+  switch (strengthScore.value) {
+    case 0:
+    case 1:
+      return "bg-red-500";
+    case 2:
+      return "bg-amber-500";
+    case 3:
+      return "bg-[#0f766e] dark:bg-[#2dd4bf]/80";
+    case 4:
+    default:
+      return "bg-[#0f766e] dark:bg-[#2dd4bf]";
+  }
+});
+
+const strengthLabelClass = computed(() => {
+  switch (strengthScore.value) {
+    case 0:
+    case 1:
+      return "text-red-600 dark:text-red-400";
+    case 2:
+      return "text-amber-600 dark:text-amber-400";
+    case 3:
+    case 4:
+    default:
+      return "text-[#0f766e] dark:text-[#2dd4bf]";
+  }
+});
+
+const strengthLabel = computed(() => {
+  switch (strengthScore.value) {
+    case 0:
+    case 1:
+      return t("auth.password_strength_weak") || "Weak";
+    case 2:
+      return t("auth.password_strength_fair") || "Fair";
+    case 3:
+      return t("auth.password_strength_good") || "Good";
+    case 4:
+    default:
+      return t("auth.password_strength_strong") || "Strong";
+  }
+});
 
 const form = useForm({
   defaultValues: {

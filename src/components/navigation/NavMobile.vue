@@ -1,24 +1,16 @@
 <template>
-  <!-- HA BUTTON COMMENTED OUT -->
-  <!-- <Button
-    v-if="store.isIngressSession && isMobile"
-    size="sm"
-    variant="outline"
-    class="w-full justify-between"
-    title="HA Menu"
-    @click.stop="handleHAMenuToggle"
-  >
-    <span class="flex items-center gap-2">
-      <img
-        src="@/assets/home-assistant-logo.svg"
-        alt="Home Assistant"
-        class="h-4 w-4 shrink-0"
-      />
-      <span>HA Menu</span>
-    </span>
-    <ArrowLeftToLine class="ha-menu-arrow size-4 shrink-0" />
-  </Button> -->
-  <NavUser />
+  <!--
+    NavMobile is a thin wrapper around <NavUser /> on mobile.
+    The HA Menu button is intentionally commented out (streamloader brand
+    omits the Home Assistant entry point). Brand teal styling for the user
+    row + dropdown items is applied inside NavUser.vue, so this wrapper
+    needs no additional teal accents — everything is inherited.
+    If the HA button is ever re-enabled, theme its accent (currently uses
+    .ha-menu-arrow) with brand teal #0f766e (light) / #2dd4bf (dark).
+  -->
+  <div class="nav-mobile">
+    <NavUser />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -39,3 +31,12 @@ import NavUser from "./NavUser.vue";
 //   toggleHAMenu();
 // };
 </script>
+
+<style scoped>
+/* Brand teal: #2dd4bf (dark) / #0f766e (light)
+   Wrapper kept minimal — child NavUser carries the brand styling.
+   Reserved class for future mobile-only tweaks (e.g. taller hit target). */
+.nav-mobile {
+  width: 100%;
+}
+</style>

@@ -52,22 +52,24 @@ const handleLogout = () => {
         <DropdownMenuTrigger as-child>
           <SidebarMenuButton
             size="lg"
-            class="w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            class="nav-user-trigger w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
           >
-            <Avatar class="h-8 w-8 shrink-0 rounded-lg">
+            <Avatar
+              class="nav-user-avatar h-8 w-8 shrink-0 rounded-lg ring-1 ring-transparent"
+            >
               <AvatarImage
                 v-if="store.currentUser?.avatar_url"
                 :src="store.currentUser.avatar_url"
                 :alt="displayName"
               />
-              <AvatarFallback
-                class="rounded-lg bg-primary text-primary-foreground"
-              >
+              <AvatarFallback class="nav-user-fallback rounded-lg">
                 {{ initial }}
               </AvatarFallback>
             </Avatar>
             <div class="grid min-w-0 flex-1 text-left text-sm leading-tight">
-              <span class="truncate font-medium">{{ displayName }}</span>
+              <span class="nav-user-name truncate font-medium">
+                {{ displayName }}
+              </span>
               <span class="text-muted-foreground truncate text-xs">
                 {{ username }}
               </span>
@@ -79,27 +81,27 @@ const handleLogout = () => {
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          class="z-[100001] w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+          class="nav-user-menu z-[100001] w-(--reka-dropdown-menu-trigger-width) min-w-56 rounded-lg"
           :side="isMobile ? 'bottom' : 'right'"
           :side-offset="isMobile ? 4 : 15"
           align="end"
         >
           <DropdownMenuLabel class="p-0 font-normal">
             <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-              <Avatar class="h-8 w-8 rounded-lg">
+              <Avatar class="nav-user-avatar h-8 w-8 rounded-lg">
                 <AvatarImage
                   v-if="store.currentUser?.avatar_url"
                   :src="store.currentUser.avatar_url"
                   :alt="displayName"
                 />
-                <AvatarFallback
-                  class="rounded-lg bg-primary text-primary-foreground"
-                >
+                <AvatarFallback class="nav-user-fallback rounded-lg">
                   {{ initial }}
                 </AvatarFallback>
               </Avatar>
               <div class="grid flex-1 text-left text-sm leading-tight">
-                <span class="truncate font-medium">{{ displayName }}</span>
+                <span class="nav-user-name truncate font-medium">
+                  {{ displayName }}
+                </span>
                 <span class="text-muted-foreground truncate text-xs">
                   {{ username }}
                 </span>
@@ -107,19 +109,20 @@ const handleLogout = () => {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem @click="handleProfile">
-            <Settings class="size-4" />
+          <DropdownMenuItem class="nav-user-item" @click="handleProfile">
+            <Settings class="size-4 nav-user-item-icon" />
             {{ $t("auth.profile") }}
           </DropdownMenuItem>
-          <DropdownMenuItem @click="handleEditHomescreen">
-            <Pencil class="size-4" />
+          <DropdownMenuItem class="nav-user-item" @click="handleEditHomescreen">
+            <Pencil class="size-4 nav-user-item-icon" />
             {{ $t("homescreen_edit_enable") }}
           </DropdownMenuItem>
           <DropdownMenuItem
             v-if="!store.isIngressSession"
+            class="nav-user-item"
             @click="handleLogout"
           >
-            <LogOut class="size-4" />
+            <LogOut class="size-4 nav-user-item-icon" />
             {{ $t("auth.logout") }}
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -129,7 +132,104 @@ const handleLogout = () => {
 </template>
 
 <style scoped>
+/* Brand teal: #2dd4bf (dark) / #0f766e (light) */
 .ha-menu-arrow {
   color: rgb(var(--v-theme-primary, 3, 169, 244)) !important;
+}
+
+/* Trigger row: subtle teal hover + open-state accent */
+:deep(.nav-user-trigger) {
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+:deep(.nav-user-trigger:hover) {
+  background-color: rgba(15, 118, 110, 0.08) !important;
+}
+
+:deep(.dark .nav-user-trigger:hover),
+:where(.dark) :deep(.nav-user-trigger:hover) {
+  background-color: rgba(45, 212, 191, 0.1) !important;
+}
+
+:deep(.nav-user-trigger[data-state="open"]) {
+  background-color: rgba(15, 118, 110, 0.12) !important;
+}
+
+:deep(.dark .nav-user-trigger[data-state="open"]),
+:where(.dark) :deep(.nav-user-trigger[data-state="open"]) {
+  background-color: rgba(45, 212, 191, 0.14) !important;
+}
+
+:deep(.nav-user-trigger:focus-visible) {
+  outline: 2px solid #0f766e;
+  outline-offset: -2px;
+}
+
+:deep(.dark .nav-user-trigger:focus-visible),
+:where(.dark) :deep(.nav-user-trigger:focus-visible) {
+  outline-color: #2dd4bf;
+}
+
+/* Avatar fallback uses brand teal so the initial reads as identity */
+:deep(.nav-user-fallback) {
+  background-color: #0f766e !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+:deep(.dark .nav-user-fallback),
+:where(.dark) :deep(.nav-user-fallback) {
+  background-color: #2dd4bf !important;
+  color: #042f2e !important;
+}
+
+/* Active user identifier (display name) — teal */
+:deep(.nav-user-name) {
+  color: #0f766e;
+}
+
+:deep(.dark .nav-user-name),
+:where(.dark) :deep(.nav-user-name) {
+  color: #2dd4bf;
+}
+
+/* Dropdown items — teal-tinted hover */
+:deep(.nav-user-item) {
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+:deep(.nav-user-item:hover),
+:deep(.nav-user-item[data-highlighted]),
+:deep(.nav-user-item:focus) {
+  background-color: rgba(15, 118, 110, 0.1) !important;
+  color: #0f766e !important;
+}
+
+:deep(.dark .nav-user-item:hover),
+:where(.dark) :deep(.nav-user-item:hover),
+:deep(.dark .nav-user-item[data-highlighted]),
+:where(.dark) :deep(.nav-user-item[data-highlighted]),
+:deep(.dark .nav-user-item:focus),
+:where(.dark) :deep(.nav-user-item:focus) {
+  background-color: rgba(45, 212, 191, 0.14) !important;
+  color: #2dd4bf !important;
+}
+
+:deep(.nav-user-item:hover .nav-user-item-icon),
+:deep(.nav-user-item[data-highlighted] .nav-user-item-icon),
+:deep(.nav-user-item:focus .nav-user-item-icon) {
+  color: #0f766e;
+}
+
+:deep(.dark .nav-user-item:hover .nav-user-item-icon),
+:where(.dark) :deep(.nav-user-item:hover .nav-user-item-icon),
+:deep(.dark .nav-user-item[data-highlighted] .nav-user-item-icon),
+:where(.dark) :deep(.nav-user-item[data-highlighted] .nav-user-item-icon) {
+  color: #2dd4bf;
 }
 </style>

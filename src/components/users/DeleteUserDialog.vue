@@ -5,7 +5,10 @@
     @update:model-value="emit('update:modelValue', $event)"
   >
     <v-card>
-      <v-card-title class="text-h6 pl-6 pb-0">
+      <v-card-title
+        class="text-h6 pl-6 pb-0 font-weight-medium"
+        style="letter-spacing: -0.01em;"
+      >
         {{ $t("auth.delete_user") }}
       </v-card-title>
       <v-card-text class="px-6 pb-2">
