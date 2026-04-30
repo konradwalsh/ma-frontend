@@ -8,9 +8,9 @@
       <template #title>
         <div class="flex items-center group">
           <span
-            class="mr-3"
+            class="mr-2 row-title-text"
             :class="{
-              'cursor-pointer group-hover:opacity-70':
+              'cursor-pointer row-title-link':
                 showActionIcon && widgetRow.action,
             }"
             @click="showActionIcon && handleActionIconClick()"
@@ -19,7 +19,7 @@
           <SquareArrowRightEnter
             v-if="showActionIcon && widgetRow.action"
             :size="18"
-            class="cursor-pointer group-hover:opacity-70"
+            class="cursor-pointer row-title-chevron"
             @click="handleActionIconClick"
           />
         </div>
@@ -177,15 +177,33 @@ const handleActionIconClick = () => {
   padding-inline-start: 4px;
 }
 
+/* Row title — subtle teal hover affordance for "see all" link + chevron */
+.row-title-link {
+  transition: color 0.18s ease;
+}
+.group:hover .row-title-link,
+.row-title-link:hover {
+  color: rgb(var(--v-theme-primary));
+}
+
+.row-title-chevron {
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+.group:hover .row-title-chevron,
+.row-title-chevron:hover {
+  color: rgb(var(--v-theme-primary));
+  transform: translateX(2px);
+}
+
 .carousel-wrapper {
   background-color: rgb(var(--v-theme-panel));
-  padding: 10px;
+  padding: 8px;
   padding-right: 0;
   border-radius: 5px 0 0 5px;
 }
 
 .widget-row {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   margin-left: 0px;
   padding-left: 0px;
 }
@@ -227,5 +245,16 @@ const handleActionIconClick = () => {
 
 .v-slide-group__next.v-slide-group__next--disabled {
   visibility: hidden;
+}
+
+/* Scroll affordance — teal accent on hover for horizontal scroll buttons */
+.carousel-wrapper :deep(.v-slide-group__prev),
+.carousel-wrapper :deep(.v-slide-group__next) {
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+.carousel-wrapper :deep(.v-slide-group__prev:hover:not(.v-slide-group__prev--disabled)),
+.carousel-wrapper :deep(.v-slide-group__next:hover:not(.v-slide-group__next--disabled)) {
+  color: rgb(var(--v-theme-primary));
+  background-color: rgba(var(--v-theme-primary), 0.08);
 }
 </style>

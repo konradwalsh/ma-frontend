@@ -43,6 +43,14 @@
             :size="20"
           />
         </div>
+        <!-- In Library badge -->
+        <div
+          v-if="'in_library' in item && item.in_library"
+          class="in-library-badge"
+          :title="$t('in_library')"
+        >
+          <v-icon size="14" color="white">mdi-bookmark-check</v-icon>
+        </div>
         <!-- Now Playing Badge -->
         <NowPlayingBadge
           v-if="isPlaying"
@@ -57,13 +65,14 @@
             item.is_playable
           "
           class="play-button-overlay"
+          :class="{ 'play-button-overlay-touch': store.isTouchscreen }"
         >
           <v-btn
             icon="mdi-play"
             color="white"
             fab
             :disabled="disablePlayButton"
-            style="opacity: 0.6; font-size: 20px"
+            class="play-button-fab"
             @click.stop="onPlayClick"
           />
         </div>
@@ -239,6 +248,23 @@ const onPlayClick = function (evt: PointerEvent) {
   justify-content: center;
 }
 
+/* In-Library badge: small teal pill in the top-right corner of the cover */
+.in-library-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%);
+  box-shadow: 0 1px 4px rgba(15, 118, 110, 0.5);
+  pointer-events: none;
+}
+
 .play-button-overlay {
   position: absolute;
   top: 0;
@@ -249,16 +275,74 @@ const onPlayClick = function (evt: PointerEvent) {
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease-in-out;
 
   .v-btn {
     pointer-events: all;
   }
 }
+
+.play-button-fab {
+  opacity: 0.85;
+  font-size: 20px;
+  box-shadow: 0 2px 12px rgba(15, 118, 110, 0.45);
+  transition:
+    transform 150ms ease,
+    opacity 150ms ease;
+}
+
+.play-button-fab:hover {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+/* Reveal play overlay when the v-card is hovered (desktop) */
+.v-card.on-hover .play-button-overlay {
+  opacity: 1;
+}
+
+/* Touch mode: always-visible small play button, anchored bottom-right */
+@media (hover: none) {
+  .play-button-overlay,
+  .play-button-overlay-touch {
+    opacity: 1;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 6px;
+  }
+
+  .play-button-overlay .play-button-fab,
+  .play-button-overlay-touch .play-button-fab {
+    transform: scale(0.7);
+    opacity: 0.9;
+  }
+}
+
+.play-button-overlay-touch {
+  opacity: 1;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 6px;
+}
+
+.play-button-overlay-touch .play-button-fab {
+  transform: scale(0.7);
+  opacity: 0.9;
+}
+
 .v-card {
   background-color: rgb(var(--v-theme-panel));
-  transition: opacity 0.4s ease-in-out;
+  transition:
+    opacity 0.4s ease-in-out,
+    transform 150ms ease;
   border-radius: 3px;
   padding: 10px;
+}
+
+/* Subtle lift on hover — pairs with the global card-hover glow from vuetify.css */
+.v-card.on-hover:not(.unavailable) {
+  transform: translateY(-2px);
 }
 
 @media (max-width: 575px) {
@@ -280,6 +364,12 @@ const onPlayClick = function (evt: PointerEvent) {
   margin-top: 10px;
 }
 
+/* Tighter typographic hierarchy: bolder title, lighter subtitle */
+.panel-item-details :deep(.v-list-item-title) {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 .hiresicon {
   margin-left: 10px;
   margin-right: 10px;
@@ -294,5 +384,6 @@ const onPlayClick = function (evt: PointerEvent) {
 .v-list-item-subtitle {
   color: rgb(var(--v-theme-on-panel), 0.6) !important;
   font-size: small !important;
+  font-weight: 400;
 }
 </style>

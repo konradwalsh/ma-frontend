@@ -192,6 +192,11 @@ watch(
 </script>
 
 <style scoped lang="scss">
+// streamloader brand teal
+$sl-teal: #2dd4bf;
+$sl-teal-dim: rgba(45, 212, 191, 0.18);
+$sl-teal-track: rgba(45, 212, 191, 0.28);
+
 .mediadetails-streamdetails .icon {
   opacity: 100;
 }
@@ -200,8 +205,11 @@ watch(
   position: relative;
   width: 100%;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  // faint teal hairline border for streamloader floating player
+  border: 1px solid $sl-teal-dim;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(45, 212, 191, 0.04);
   overflow: hidden;
   background-color: rgb(var(--v-theme-overlay));
 }
@@ -212,6 +220,8 @@ watch(
   width: 100%;
   padding: 10px 15px;
   background-color: rgb(var(--v-theme-overlay));
+  // hairline teal top border to separate the player bar from the page
+  border-top: 1px solid $sl-teal-dim;
   .mediacontrols-bottom-center {
     flex: 0 1 40%;
     min-width: 0;
@@ -220,6 +230,7 @@ watch(
   &[data-mobile="true"] {
     background-color: transparent;
     padding: 8px 10px;
+    border-top: none;
     .mediacontrols-bottom-center {
       display: none;
     }
@@ -229,6 +240,61 @@ watch(
       max-width: none;
     }
   }
+}
+
+// streamloader: subtle typography polish on track/artist text rendered by
+// the nested PlayerTrackDetails component
+.mediacontrols-left :deep(.mediadetails-title),
+.mediacontrols-left :deep(.mediadetails-subtitle),
+.mediacontrols-left :deep(.title),
+.mediacontrols-left :deep(.subtitle) {
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+}
+
+// streamloader: teal fill for the timeline (track-scrubbing) slider rendered
+// by the nested PlayerTimeline component. Targets Vuetify v-slider internals.
+.mediacontrols-bottom-center :deep(.v-slider-track__fill) {
+  background-color: $sl-teal !important;
+}
+.mediacontrols-bottom-center :deep(.v-slider-thumb__surface) {
+  background-color: $sl-teal !important;
+}
+.mediacontrols-bottom-center :deep(.v-slider-track__background) {
+  background-color: $sl-teal-track !important;
+  opacity: 1;
+}
+// also handle the custom data-slot variant used in the floating volume slider
+// in case the timeline shares the same primitive
+.mediacontrols-bottom-center :deep([data-slot="slider-range"]) {
+  background-color: $sl-teal !important;
+}
+.mediacontrols-bottom-center :deep([data-slot="slider-thumb"])::before {
+  background-color: $sl-teal !important;
+}
+.mediacontrols-bottom-center :deep([data-slot="slider-track"])::before {
+  background-color: $sl-teal-track !important;
+}
+
+// streamloader: teal fill for the desktop volume slider in PlayerExtendedControls
+.mediacontrols-bottom-right :deep(.v-slider-track__fill) {
+  background-color: $sl-teal !important;
+}
+.mediacontrols-bottom-right :deep(.v-slider-thumb__surface) {
+  background-color: $sl-teal !important;
+}
+.mediacontrols-bottom-right :deep(.v-slider-track__background) {
+  background-color: $sl-teal-track !important;
+  opacity: 1;
+}
+.mediacontrols-bottom-right :deep([data-slot="slider-range"]) {
+  background-color: $sl-teal !important;
+}
+.mediacontrols-bottom-right :deep([data-slot="slider-thumb"])::before {
+  background-color: $sl-teal !important;
+}
+.mediacontrols-bottom-right :deep([data-slot="slider-track"])::before {
+  background-color: $sl-teal-track !important;
 }
 
 .mediacontrols-bg {
@@ -283,20 +349,28 @@ watch(
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+// streamloader: teal accent for the mobile floating volume slider
 .volume-slider :deep([data-slot="slider-range"]) {
-  background-color: v-bind("themeColor") !important;
+  background-color: $sl-teal !important;
 }
 
 .volume-slider :deep([data-slot="slider-thumb"])::before {
-  background-color: v-bind("themeColor") !important;
+  background-color: $sl-teal !important;
 }
 
 .volume-slider :deep([data-slot="slider-track"])::before {
-  background-color: color-mix(
-    in srgb,
-    v-bind("themeColor") 24%,
-    transparent
-  ) !important;
+  background-color: $sl-teal-track !important;
+}
+// keep also Vuetify v-slider primitives covered for the mobile volume control
+.volume-slider :deep(.v-slider-track__fill) {
+  background-color: $sl-teal !important;
+}
+.volume-slider :deep(.v-slider-thumb__surface) {
+  background-color: $sl-teal !important;
+}
+.volume-slider :deep(.v-slider-track__background) {
+  background-color: $sl-teal-track !important;
+  opacity: 1;
 }
 
 .volume-slider--no-safe-area {
