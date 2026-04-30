@@ -7,7 +7,7 @@
   <Dialog :key="dialogKey" v-model:open="showDialog">
     <DialogContent class="sm:max-w-[500px]">
       <DialogHeader>
-        <DialogTitle class="mb-2">
+        <DialogTitle class="import-playlist-title mb-2">
           {{ $t("import_playlist_title") }}
         </DialogTitle>
         <DialogDescription>
@@ -20,7 +20,11 @@
             <div
               v-for="provider in musicProviders"
               :key="provider.instance_id"
-              class="flex items-center gap-2"
+              class="flex items-center gap-2 import-provider-row"
+              :class="{
+                'import-provider-row--streamloader':
+                  provider.domain === 'streamloader',
+              }"
             >
               <Checkbox
                 :id="`provider-${provider.instance_id}`"
@@ -33,12 +37,32 @@
             </div>
           </div>
         </div>
+
+        <div
+          v-if="importing"
+          class="import-preview-skeleton mt-4"
+          aria-hidden="true"
+        >
+          <div class="import-preview-skeleton__bar" />
+          <div class="import-preview-skeleton__bar import-preview-skeleton__bar--short" />
+          <div class="import-preview-skeleton__bar" />
+        </div>
       </DialogHeader>
       <DialogFooter>
-        <Button variant="outline" @click="showDialog = false">
+        <Button
+          variant="ghost"
+          class="import-playlist-cancel"
+          :disabled="importing"
+          @click="showDialog = false"
+        >
           {{ $t("close") }}
         </Button>
-        <Button @click="doImport">
+        <Button
+          variant="default"
+          class="import-playlist-submit"
+          :disabled="importing"
+          @click="doImport"
+        >
           {{ $t("import_playlist") }}
         </Button>
       </DialogFooter>
@@ -73,6 +97,7 @@ const dialogKey = ref(0);
 const m3uData = ref("");
 const playlistName = ref("");
 const selectedProviders = ref<string[]>([]);
+const importing = ref(false);
 
 const musicProviders = computed(() => {
   return Object.values(api.providers)
@@ -94,6 +119,7 @@ onMounted(() => {
     m3uData.value = evt.m3uData;
     playlistName.value = evt.playlistName;
     selectedProviders.value = musicProviders.value.map((p) => p.instance_id);
+    importing.value = false;
     dialogKey.value++;
     showDialog.value = true;
   });
@@ -113,7 +139,7 @@ const toggleProvider = (instanceId: string) => {
 };
 
 const doImport = async () => {
-  showDialog.value = false;
+  importing.value = true;
   try {
     const playlist = await api.importPlaylist(
       m3uData.value,
@@ -122,6 +148,7 @@ const doImport = async () => {
         ? selectedProviders.value
         : undefined,
     );
+    showDialog.value = false;
     toast.success($t("playlist_created"), {
       action: {
         label: $t("open_playlist"),
@@ -139,6 +166,8 @@ const doImport = async () => {
     });
   } catch (e) {
     toast.error(getErrorMessage(e));
+  } finally {
+    importing.value = false;
   }
 };
 
@@ -152,3 +181,66 @@ const getErrorMessage = (error: unknown): string => {
   return $t("error");
 };
 </script>
+
+<style scoped>
+.import-playlist-title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.import-playlist-cancel {
+  color: var(--muted-foreground, hsl(var(--muted-foreground)));
+}
+
+.import-playlist-submit:not(:disabled) {
+  box-shadow: 0 1px 0 rgba(45, 212, 191, 0.18);
+}
+
+.import-provider-row {
+  padding: 0.25rem 0.375rem;
+  border-radius: 0.375rem;
+  transition: background-color 150ms ease;
+}
+
+.import-provider-row--streamloader {
+  background: linear-gradient(
+    90deg,
+    rgba(45, 212, 191, 0.08) 0%,
+    rgba(45, 212, 191, 0) 100%
+  );
+  box-shadow: inset 2px 0 0 0 #2dd4bf;
+}
+
+.import-preview-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.import-preview-skeleton__bar {
+  height: 0.625rem;
+  width: 100%;
+  border-radius: 0.25rem;
+  background: linear-gradient(
+    90deg,
+    rgba(45, 212, 191, 0.12) 0%,
+    rgba(45, 212, 191, 0.28) 50%,
+    rgba(45, 212, 191, 0.12) 100%
+  );
+  background-size: 200% 100%;
+  animation: import-preview-shimmer 1.4s ease-in-out infinite;
+}
+
+.import-preview-skeleton__bar--short {
+  width: 65%;
+}
+
+@keyframes import-preview-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+</style>

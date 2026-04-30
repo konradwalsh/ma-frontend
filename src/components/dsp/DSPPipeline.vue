@@ -178,12 +178,35 @@ const openFilterContextMenu = function (evt: Event, index: number) {
 <style scoped>
 .dsp-pipeline-card {
   min-width: 160px;
-  transition: transform 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  font-variant-numeric: tabular-nums;
 }
 
 .dsp-pipeline-card:hover,
 .filter-selected {
   transform: translateX(4px);
+}
+
+/* Brand teal glow on the currently-edited filter card */
+.filter-selected {
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.55),
+    0 0 14px rgba(45, 212, 191, 0.35);
+}
+
+.v-theme--light .filter-selected {
+  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.55),
+    0 0 12px rgba(15, 118, 110, 0.25);
+}
+
+/* Subtle teal hover hint on non-selected pipeline cards */
+.dsp-pipeline-card:not(.filter-selected):hover {
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.3);
+}
+
+.v-theme--light .dsp-pipeline-card:not(.filter-selected):hover {
+  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.3);
 }
 
 .add-filter-btn {
@@ -199,5 +222,6 @@ const openFilterContextMenu = function (evt: Event, index: number) {
 .add-filter-btn:hover {
   border-color: rgb(var(--v-theme-primary));
   transform: none;
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.25);
 }
 </style>

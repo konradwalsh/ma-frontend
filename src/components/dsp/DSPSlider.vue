@@ -1,5 +1,5 @@
 <template>
-  <v-card flat color="transparent">
+  <v-card flat color="transparent" class="dsp-slider-card">
     <v-card-text class="d-flex align-center gap-4">
       <span style="min-width: 100px" class="v-label pl-2">{{
         config.label
@@ -10,20 +10,25 @@
         :max="sliderMax"
         :step="sliderStep"
         hide-details
-        class="flex-grow-1 pr-4"
+        class="flex-grow-1 pr-4 dsp-slider"
         density="compact"
         color="primary"
+        track-color="surface-variant"
       />
       <v-text-field
         v-model="displayValue"
         type="number"
         hide-details
         density="compact"
+        variant="outlined"
         style="max-width: 100px"
+        class="dsp-slider-value"
         @focus="isEditing = true"
         @blur="isEditing = false"
       />
-      <span style="min-width: 40px" class="pl-2">{{ config.unit }}</span>
+      <span style="min-width: 40px" class="pl-2 dsp-slider-unit">{{
+        config.unit
+      }}</span>
     </v-card-text>
   </v-card>
 </template>
@@ -139,3 +144,38 @@ const sliderStep = computed(() => {
   }
 });
 </script>
+
+<style scoped>
+/* Tabular numerals so the dB/Hz/Q values don't shift width while dragging */
+.dsp-slider-value :deep(input) {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.dsp-slider-unit {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+  font-size: 0.85em;
+}
+
+/* Subtle teal glow on the active slider thumb (keeps Vuetify primary fill) */
+.dsp-slider :deep(.v-slider-thumb__surface) {
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.4);
+}
+
+.v-theme--light .dsp-slider :deep(.v-slider-thumb__surface) {
+  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.4);
+}
+
+.dsp-slider :deep(.v-slider-thumb:hover .v-slider-thumb__surface),
+.dsp-slider :deep(.v-slider-thumb--focused .v-slider-thumb__surface) {
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.6),
+    0 0 12px rgba(45, 212, 191, 0.35);
+}
+
+.v-theme--light .dsp-slider :deep(.v-slider-thumb:hover .v-slider-thumb__surface),
+.v-theme--light .dsp-slider :deep(.v-slider-thumb--focused .v-slider-thumb__surface) {
+  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.55),
+    0 0 10px rgba(15, 118, 110, 0.3);
+}
+</style>

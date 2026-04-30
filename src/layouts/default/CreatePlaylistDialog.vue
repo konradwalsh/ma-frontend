@@ -7,7 +7,7 @@
   <Dialog :key="dialogKey" v-model:open="showDialog">
     <DialogContent class="sm:max-w-[500px]">
       <DialogHeader>
-        <DialogTitle class="mb-2">
+        <DialogTitle class="create-playlist-title mb-2">
           {{ $t(queueId ? "save_queue_as_playlist" : "new_playlist") }}
         </DialogTitle>
         <DialogDescription v-if="queueId" class="sr-only">
@@ -61,10 +61,19 @@
         </div>
       </DialogHeader>
       <DialogFooter>
-        <Button variant="outline" @click="showDialog = false">
+        <Button
+          variant="ghost"
+          class="create-playlist-cancel"
+          @click="showDialog = false"
+        >
           {{ $t("close") }}
         </Button>
-        <Button :disabled="!playlistName" @click="doSave">
+        <Button
+          variant="default"
+          :disabled="!playlistName"
+          class="create-playlist-submit"
+          @click="doSave"
+        >
           {{ $t("settings.save") }}
         </Button>
       </DialogFooter>
@@ -271,3 +280,18 @@ const getTranslatedSupportedMediaTypes = (): string[] => {
   return translatedItems;
 };
 </script>
+
+<style scoped>
+.create-playlist-title {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.create-playlist-cancel {
+  color: var(--muted-foreground, hsl(var(--muted-foreground)));
+}
+
+.create-playlist-submit:not(:disabled) {
+  box-shadow: 0 1px 0 rgba(45, 212, 191, 0.18);
+}
+</style>

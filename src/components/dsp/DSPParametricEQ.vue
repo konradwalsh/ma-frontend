@@ -568,9 +568,17 @@ const drawGraph = () => {
 
     ctx.beginPath();
     ctx.fillStyle = color;
-    ctx.arc(handleX, handleY, 6, 0, 2 * Math.PI);
+    // Selected band gets a slightly larger handle ringed in brand teal for "currently editing" emphasis
+    const handleRadius = index === selectedBandIndex.value ? 7 : 6;
+    ctx.arc(handleX, handleY, handleRadius, 0, 2 * Math.PI);
 
     ctx.fill();
+
+    if (index === selectedBandIndex.value) {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = isDark ? "#2dd4bf" : "#0f766e";
+      ctx.stroke();
+    }
 
     return { frequencies, magResponse };
   };
@@ -581,11 +589,17 @@ const drawGraph = () => {
     ctx: CanvasRenderingContext2D,
   ) => {
     ctx.lineWidth = 3;
+    // Brand teal for the aggregate channel response curve
     if (isDark) {
-      ctx.strokeStyle = "#fff";
+      ctx.strokeStyle = "#2dd4bf";
     } else {
-      ctx.strokeStyle = "#000";
+      ctx.strokeStyle = "#0f766e";
     }
+    // Subtle teal glow so the active total response stands out over the per-band curves
+    ctx.shadowColor = isDark
+      ? "rgba(45, 212, 191, 0.45)"
+      : "rgba(15, 118, 110, 0.35)";
+    ctx.shadowBlur = 6;
 
     ctx.beginPath();
     for (
@@ -603,6 +617,9 @@ const drawGraph = () => {
     }
 
     ctx.stroke();
+    // Reset shadow so subsequent draws aren't blurred
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = "transparent";
   };
 
   // Skip drawing the multi channel version if this a simple PEQ with only ALL channel filters
@@ -868,7 +885,8 @@ const drawGrid = (ctx: CanvasRenderingContext2D, viewport: Viewport) => {
     ctx.stroke();
 
     // Draw frequency labels
-    ctx.font = "10px Arial";
+    ctx.font =
+      '10px ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace';
     ctx.textAlign = "center";
     ctx.fillText(
       freq >= 1000 ? `${freq / 1000}k` : freq.toString(),
@@ -894,7 +912,8 @@ const drawGrid = (ctx: CanvasRenderingContext2D, viewport: Viewport) => {
     ctx.stroke();
 
     // Draw gain labels
-    ctx.font = "10px Arial";
+    ctx.font =
+      '10px ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace';
     ctx.textAlign = "right";
     ctx.fillText(`${gain}dB`, viewport.padding_lr - 3, y + 3);
   }
@@ -929,5 +948,24 @@ onMounted(() => {
 .frequency-graph {
   width: 100%;
   height: 100%;
+}
+
+/* Tabular numerals on the band chips so frequency/index numbers don't dance */
+.v-chip-group :deep(.v-chip) {
+  font-variant-numeric: tabular-nums;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+/* Brand teal glow on the currently-edited band chip */
+.v-chip-group :deep(.v-chip.v-chip--selected) {
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.55),
+    0 0 12px rgba(45, 212, 191, 0.35);
+}
+
+.v-theme--light .v-chip-group :deep(.v-chip.v-chip--selected) {
+  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.55),
+    0 0 10px rgba(15, 118, 110, 0.25);
 }
 </style>

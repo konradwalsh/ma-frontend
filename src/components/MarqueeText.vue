@@ -9,7 +9,11 @@ Features:
 -->
 <template>
   <!-- Main container with hidden overflow -->
-  <div ref="containerRef" class="container">
+  <div
+    ref="containerRef"
+    class="container"
+    :class="{ 'fade-edges': isScrollingActive }"
+  >
     <!-- Scrolling content wrapper with dynamic transform -->
     <div ref="scrollingRef" class="scrolling" :style="scrollingStyle">
       <slot></slot>
@@ -81,6 +85,12 @@ const scrollingStyle = computed(() => ({
     ? `transform ${scrollDuration.value}ms linear` // Forward scroll
     : `transform ${RESET_ANIMATION_DURATION_MS}ms ease-in-out`, // Reset animation
 }));
+
+// Whether the marquee will actually scroll (content overflows and not disabled).
+// Used to gate the fade-edge mask so non-scrolling text stays fully visible.
+const isScrollingActive = computed(
+  () => props.disabled !== true && maxOffsetPosition.value > 0,
+);
 
 // Animation Control for aborting the current animation
 let animationController: AbortController | null = null;
@@ -270,6 +280,28 @@ watch(
   overflow: hidden;
   width: 100%;
   min-height: 1.5em;
+  /* Fade-edge sizing: scales with container but caps at 32px so short
+     containers don't lose half their text under the gradient. */
+  --marquee-fade-size: min(32px, 12%);
+}
+
+/* Only apply the gradient mask when the marquee is actively scrolling.
+   When the text fits, the container is fully opaque. */
+.container.fade-edges {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black var(--marquee-fade-size),
+    black calc(100% - var(--marquee-fade-size)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    black var(--marquee-fade-size),
+    black calc(100% - var(--marquee-fade-size)),
+    transparent 100%
+  );
 }
 
 .scrolling {
@@ -279,5 +311,21 @@ watch(
   position: relative;
   left: 0;
   top: 0;
+}
+
+/* Respect reduced-motion: kill the transform transition entirely so the
+   text just sits at its starting position without scrolling. The JS still
+   runs its cycle, but the visual transition is removed. */
+@media (prefers-reduced-motion: reduce) {
+  .scrolling {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  /* Without scrolling, edge fades would just clip static text — drop them. */
+  .container.fade-edges {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
 }
 </style>
