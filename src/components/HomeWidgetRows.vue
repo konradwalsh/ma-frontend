@@ -5,20 +5,70 @@
     :edit-mode="editMode"
     @update:settings="(settings) => onUpdateSettings('players', settings)"
   />
+
+  <!-- Loading skeleton: shown on first load before any rows arrive -->
   <div
-    v-for="widgetRow in widgetRows
-      .filter((x) => x.items.length && (x.settings!.enabled || editMode))
-      .sort((a, b) => a.settings!.position - b.settings!.position)"
+    v-if="loading && !widgetRows.length"
+    class="widget-row-skeletons"
+    aria-hidden="true"
+  >
+    <div
+      v-for="i in 2"
+      :key="`sk-${i}`"
+      class="widget-row-skeleton"
+    >
+      <div class="skeleton-title"></div>
+      <div class="skeleton-tiles">
+        <div v-for="t in 6" :key="`sk-${i}-${t}`" class="skeleton-tile"></div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    v-for="(widgetRow, index) in visibleWidgetRows"
     :key="widgetRow.uri"
+    :class="['widget-row-wrapper', { 'widget-row-divider': index > 0 }]"
   >
     <HomeWidgetRow
-      v-if="widgetRows.length"
       :widget-row="widgetRow"
       :edit-mode="editMode"
       @update:settings="
         (settings) => onUpdateSettings(widgetRow.uri!, settings)
       "
     />
+  </div>
+
+  <!-- Empty state: no recommendations and not loading -->
+  <div
+    v-if="!loading && !visibleWidgetRows.length && !editMode"
+    class="home-empty-state"
+  >
+    <v-icon
+      size="64"
+      color="primary"
+      icon="mdi-music-circle-outline"
+      class="home-empty-icon"
+    />
+    <h3 class="home-empty-title">
+      {{ $t("settings.no_providers", "No music providers yet") }}
+    </h3>
+    <p class="home-empty-subtitle">
+      {{
+        $t(
+          "home.empty_hint",
+          "Connect a music provider to start building your library and get personalized recommendations.",
+        )
+      }}
+    </p>
+    <v-btn
+      color="primary"
+      variant="tonal"
+      class="home-empty-cta"
+      href="/#/settings/providers"
+      prepend-icon="mdi-plus-circle-outline"
+    >
+      {{ $t("settings.add_provider", "Add a new provider") }}
+    </v-btn>
   </div>
 </template>
 
@@ -32,11 +82,12 @@ import api from "@/plugins/api";
 import { EventMessage, EventType } from "@/plugins/api/interfaces";
 import { $t } from "@/plugins/i18n";
 import { store } from "@/plugins/store";
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import PlayersWidgetRow from "./PlayersWidgetRow.vue";
 
 const widgetRows = ref<WidgetRow[]>([]);
 const widgetRowSettings = ref<Record<string, WidgetRowSettings>>({});
+const loading = ref(true);
 const { getPreference, setPreference } = useUserPreferences();
 const savedSettings = getPreference<Record<string, WidgetRowSettings>>(
   "widgetRowSettings",
@@ -51,9 +102,15 @@ const savedSettings = getPreference<Record<string, WidgetRowSettings>>(
 export interface Props {
   editMode?: boolean;
 }
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   editMode: false,
 });
+
+const visibleWidgetRows = computed(() =>
+  widgetRows.value
+    .filter((x) => x.items.length && (x.settings!.enabled || props.editMode))
+    .sort((a, b) => a.settings!.position - b.settings!.position),
+);
 
 const loadData = async function () {
   if (store.currentUser?.preferences) {
@@ -72,27 +129,31 @@ const loadData = async function () {
     };
   }
 
-  const recommendations = await api.getRecommendations();
-  const _widgetRows: WidgetRow[] = [];
-  let idx = 0;
-  for (const recommendation of recommendations) {
-    idx++;
-    const settings = widgetRowSettings.value[recommendation.uri] || {
-      position: idx,
-      enabled: true,
-    };
-    const title = recommendation.translation_key
-      ? $t(
-          `recommendations.${recommendation.translation_key}`,
-          recommendation.name,
-        )
-      : recommendation.name;
-    _widgetRows.push({
-      ...recommendation,
-      settings,
-      title,
-    });
-    widgetRows.value = _widgetRows;
+  try {
+    const recommendations = await api.getRecommendations();
+    const _widgetRows: WidgetRow[] = [];
+    let idx = 0;
+    for (const recommendation of recommendations) {
+      idx++;
+      const settings = widgetRowSettings.value[recommendation.uri] || {
+        position: idx,
+        enabled: true,
+      };
+      const title = recommendation.translation_key
+        ? $t(
+            `recommendations.${recommendation.translation_key}`,
+            recommendation.name,
+          )
+        : recommendation.name;
+      _widgetRows.push({
+        ...recommendation,
+        settings,
+        title,
+      });
+      widgetRows.value = _widgetRows;
+    }
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -134,4 +195,140 @@ const onUpdateSettings = function (uri: string, settings: WidgetRowSettings) {
 };
 </script>
 
-<style></style>
+<style scoped>
+/* Section dividers — faint teal hint between consecutive widget rows.
+   First row has no top border; WidgetRow.vue already owns vertical spacing. */
+.widget-row-wrapper {
+  position: relative;
+}
+
+.widget-row-divider {
+  border-top: 1px solid rgba(45, 212, 191, 0.08);
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+@media (max-width: 575px) {
+  .widget-row-divider {
+    padding-top: 4px;
+    margin-top: 2px;
+  }
+}
+
+/* Loading skeleton — teal-tinted pulse while recommendations load */
+.widget-row-skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.widget-row-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeleton-title {
+  width: 180px;
+  height: 18px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(45, 212, 191, 0.06) 0%,
+    rgba(45, 212, 191, 0.14) 50%,
+    rgba(45, 212, 191, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: streamloader-skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+.skeleton-tiles {
+  display: flex;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.skeleton-tile {
+  flex: 0 0 140px;
+  height: 140px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(45, 212, 191, 0.05) 0%,
+    rgba(45, 212, 191, 0.12) 50%,
+    rgba(45, 212, 191, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: streamloader-skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes streamloader-skeleton-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 575px) {
+  .skeleton-tile {
+    flex: 0 0 110px;
+    height: 110px;
+  }
+}
+
+/* Empty state — friendly, teal-tinted, with provider CTA */
+.home-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  margin: 16px 0;
+  border-radius: 12px;
+  background: linear-gradient(
+    180deg,
+    rgba(45, 212, 191, 0.04) 0%,
+    rgba(45, 212, 191, 0.01) 100%
+  );
+  border: 1px solid rgba(45, 212, 191, 0.08);
+}
+
+.home-empty-icon {
+  opacity: 0.85;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 0 12px rgba(45, 212, 191, 0.18));
+}
+
+.home-empty-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+  letter-spacing: 0.01em;
+}
+
+.home-empty-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.72;
+  max-width: 420px;
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+
+.home-empty-cta {
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+
+@media (max-width: 575px) {
+  .home-empty-state {
+    padding: 32px 16px;
+  }
+  .home-empty-title {
+    font-size: 1rem;
+  }
+}
+</style>

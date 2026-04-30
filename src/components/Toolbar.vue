@@ -209,6 +209,8 @@ export interface ToolBarMenuItem extends ContextMenuItem {
 .header.v-toolbar {
   height: 55px;
   font-family: "JetBrains Mono Medium";
+  /* streamloader: faint teal divider so the toolbar separates cleanly from page content */
+  border-bottom: 1px solid rgba(45, 212, 191, 0.15);
 }
 
 .header.v-toolbar :deep(.v-toolbar__content) {
@@ -221,6 +223,22 @@ export interface ToolBarMenuItem extends ContextMenuItem {
 
 .header.v-toolbar :deep(.v-toolbar-title) {
   margin-inline-start: 10px !important;
+  /* streamloader: tighter letter-spacing + medium weight for a cleaner title look (size unchanged) */
+  letter-spacing: -0.01em;
+  font-weight: 500;
+}
+
+/* streamloader: subtle teal accent dot before the page title (only when a real title exists) */
+.header.v-toolbar :deep(.v-toolbar-title__placeholder) > button::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #2dd4bf;
+  margin-right: 8px;
+  vertical-align: middle;
+  opacity: 0.85;
 }
 
 .header.v-toolbar :deep(.v-toolbar__prepend) {
@@ -234,6 +252,38 @@ export interface ToolBarMenuItem extends ContextMenuItem {
 
 .header.v-toolbar-default > .v-toolbar__content > .v-toolbar__append {
   margin-inline-end: 10px;
+}
+
+/* streamloader: subtle teal hover treatment for icon-only toolbar buttons
+   (icon variant doesn't pick up the global v-btn glow rules) */
+.header.v-toolbar :deep(.v-toolbar__append) .v-btn:hover,
+.header.v-toolbar :deep(.v-toolbar__prepend) .v-btn:hover {
+  background-color: rgba(45, 212, 191, 0.08);
+}
+
+.header.v-toolbar :deep(.v-toolbar__append) .v-btn:hover .v-icon,
+.header.v-toolbar :deep(.v-toolbar__prepend) .v-btn:hover .v-icon {
+  color: #2dd4bf !important;
+  transition: color 0.15s ease;
+}
+
+/* Light theme variant — use the deeper teal so contrast holds on white surfaces */
+.v-theme--light .header.v-toolbar :deep(.v-toolbar__append) .v-btn:hover .v-icon,
+.v-theme--light .header.v-toolbar :deep(.v-toolbar__prepend) .v-btn:hover .v-icon {
+  color: #0f766e !important;
+}
+
+.v-theme--light .header.v-toolbar :deep(.v-toolbar__append) .v-btn:hover,
+.v-theme--light .header.v-toolbar :deep(.v-toolbar__prepend) .v-btn:hover {
+  background-color: rgba(15, 118, 110, 0.08);
+}
+
+.v-theme--light .header.v-toolbar {
+  border-bottom-color: rgba(15, 118, 110, 0.18);
+}
+
+.v-theme--light .header.v-toolbar :deep(.v-toolbar-title__placeholder) > button::before {
+  background-color: #0f766e;
 }
 
 /* Mobile branding on the left */

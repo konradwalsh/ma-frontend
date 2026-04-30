@@ -74,7 +74,7 @@ export interface Props {
 
 withDefaults(defineProps<Props>(), {
   showLabels: false,
-  color: undefined,
+  color: "primary",
 });
 
 const { activeSource } = useActiveSource(toRef(store, "activePlayer"));
