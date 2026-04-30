@@ -13,8 +13,8 @@
             { 'content-section--frameless': store.frameless },
           ]"
         >
-          <router-view v-slot="{ Component }">
-            <component :is="Component" />
+          <router-view v-slot="{ Component, route }">
+            <component :is="Component" :key="route.fullPath" />
           </router-view>
           <add-to-playlist-dialog />
           <create-playlist-dialog />

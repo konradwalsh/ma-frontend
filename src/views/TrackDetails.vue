@@ -1,6 +1,13 @@
 <template>
   <section>
     <InfoHeader :item="itemDetails" :active-provider="provider" />
+    <!-- Streamloader fork: inline source classification pill so users can
+         tell at a glance whether this track is local, cached via
+         streamloader, or streamed from a remote provider. Self-contained
+         (no extra HTTP) and renders nothing until the track loads. -->
+    <div v-if="itemDetails" class="sl-source-badge-row">
+      <StreamloaderSourceBadge :item="itemDetails" />
+    </div>
     <ItemsListing
       v-if="itemDetails"
       itemtype="trackalbums"
@@ -55,6 +62,7 @@ import {
 import { api } from "@/plugins/api";
 import { watch } from "vue";
 import ProviderDetails from "@/components/ProviderDetails.vue";
+import StreamloaderSourceBadge from "@/components/StreamloaderSourceBadge.vue";
 
 export interface Props {
   itemId: string;
@@ -132,5 +140,13 @@ const loadTrackAlbums = async function (params: LoadDataParams) {
    doesn't crowd the playerbar. */
 section {
   padding-bottom: 16px;
+}
+
+/* Streamloader source badge: float against the right edge so it doesn't
+   compete with the leading text of the first listing's heading. */
+.sl-source-badge-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 16px 0;
 }
 </style>

@@ -34,7 +34,7 @@
     :aria-label="`Streamloader status: ${state.label}`"
     href="/#/settings/providers"
   >
-    <span class="sl-health-pill__dot" />
+    <span class="sl-health-pill__dot"></span>
     <span class="sl-health-pill__label">{{ state.label }}</span>
   </a>
 </template>

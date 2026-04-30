@@ -26,10 +26,30 @@
             backgroundColor: qualityTierToColor(maxOutputQualityTier),
           }"
         ></div>
-        <div v-if="maxOutputQualityTier == QualityTier.LOW" class="quality-tier-label">LQ</div>
-        <div v-else-if="maxOutputQualityTier == QualityTier.GOOD" class="quality-tier-label">SQ</div>
-        <div v-else-if="maxOutputQualityTier == QualityTier.LOSSLESS" class="quality-tier-label">HQ</div>
-        <div v-else-if="maxOutputQualityTier == QualityTier.HIRES" class="quality-tier-label">HR</div>
+        <div
+          v-if="maxOutputQualityTier == QualityTier.LOW"
+          class="quality-tier-label"
+        >
+          LQ
+        </div>
+        <div
+          v-else-if="maxOutputQualityTier == QualityTier.GOOD"
+          class="quality-tier-label"
+        >
+          SQ
+        </div>
+        <div
+          v-else-if="maxOutputQualityTier == QualityTier.LOSSLESS"
+          class="quality-tier-label"
+        >
+          HQ
+        </div>
+        <div
+          v-else-if="maxOutputQualityTier == QualityTier.HIRES"
+          class="quality-tier-label"
+        >
+          HR
+        </div>
       </v-chip>
     </template>
     <v-card class="mx-auto" :width="Math.min($vuetify.display.width - 25, 380)">

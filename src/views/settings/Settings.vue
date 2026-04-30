@@ -2,7 +2,10 @@
   <div>
     <Toolbar :icon="Settings">
       <template #title>
-        <v-breadcrumbs :items="breadcrumbItems" class="pa-0 settings-breadcrumbs" />
+        <v-breadcrumbs
+          :items="breadcrumbItems"
+          class="pa-0 settings-breadcrumbs"
+        />
       </template>
       <template #append>
         <v-btn

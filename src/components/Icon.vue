@@ -3,10 +3,20 @@
     ref="iconContainer"
     :class="containerClasses"
     :style="containerStyle"
+    :role="isButton ? 'button' : undefined"
+    :tabindex="isButton ? (disabled ? -1 : 0) : undefined"
+    :aria-disabled="isButton && disabled ? 'true' : undefined"
+    :aria-hidden="!isButton && !$attrs['aria-label'] ? 'true' : undefined"
     @click="handleClick"
+    @keydown="handleKeydown"
   >
     <v-badge :model-value="badge === true" color="error" dot>
-      <v-icon ref="iconElement" v-bind="iconProps" :class="iconClasses">
+      <v-icon
+        ref="iconElement"
+        v-bind="iconProps"
+        :class="iconClasses"
+        aria-hidden="true"
+      >
         <template v-for="(_, name) in $slots" #[name]>
           <slot :name="name"></slot>
         </template>
@@ -26,7 +36,7 @@ import {
   type IconEmits,
   type IconProps,
 } from "@/composables/useIcon";
-import { nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { VIcon } from "vuetify/components";
 
 const props = withDefaults(defineProps<IconProps>(), defaultIconProps);
@@ -35,6 +45,8 @@ const emit = defineEmits<IconEmits>();
 
 const { iconProps, containerStyle, containerClasses, iconClasses } =
   useIcon(props);
+
+const isButton = computed(() => props.variant === "button");
 
 const iconContainer = ref<HTMLElement>();
 const iconElement = ref<VIcon>();
@@ -71,6 +83,23 @@ const handleClick = (event: MouseEvent) => {
   }
 
   emit("click", event);
+};
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (!isButton.value) return;
+  if (event.key !== "Enter" && event.key !== " ") return;
+
+  // Prevent Space from scrolling the page and Enter from triggering form submit
+  event.preventDefault();
+
+  if (props.disabled) {
+    event.stopPropagation();
+    return;
+  }
+
+  // Re-dispatch as a real click on the container so any v-on:click listeners
+  // attached by parent components (e.g. PlayBtn @click="...") fire too.
+  iconContainer.value?.click();
 };
 
 onMounted(() => {

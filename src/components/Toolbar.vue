@@ -268,8 +268,16 @@ export interface ToolBarMenuItem extends ContextMenuItem {
 }
 
 /* Light theme variant — use the deeper teal so contrast holds on white surfaces */
-.v-theme--light .header.v-toolbar :deep(.v-toolbar__append) .v-btn:hover .v-icon,
-.v-theme--light .header.v-toolbar :deep(.v-toolbar__prepend) .v-btn:hover .v-icon {
+.v-theme--light
+  .header.v-toolbar
+  :deep(.v-toolbar__append)
+  .v-btn:hover
+  .v-icon,
+.v-theme--light
+  .header.v-toolbar
+  :deep(.v-toolbar__prepend)
+  .v-btn:hover
+  .v-icon {
   color: #0f766e !important;
 }
 
@@ -282,7 +290,10 @@ export interface ToolBarMenuItem extends ContextMenuItem {
   border-bottom-color: rgba(15, 118, 110, 0.18);
 }
 
-.v-theme--light .header.v-toolbar :deep(.v-toolbar-title__placeholder) > button::before {
+.v-theme--light
+  .header.v-toolbar
+  :deep(.v-toolbar-title__placeholder)
+  > button::before {
   background-color: #0f766e;
 }
 

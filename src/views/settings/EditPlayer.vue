@@ -29,7 +29,7 @@
                     ? $t('online', 'Online')
                     : $t('offline', 'Offline')
                 "
-              />
+              ></span>
               <h2 class="header-title">
                 {{
                   config.name ||
@@ -223,7 +223,11 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" color="primary" @click="showRenameDialog = false">
+          <v-btn
+            variant="text"
+            color="primary"
+            @click="showRenameDialog = false"
+          >
             {{ $t("close") }}
           </v-btn>
           <v-btn color="primary" variant="flat" @click="saveRename">

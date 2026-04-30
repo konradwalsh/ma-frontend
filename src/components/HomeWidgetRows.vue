@@ -12,11 +12,7 @@
     class="widget-row-skeletons"
     aria-hidden="true"
   >
-    <div
-      v-for="i in 2"
-      :key="`sk-${i}`"
-      class="widget-row-skeleton"
-    >
+    <div v-for="i in 2" :key="`sk-${i}`" class="widget-row-skeleton">
       <div class="skeleton-title"></div>
       <div class="skeleton-tiles">
         <div v-for="t in 6" :key="`sk-${i}-${t}`" class="skeleton-tile"></div>

@@ -2,11 +2,7 @@
   <!-- Non-mobile: background gradient and player bar -->
   <template v-if="!useFloatingPlayer">
     <div class="mediacontrols-bg" :data-floating="useFloatingPlayer"></div>
-    <div
-      class="mediacontrols"
-      role="region"
-      aria-label="Now playing"
-    >
+    <div class="mediacontrols" role="region" aria-label="Now playing">
       <div class="mediacontrols-left">
         <PlayerTrackDetails
           :show-quality-details-btn="getBreakpointValue('bp9') ? true : false"

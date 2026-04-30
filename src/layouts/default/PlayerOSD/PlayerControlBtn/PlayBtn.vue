@@ -12,7 +12,12 @@
     :aria-disabled="!canPlayPause || isLoading"
     @click="api.playerCommandPlayPause(player.player_id)"
   >
-    <Pause v-if="isPlaying" :size="size" fill="currentColor" aria-hidden="true" />
+    <Pause
+      v-if="isPlaying"
+      :size="size"
+      fill="currentColor"
+      aria-hidden="true"
+    />
     <Play
       v-else
       :size="size"
@@ -127,7 +132,10 @@ const isLoading = computed(() => {
 
 .v-theme--dark .play-btn-icon {
   background-color: #2dd4bf; /* brand teal — dark theme */
-  color: var(--play-icon-color, #06342f); /* on-primary glyph (very dark teal) */
+  color: var(
+    --play-icon-color,
+    #06342f
+  ); /* on-primary glyph (very dark teal) */
   box-shadow:
     0 4px 14px rgba(45, 212, 191, 0.35),
     0 0 0 1px rgba(45, 212, 191, 0.22);

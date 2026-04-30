@@ -185,7 +185,10 @@
             :style="swapped && displayLyrics ? { order: 1 } : undefined"
           >
             <div class="qr-glow-frame">
-              <PartyQR :qr-dark="qrDarkColor" @available="qrAvailable = $event" />
+              <PartyQR
+                :qr-dark="qrDarkColor"
+                @available="qrAvailable = $event"
+              />
               <img
                 :src="streamloaderMarkSrc"
                 alt=""

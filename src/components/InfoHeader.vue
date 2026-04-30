@@ -69,7 +69,10 @@
               <MediaItemThumb :item="item" size="calc(100%)" />
             </v-avatar>
           </div>
-          <div v-else-if="item.media_type === MediaType.ALBUM" class="sl-vinyl-wrapper">
+          <div
+            v-else-if="item.media_type === MediaType.ALBUM"
+            class="sl-vinyl-wrapper"
+          >
             <!-- Streamloader-fork addition: ALACarte-style vinyl-emerging-
                  from-cover hero, scoped to ALBUM only (other media types
                  keep MA's original cover-only render below). On hover the
@@ -403,9 +406,7 @@
               v-if="item.media_type === MediaType.PODCAST"
               :color="item.favorite ? 'primary' : 'default'"
               :variant="item.favorite ? 'flat' : 'outlined'"
-              :prepend-icon="
-                item.favorite ? 'mdi-check-circle' : 'mdi-rss'
-              "
+              :prepend-icon="item.favorite ? 'mdi-check-circle' : 'mdi-rss'"
               class="sl-podcast-subscribe"
               style="margin-right: 8px; margin-bottom: 4px"
               @click="api.toggleFavorite(item)"

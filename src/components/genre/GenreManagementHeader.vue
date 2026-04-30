@@ -1,6 +1,6 @@
 <template>
   <Card class="genre-management-header overflow-hidden">
-    <div class="genre-management-header__accent" aria-hidden="true" />
+    <div class="genre-management-header__accent" aria-hidden="true"></div>
     <CardHeader>
       <div class="flex items-center gap-4">
         <div

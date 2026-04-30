@@ -169,13 +169,19 @@ const sliderStep = computed(() => {
 
 .dsp-slider :deep(.v-slider-thumb:hover .v-slider-thumb__surface),
 .dsp-slider :deep(.v-slider-thumb--focused .v-slider-thumb__surface) {
-  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.6),
+  box-shadow:
+    0 0 0 2px rgba(45, 212, 191, 0.6),
     0 0 12px rgba(45, 212, 191, 0.35);
 }
 
-.v-theme--light .dsp-slider :deep(.v-slider-thumb:hover .v-slider-thumb__surface),
-.v-theme--light .dsp-slider :deep(.v-slider-thumb--focused .v-slider-thumb__surface) {
-  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.55),
+.v-theme--light
+  .dsp-slider
+  :deep(.v-slider-thumb:hover .v-slider-thumb__surface),
+.v-theme--light
+  .dsp-slider
+  :deep(.v-slider-thumb--focused .v-slider-thumb__surface) {
+  box-shadow:
+    0 0 0 2px rgba(15, 118, 110, 0.55),
     0 0 10px rgba(15, 118, 110, 0.3);
 }
 </style>

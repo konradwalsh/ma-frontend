@@ -197,8 +197,14 @@ withDefaults(defineProps<Props>(), {
   color: #2dd4bf;
 }
 .v-theme--light .play-btn-wrapper .play-btn-spinner,
-.v-theme--light .play-btn-wrapper .play-btn-spinner .v-progress-circular__overlay,
-.v-theme--light .play-btn-wrapper .play-btn-spinner .v-progress-circular__underlay {
+.v-theme--light
+  .play-btn-wrapper
+  .play-btn-spinner
+  .v-progress-circular__overlay,
+.v-theme--light
+  .play-btn-wrapper
+  .play-btn-spinner
+  .v-progress-circular__underlay {
   color: #0f766e;
 }
 </style>

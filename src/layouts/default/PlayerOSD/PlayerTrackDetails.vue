@@ -178,6 +178,10 @@
       </div>
     </template>
   </v-list-item>
+  <!-- a11y: screen-reader-only live region announcing the current track -->
+  <div aria-live="polite" aria-atomic="true" class="sr-only">
+    {{ announcedTrack }}
+  </div>
   <PlayerFullscreen
     :show-fullscreen="store.showFullscreenPlayer"
     :color-palette="colorPalette"
@@ -198,7 +202,7 @@ import { getSourceName } from "@/plugins/api/helpers";
 import { PlaybackState, PlayerType } from "@/plugins/api/interfaces";
 import { getBreakpointValue } from "@/plugins/breakpoint";
 import { store } from "@/plugins/store";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import PlayerFullscreen from "./PlayerFullscreen.vue";
 
 const marqueeSync = new MarqueeTextSync();
@@ -221,6 +225,29 @@ const props = withDefaults(defineProps<Props>(), {
 const streamDetails = computed(() => {
   return store.activePlayerQueue?.current_item?.streamdetails;
 });
+
+// a11y: announce current track changes to screen readers via aria-live region.
+// Only announces while actively playing; deduped to avoid repeats from reactivity churn.
+const announcedTrack = ref("");
+const currentTrackAnnouncement = computed(() => {
+  const player = store.activePlayer;
+  if (!player || player.powered === false) return "";
+  if (player.playback_state !== PlaybackState.PLAYING) return "";
+  const media = player.current_media;
+  if (!media?.title) return "";
+  return media.artist
+    ? `${media.title} by ${media.artist}`
+    : media.title;
+});
+watch(
+  currentTrackAnnouncement,
+  (next) => {
+    if (next && next !== announcedTrack.value) {
+      announcedTrack.value = next;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <style scoped>

@@ -218,8 +218,10 @@ const onSubmit = async function () {
 
 .add-player-group-form :deep(.v-field--focused .v-field__outline__start),
 .add-player-group-form :deep(.v-field--focused .v-field__outline__end),
-.add-player-group-form :deep(.v-field--focused .v-field__outline__notch::before),
-.add-player-group-form :deep(.v-field--focused .v-field__outline__notch::after) {
+.add-player-group-form
+  :deep(.v-field--focused .v-field__outline__notch::before),
+.add-player-group-form
+  :deep(.v-field--focused .v-field__outline__notch::after) {
   border-color: rgb(var(--v-theme-primary));
 }
 

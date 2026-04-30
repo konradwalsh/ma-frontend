@@ -191,12 +191,14 @@ const openFilterContextMenu = function (evt: Event, index: number) {
 
 /* Brand teal glow on the currently-edited filter card */
 .filter-selected {
-  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.55),
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.55),
     0 0 14px rgba(45, 212, 191, 0.35);
 }
 
 .v-theme--light .filter-selected {
-  box-shadow: 0 0 0 1px rgba(15, 118, 110, 0.55),
+  box-shadow:
+    0 0 0 1px rgba(15, 118, 110, 0.55),
     0 0 12px rgba(15, 118, 110, 0.25);
 }
 

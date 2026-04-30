@@ -32,9 +32,7 @@
             <div class="chapter-title-row">
               <span class="chapter-title-text">{{ chapter.name }}</span>
               <v-icon
-                v-if="
-                  isChapterPlayed(chapter) && !isCurrentChapter(chapter)
-                "
+                v-if="isChapterPlayed(chapter) && !isCurrentChapter(chapter)"
                 size="x-small"
                 color="primary"
                 class="chapter-played-check"
@@ -43,7 +41,9 @@
               </v-icon>
             </div>
             <v-progress-linear
-              v-if="isCurrentChapter(chapter) && chapterProgressPct(chapter) > 0"
+              v-if="
+                isCurrentChapter(chapter) && chapterProgressPct(chapter) > 0
+              "
               :model-value="chapterProgressPct(chapter)"
               color="primary"
               height="2"
@@ -59,10 +59,7 @@
               {{ formatDuration(currentSec - chapter.start) }} /
               {{ formatDuration(chapter.end - chapter.start) }}
             </span>
-            <span
-              v-else-if="chapter.end"
-              class="text-caption chapter-time"
-            >
+            <span v-else-if="chapter.end" class="text-caption chapter-time">
               {{ formatDuration(chapter.end - chapter.start) }}
             </span>
           </template>
@@ -130,9 +127,7 @@ const isCurrentChapter = (chapter: MediaItemChapter): boolean => {
   if (fullyPlayed.value) return false;
   if (currentSec.value <= 0) return false;
   if (chapter.end == null) return currentSec.value >= chapter.start;
-  return (
-    currentSec.value >= chapter.start && currentSec.value < chapter.end
-  );
+  return currentSec.value >= chapter.start && currentSec.value < chapter.end;
 };
 
 const isChapterPlayed = (chapter: MediaItemChapter): boolean => {

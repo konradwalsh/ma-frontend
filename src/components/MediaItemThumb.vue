@@ -24,7 +24,9 @@
       role="img"
       :aria-label="$t('in_library')"
     >
-      <v-icon size="12" color="white" aria-hidden="true">mdi-bookmark-check</v-icon>
+      <v-icon size="12" color="white" aria-hidden="true"
+        >mdi-bookmark-check</v-icon
+      >
     </div>
   </div>
 </template>

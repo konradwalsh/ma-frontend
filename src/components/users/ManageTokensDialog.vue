@@ -47,7 +47,7 @@
                   <span
                     class="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-primary ring-2 ring-background"
                     :title="$t('auth.active_sessions')"
-                  />
+                  ></span>
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="font-mono font-medium text-sm truncate">
@@ -113,7 +113,10 @@
             </Button>
           </div>
 
-          <Card v-if="showCreateForm" class="p-4 mb-4 border-primary/30 bg-primary/5">
+          <Card
+            v-if="showCreateForm"
+            class="p-4 mb-4 border-primary/30 bg-primary/5"
+          >
             <form id="form-create-token" @submit.prevent="handleCreateToken">
               <form.Field
                 name="tokenName"

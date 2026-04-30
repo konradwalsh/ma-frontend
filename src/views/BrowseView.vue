@@ -220,7 +220,9 @@ const navigateToSegment = (path: string | null) => {
   opacity: 0.5;
   margin: 0 2px;
   flex-shrink: 0;
-  transition: color 220ms ease, opacity 220ms ease;
+  transition:
+    color 220ms ease,
+    opacity 220ms ease;
 }
 
 .breadcrumb-segment:hover .breadcrumb-separator {

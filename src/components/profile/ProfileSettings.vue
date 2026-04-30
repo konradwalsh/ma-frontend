@@ -157,7 +157,9 @@
           :disabled="!hasChanges || updating"
           :loading="updating"
         >
-          {{ te("auth.save_changes") ? $t("auth.save_changes") : "Save changes" }}
+          {{
+            te("auth.save_changes") ? $t("auth.save_changes") : "Save changes"
+          }}
         </Button>
       </Field>
     </CardFooter>
@@ -200,7 +202,9 @@
           {{ $t("cancel") }}
         </Button>
         <Button color="primary" @click="handleAvatarChange">
-          {{ te("auth.save_changes") ? $t("auth.save_changes") : "Save changes" }}
+          {{
+            te("auth.save_changes") ? $t("auth.save_changes") : "Save changes"
+          }}
         </Button>
       </DialogFooter>
     </DialogContent>

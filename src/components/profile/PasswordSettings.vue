@@ -39,8 +39,12 @@
                     tabindex="-1"
                     :aria-label="
                       showNewPassword
-                        ? te('auth.hide_password') ? $t('auth.hide_password') : 'Hide password'
-                        : te('auth.show_password') ? $t('auth.show_password') : 'Show password'
+                        ? te('auth.hide_password')
+                          ? $t('auth.hide_password')
+                          : 'Hide password'
+                        : te('auth.show_password')
+                          ? $t('auth.show_password')
+                          : 'Show password'
                     "
                     class="absolute right-2 top-1/2 -translate-y-1/2 inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-[#0f766e]/10 dark:hover:bg-[#2dd4bf]/10 hover:text-[#0f766e] dark:hover:text-[#2dd4bf] transition-colors"
                     @click="showNewPassword = !showNewPassword"
@@ -61,7 +65,7 @@
                       class="h-full transition-all duration-300 ease-out"
                       :class="strengthBarClass"
                       :style="{ width: `${strengthPercent}%` }"
-                    />
+                    ></div>
                   </div>
                   <div class="flex items-center justify-between">
                     <span
@@ -103,8 +107,12 @@
                     tabindex="-1"
                     :aria-label="
                       showConfirmPassword
-                        ? te('auth.hide_password') ? $t('auth.hide_password') : 'Hide password'
-                        : te('auth.show_password') ? $t('auth.show_password') : 'Show password'
+                        ? te('auth.hide_password')
+                          ? $t('auth.hide_password')
+                          : 'Hide password'
+                        : te('auth.show_password')
+                          ? $t('auth.show_password')
+                          : 'Show password'
                     "
                     class="absolute right-2 top-1/2 -translate-y-1/2 inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-[#0f766e]/10 dark:hover:bg-[#2dd4bf]/10 hover:text-[#0f766e] dark:hover:text-[#2dd4bf] transition-colors"
                     @click="showConfirmPassword = !showConfirmPassword"
@@ -131,7 +139,11 @@
         :disabled="!canChangePassword || changing"
         :loading="changing"
       >
-        {{ te("auth.update_password") ? $t("auth.update_password") : "Update password" }}
+        {{
+          te("auth.update_password")
+            ? $t("auth.update_password")
+            : "Update password"
+        }}
       </Button>
     </CardFooter>
   </Card>
@@ -223,14 +235,22 @@ const strengthLabel = computed(() => {
   switch (strengthScore.value) {
     case 0:
     case 1:
-      return te("auth.password_strength_weak") ? t("auth.password_strength_weak") : "Weak";
+      return te("auth.password_strength_weak")
+        ? t("auth.password_strength_weak")
+        : "Weak";
     case 2:
-      return te("auth.password_strength_fair") ? t("auth.password_strength_fair") : "Fair";
+      return te("auth.password_strength_fair")
+        ? t("auth.password_strength_fair")
+        : "Fair";
     case 3:
-      return te("auth.password_strength_good") ? t("auth.password_strength_good") : "Good";
+      return te("auth.password_strength_good")
+        ? t("auth.password_strength_good")
+        : "Good";
     case 4:
     default:
-      return te("auth.password_strength_strong") ? t("auth.password_strength_strong") : "Strong";
+      return te("auth.password_strength_strong")
+        ? t("auth.password_strength_strong")
+        : "Strong";
   }
 });
 

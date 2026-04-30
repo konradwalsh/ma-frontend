@@ -3,8 +3,8 @@
     <Toolbar
       :title="$t('mapped_providers')"
       :menu-items="toolbarMenuItems"
-      @title-clicked="toggleExpand"
       class="provider-details-toolbar"
+      @title-clicked="toggleExpand"
     />
     <v-divider />
     <Container v-if="expanded">
@@ -48,7 +48,9 @@
               size="x-small"
               density="compact"
               class="ml-2 quality-pill quality-pill-hires"
-              :title="te('tooltip.hires_audio') ? $t('tooltip.hires_audio') : 'Hi-Res'"
+              :title="
+                te('tooltip.hires_audio') ? $t('tooltip.hires_audio') : 'Hi-Res'
+              "
             >
               Hi-Res
             </v-chip>
@@ -64,7 +66,11 @@
               size="x-small"
               density="compact"
               class="ml-2 quality-pill quality-pill-lossless"
-              :title="te('tooltip.lossless_audio') ? $t('tooltip.lossless_audio') : 'Lossless'"
+              :title="
+                te('tooltip.lossless_audio')
+                  ? $t('tooltip.lossless_audio')
+                  : 'Lossless'
+              "
             >
               Lossless
             </v-chip>

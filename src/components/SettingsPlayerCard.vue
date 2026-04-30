@@ -89,8 +89,12 @@
           <span
             v-else
             class="status-dot status-dot--online"
-            :title="te('settings.player_online') ? $t('settings.player_online') : 'Online'"
-          />
+            :title="
+              te('settings.player_online')
+                ? $t('settings.player_online')
+                : 'Online'
+            "
+          ></span>
         </div>
       </div>
     </div>

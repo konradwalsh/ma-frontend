@@ -158,7 +158,7 @@
     />
 
     <!-- Bottom spacer so last section never tucks under the playerbar -->
-    <div class="genre-bottom-spacer" aria-hidden="true" />
+    <div class="genre-bottom-spacer" aria-hidden="true"></div>
   </section>
 </template>
 

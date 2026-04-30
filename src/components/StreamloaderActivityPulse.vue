@@ -31,10 +31,12 @@
     :aria-label="`Streamloader activity: ${visibleTasks.length} active task${visibleTasks.length === 1 ? '' : 's'}`"
   >
     <div class="sl-activity-pulse__header">
-      <span class="sl-activity-pulse__beacon" aria-hidden="true" />
+      <span class="sl-activity-pulse__beacon" aria-hidden="true"></span>
       <span class="sl-activity-pulse__title">
         Streamloader activity
-        <span class="sl-activity-pulse__count">({{ visibleTasks.length }})</span>
+        <span class="sl-activity-pulse__count"
+          >({{ visibleTasks.length }})</span
+        >
       </span>
     </div>
     <ul class="sl-activity-pulse__list">
@@ -56,7 +58,9 @@
         </div>
         <div
           class="sl-activity-pulse__bar"
-          :class="{ 'sl-activity-pulse__bar--indeterminate': task.progress == null }"
+          :class="{
+            'sl-activity-pulse__bar--indeterminate': task.progress == null,
+          }"
           role="progressbar"
           :aria-valuenow="task.progress ?? undefined"
           aria-valuemin="0"
@@ -69,7 +73,7 @@
                 ? { width: `${Math.min(100, Math.max(0, task.progress))}%` }
                 : undefined
             "
-          />
+          ></div>
         </div>
         <div v-if="task.progress_text" class="sl-activity-pulse__sub">
           {{ task.progress_text }}
@@ -83,10 +87,7 @@
 import { computed } from "vue";
 import api from "@/plugins/api";
 import { useBackgroundTasks } from "@/composables/useBackgroundTasks";
-import {
-  type BackgroundTask,
-  TaskStatus,
-} from "@/plugins/api/interfaces";
+import { type BackgroundTask, TaskStatus } from "@/plugins/api/interfaces";
 
 // Provider domain published by the streamloader plugin. Lives here as a
 // constant (not imported) to avoid a load-bearing dep on the health pill.
@@ -112,7 +113,10 @@ const streamloaderInstanceIds = computed<Set<string>>(() => {
 
 const isStreamloaderTask = (task: BackgroundTask): boolean => {
   const instance = task.metadata?.provider_instance;
-  if (typeof instance === "string" && streamloaderInstanceIds.value.has(instance)) {
+  if (
+    typeof instance === "string" &&
+    streamloaderInstanceIds.value.has(instance)
+  ) {
     return true;
   }
   // Fallback for tasks that report by domain instead of instance — keeps us
@@ -197,7 +201,8 @@ const taskLabel = (task: BackgroundTask): string =>
 }
 
 @keyframes sl-pulse-beat {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.55);
     opacity: 1;
   }

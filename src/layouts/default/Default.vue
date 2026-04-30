@@ -37,6 +37,11 @@ import { store } from "@/plugins/store";
 import { watch } from "vue";
 import api from "@/plugins/api";
 import { useRoute } from "vue-router";
+import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
+
+// Streamloader-fork addition: register global music-player keyboard shortcuts
+// (Space/arrows/M/F/Esc). Composable handles input-bail + cleanup.
+useKeyboardShortcuts();
 
 const route = useRoute();
 watch(

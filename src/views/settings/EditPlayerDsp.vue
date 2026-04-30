@@ -1,5 +1,9 @@
 <template>
-  <section v-if="dsp" class="dsp-section" :class="{ 'dsp-section--enabled': dsp.enabled }">
+  <section
+    v-if="dsp"
+    class="dsp-section"
+    :class="{ 'dsp-section--enabled': dsp.enabled }"
+  >
     <v-toolbar color="transparent" class="border-b pr-4 dsp-toolbar">
       <v-switch
         v-model="dsp.enabled"
@@ -12,7 +16,11 @@
       }}</v-toolbar-title>
       <v-menu offset-y transition="slide-y-transition">
         <template #activator="{ props: menuProps }">
-          <v-btn v-bind="menuProps" class="mr-4 dsp-preset-btn" :class="getButtonClass()">
+          <v-btn
+            v-bind="menuProps"
+            class="mr-4 dsp-preset-btn"
+            :class="getButtonClass()"
+          >
             <v-icon class="p-0 ms-md-n1 me-md-2"> mdi-tray-arrow-down </v-icon>
             <span class="d-none d-md-inline">
               {{ $t("settings.dsp.presets.load") }}
@@ -193,7 +201,11 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" color="primary" @click="showSavePresetDialog = false">
+          <v-btn
+            variant="text"
+            color="primary"
+            @click="showSavePresetDialog = false"
+          >
             {{ $t("cancel") }}
           </v-btn>
           <v-btn
@@ -222,9 +234,12 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" color="primary" @click="showAddFilterDialog = false">{{
-            $t("cancel")
-          }}</v-btn>
+          <v-btn
+            variant="text"
+            color="primary"
+            @click="showAddFilterDialog = false"
+            >{{ $t("cancel") }}</v-btn
+          >
           <v-btn color="primary" variant="flat" @click="addFilter">{{
             $t("settings.dsp.filter.add")
           }}</v-btn>

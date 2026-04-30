@@ -163,9 +163,7 @@
           class="empty-state__inner"
         >
           <v-icon class="empty-state__icon" size="48">
-            {{
-              params.search ? "mdi-magnify-close" : "mdi-heart-off-outline"
-            }}
+            {{ params.search ? "mdi-magnify-close" : "mdi-heart-off-outline" }}
           </v-icon>
           <div class="empty-state__title">{{ $t("no_content_filter") }}</div>
           <v-btn
@@ -1748,13 +1746,12 @@ defineExpose({
 
 /* Streamloader: teal-tint skeleton pulse */
 :deep(.v-skeleton-loader__bone) {
-  background:
-    linear-gradient(
-      90deg,
-      rgba(45, 212, 191, 0.04) 0%,
-      rgba(45, 212, 191, 0.12) 50%,
-      rgba(45, 212, 191, 0.04) 100%
-    ) !important;
+  background: linear-gradient(
+    90deg,
+    rgba(45, 212, 191, 0.04) 0%,
+    rgba(45, 212, 191, 0.12) 50%,
+    rgba(45, 212, 191, 0.04) 100%
+  ) !important;
 }
 
 /* Streamloader: empty state */

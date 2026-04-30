@@ -26,7 +26,11 @@
       )
     "
   >
-    <Shuffle v-if="playerQueue.shuffle_enabled" :size="size" aria-hidden="true" />
+    <Shuffle
+      v-if="playerQueue.shuffle_enabled"
+      :size="size"
+      aria-hidden="true"
+    />
     <IconArrowsRight v-else :size="size" aria-hidden="true" />
   </Icon>
 </template>

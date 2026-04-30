@@ -187,7 +187,9 @@ const handleActionIconClick = () => {
 }
 
 .row-title-chevron {
-  transition: color 0.18s ease, transform 0.18s ease;
+  transition:
+    color 0.18s ease,
+    transform 0.18s ease;
 }
 .group:hover .row-title-chevron,
 .row-title-chevron:hover {
@@ -250,10 +252,14 @@ const handleActionIconClick = () => {
 /* Scroll affordance — teal accent on hover for horizontal scroll buttons */
 .carousel-wrapper :deep(.v-slide-group__prev),
 .carousel-wrapper :deep(.v-slide-group__next) {
-  transition: color 0.18s ease, background-color 0.18s ease;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
 }
-.carousel-wrapper :deep(.v-slide-group__prev:hover:not(.v-slide-group__prev--disabled)),
-.carousel-wrapper :deep(.v-slide-group__next:hover:not(.v-slide-group__next--disabled)) {
+.carousel-wrapper
+  :deep(.v-slide-group__prev:hover:not(.v-slide-group__prev--disabled)),
+.carousel-wrapper
+  :deep(.v-slide-group__next:hover:not(.v-slide-group__next--disabled)) {
   color: rgb(var(--v-theme-primary));
   background-color: rgba(var(--v-theme-primary), 0.08);
 }

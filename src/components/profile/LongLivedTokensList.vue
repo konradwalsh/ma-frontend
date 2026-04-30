@@ -44,18 +44,14 @@
           <div
             class="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted transition-colors group-hover:bg-[#0f766e]/10 dark:group-hover:bg-[#2dd4bf]/10"
             :class="
-              isTokenActive(token)
-                ? 'bg-[#0f766e]/10 dark:bg-[#2dd4bf]/15'
-                : ''
+              isTokenActive(token) ? 'bg-[#0f766e]/10 dark:bg-[#2dd4bf]/15' : ''
             "
           >
             <Key
               :size="20"
               class="text-muted-foreground transition-colors group-hover:text-[#0f766e] dark:group-hover:text-[#2dd4bf]"
               :class="
-                isTokenActive(token)
-                  ? 'text-[#0f766e] dark:text-[#2dd4bf]'
-                  : ''
+                isTokenActive(token) ? 'text-[#0f766e] dark:text-[#2dd4bf]' : ''
               "
             />
           </div>
@@ -69,7 +65,7 @@
                 <span
                   class="size-1.5 rounded-full bg-[#0f766e] dark:bg-[#2dd4bf]"
                   aria-hidden="true"
-                />
+                ></span>
                 {{ te("auth.active") ? $t("auth.active") : "Active" }}
               </span>
             </div>
@@ -86,7 +82,9 @@
           <Button
             variant="ghost"
             size="icon"
-            :aria-label="te('auth.revoke_token') ? $t('auth.revoke_token') : 'Revoke token'"
+            :aria-label="
+              te('auth.revoke_token') ? $t('auth.revoke_token') : 'Revoke token'
+            "
             class="text-red-600 hover:text-red-700 hover:bg-red-500/10 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-500/15"
             @click.stop="emit('revoke', token)"
           >

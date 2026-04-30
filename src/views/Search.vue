@@ -321,10 +321,14 @@ const filteredItems = function (mediaType: MediaType) {
 
 <style scoped>
 /* lighter, ALACarte-style border on the search input + teal focus ring */
-.streamloader-search-input :deep(.v-field--variant-outlined .v-field__outline__start),
-.streamloader-search-input :deep(.v-field--variant-outlined .v-field__outline__end),
-.streamloader-search-input :deep(.v-field--variant-outlined .v-field__outline__notch::before),
-.streamloader-search-input :deep(.v-field--variant-outlined .v-field__outline__notch::after) {
+.streamloader-search-input
+  :deep(.v-field--variant-outlined .v-field__outline__start),
+.streamloader-search-input
+  :deep(.v-field--variant-outlined .v-field__outline__end),
+.streamloader-search-input
+  :deep(.v-field--variant-outlined .v-field__outline__notch::before),
+.streamloader-search-input
+  :deep(.v-field--variant-outlined .v-field__outline__notch::after) {
   opacity: 0.5;
 }
 .streamloader-search-input :deep(.v-field--focused .v-field__outline) {

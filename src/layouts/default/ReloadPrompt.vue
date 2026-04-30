@@ -12,7 +12,7 @@ const close = async () => {
 <template>
   <transition name="pwa-toast-slide">
     <div v-if="offlineReady || needRefresh" class="pwa-toast" role="alert">
-      <div class="pwa-toast__accent" aria-hidden="true" />
+      <div class="pwa-toast__accent" aria-hidden="true"></div>
       <div class="message">
         <span v-if="offlineReady"> Streamloader is ready to work offline </span>
         <span v-else>

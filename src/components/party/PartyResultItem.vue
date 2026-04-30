@@ -209,7 +209,8 @@ const artistName = computed(() => {
 }
 
 .result-item--clickable:hover .result-avatar {
-  box-shadow: 0 0 0 2px rgba(var(--v-theme-primary), 0.45),
+  box-shadow:
+    0 0 0 2px rgba(var(--v-theme-primary), 0.45),
     0 0 14px rgba(var(--v-theme-primary), 0.35);
   transform: translateY(-1px);
 }
@@ -277,21 +278,24 @@ const artistName = computed(() => {
 .action-btn.add-btn {
   background-color: var(--btn-bg) !important;
   color: rgb(var(--v-theme-on-primary)) !important;
-  box-shadow: 0 0 0 1px rgba(var(--v-theme-primary), 0.25),
+  box-shadow:
+    0 0 0 1px rgba(var(--v-theme-primary), 0.25),
     0 2px 8px rgba(var(--v-theme-primary), 0.18);
 }
 
 .action-btn.boost-btn:hover:not(:disabled),
 .action-btn.add-btn:hover:not(:disabled) {
   filter: brightness(1.05);
-  box-shadow: 0 0 0 1px rgba(var(--v-theme-primary), 0.5),
+  box-shadow:
+    0 0 0 1px rgba(var(--v-theme-primary), 0.5),
     0 0 16px rgba(var(--v-theme-primary), 0.45);
 }
 
 .action-btn.boost-btn:active:not(:disabled),
 .action-btn.add-btn:active:not(:disabled) {
   transform: translateY(1px);
-  box-shadow: 0 0 0 2px rgba(var(--v-theme-primary), 0.7),
+  box-shadow:
+    0 0 0 2px rgba(var(--v-theme-primary), 0.7),
     0 0 22px rgba(var(--v-theme-primary), 0.65),
     inset 0 0 12px rgba(var(--v-theme-primary), 0.35);
 }

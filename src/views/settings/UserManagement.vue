@@ -44,7 +44,7 @@
                 v-if="user.enabled"
                 class="user-active-dot"
                 :title="$t('auth.enable_user')"
-              />
+              ></span>
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-start justify-between gap-2">

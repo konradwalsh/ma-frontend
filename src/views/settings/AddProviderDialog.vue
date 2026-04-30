@@ -40,8 +40,7 @@
             class="provider-item"
             :class="{
               'provider-item--streamloader': provider.domain === 'streamloader',
-              'provider-item--selected':
-                selectedDomain === provider.domain,
+              'provider-item--selected': selectedDomain === provider.domain,
             }"
             @click="addProvider(provider)"
           >

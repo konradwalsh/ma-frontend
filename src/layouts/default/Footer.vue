@@ -54,7 +54,8 @@ import Player from "./PlayerOSD/Player.vue";
   width: calc(100% - 10px) !important;
   border-radius: 12px !important;
   /* streamloader: subtle teal halo on the floating mobile player */
-  box-shadow: 0 4px 20px rgba(45, 212, 191, 0.12),
+  box-shadow:
+    0 4px 20px rgba(45, 212, 191, 0.12),
     0 0 0 1px rgba(45, 212, 191, 0.08) !important;
 }
 

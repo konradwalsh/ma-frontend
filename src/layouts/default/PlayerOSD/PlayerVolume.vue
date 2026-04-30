@@ -733,13 +733,11 @@ watch(
   background-color: var(--primary);
 }
 
-.volume-slider
-  :deep([data-slot="slider-thumb"]:hover)::before {
+.volume-slider :deep([data-slot="slider-thumb"]:hover)::before {
   box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
-.volume-slider
-  :deep([data-slot="slider-thumb"]:focus-visible)::before {
+.volume-slider :deep([data-slot="slider-thumb"]:focus-visible)::before {
   box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 28%, transparent);
 }
 

@@ -8,10 +8,7 @@
     />
     <v-divider />
     <Container v-if="sectionExpanded">
-      <div
-        v-if="exclusions.length === 0"
-        class="genre-exclusion-empty"
-      >
+      <div v-if="exclusions.length === 0" class="genre-exclusion-empty">
         <GenreIcon class="genre-exclusion-empty-icon size-[36px]" />
         <p class="genre-exclusion-empty-text">
           {{ emptyStateText }}
@@ -72,7 +69,9 @@ const exclusionTitle = computed(
 );
 
 const emptyStateText = computed(() =>
-  te("no_genre_exclusions") ? t("no_genre_exclusions") : "No excluded genres yet.",
+  te("no_genre_exclusions")
+    ? t("no_genre_exclusions")
+    : "No excluded genres yet.",
 );
 
 const toolbarMenuItems = computed<ToolBarMenuItem[]>(() => [

@@ -91,7 +91,8 @@ withDefaults(defineProps<Props>(), {
    soft teal outer glow so the on-state reads at a glance. */
 .extended-controls-cluster :deep(button.v-btn.text-primary),
 .extended-controls-cluster :deep(button.v-btn.bg-primary) {
-  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.35),
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.35),
     0 0 12px rgba(45, 212, 191, 0.25);
 }
 

@@ -8,18 +8,11 @@
     />
     <v-divider />
     <v-list v-if="aliasSectionExpanded" class="genre-alias-list">
-      <div
-        v-if="aliases.length === 0"
-        class="genre-alias-empty"
-      >
+      <div v-if="aliases.length === 0" class="genre-alias-empty">
         <Route :size="32" class="genre-alias-empty-icon" />
         <p class="genre-alias-empty-text">{{ $t("no_aliases") }}</p>
       </div>
-      <ListItem
-        v-for="alias in aliases"
-        :key="alias"
-        class="genre-alias-row"
-      >
+      <ListItem v-for="alias in aliases" :key="alias" class="genre-alias-row">
         <template #prepend>
           <Route :size="20" class="genre-alias-row-icon" />
         </template>

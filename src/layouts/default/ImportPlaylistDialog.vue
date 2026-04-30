@@ -43,9 +43,11 @@
           class="import-preview-skeleton mt-4"
           aria-hidden="true"
         >
-          <div class="import-preview-skeleton__bar" />
-          <div class="import-preview-skeleton__bar import-preview-skeleton__bar--short" />
-          <div class="import-preview-skeleton__bar" />
+          <div class="import-preview-skeleton__bar"></div>
+          <div
+            class="import-preview-skeleton__bar import-preview-skeleton__bar--short"
+          ></div>
+          <div class="import-preview-skeleton__bar"></div>
         </div>
       </DialogHeader>
       <DialogFooter>

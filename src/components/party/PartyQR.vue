@@ -19,11 +19,7 @@
           </Transition>
         </div>
       </div>
-      <p
-        v-if="qrText"
-        :style="{ maxWidth: qrSize + 'px' }"
-        class="qr-caption"
-      >
+      <p v-if="qrText" :style="{ maxWidth: qrSize + 'px' }" class="qr-caption">
         {{ qrText }}
       </p>
     </div>
@@ -240,12 +236,11 @@ onBeforeUnmount(() => {
   position: relative;
   padding: 14px;
   border-radius: 14px;
-  background:
-    linear-gradient(
-      135deg,
-      var(--sl-teal-soft) 0%,
-      rgba(0, 0, 0, 0.18) 100%
-    );
+  background: linear-gradient(
+    135deg,
+    var(--sl-teal-soft) 0%,
+    rgba(0, 0, 0, 0.18) 100%
+  );
   border: 1px solid var(--sl-teal-edge);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.04) inset,

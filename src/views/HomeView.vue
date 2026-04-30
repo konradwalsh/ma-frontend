@@ -14,7 +14,7 @@
           <div class="home-hero-greeting">{{ greeting }}</div>
           <div class="home-hero-wordmark">streamloader</div>
         </div>
-        <div class="home-hero-glow" aria-hidden="true" />
+        <div class="home-hero-glow" aria-hidden="true"></div>
       </div>
     </div>
 
