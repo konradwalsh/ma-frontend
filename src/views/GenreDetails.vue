@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section class="genre-details">
     <InfoHeader :item="itemDetails" :active-provider="provider">
       <template #toolbar-append>
         <Button
@@ -19,7 +19,18 @@
         <v-progress-linear color="accent" height="4" indeterminate rounded />
       </div>
 
-      <div class="overview-container">
+      <div
+        v-else-if="!displayRows.length && itemDetails"
+        class="genre-empty-state"
+      >
+        <v-icon icon="mdi-music-note-outline" size="56" class="empty-icon" />
+        <div class="empty-title">{{ $t("no_content") }}</div>
+        <div class="empty-subtitle">
+          {{ itemDetails.name }}
+        </div>
+      </div>
+
+      <div v-else class="overview-container">
         <div v-for="row in displayRows" :key="row.title" class="overview-row">
           <WidgetRow
             :widget-row="row"
@@ -32,115 +43,111 @@
 
     <!-- Traditional view -->
     <template v-else-if="itemDetails && !loading">
-      <ItemsListing
-        itemtype="artists"
-        :load-items="loadGenreArtists"
-        :allow-collapse="true"
-        :show-favorites-only-filter="true"
-        :hide-on-empty="true"
-        :forced-view-mode="itemsViewMode"
-      >
-        <template #title>
-          <span>{{ $t("artists") }}</span>
-          <SquareArrowRightEnter
-            :size="18"
-            class="navigate-icon"
-            @click.stop="navigateTo('artists')"
-          />
-        </template>
-      </ItemsListing>
-      <br />
-      <ItemsListing
-        itemtype="albums"
-        :load-items="loadGenreAlbums"
-        :allow-collapse="true"
-        :show-favorites-only-filter="true"
-        :hide-on-empty="true"
-        :forced-view-mode="itemsViewMode"
-      >
-        <template #title>
-          <span>{{ $t("albums") }}</span>
-          <SquareArrowRightEnter
-            :size="18"
-            class="navigate-icon"
-            @click.stop="navigateTo('albums')"
-          />
-        </template>
-      </ItemsListing>
-      <br />
-      <ItemsListing
-        itemtype="tracks"
-        :load-items="loadGenreTracks"
-        :allow-collapse="true"
-        :show-favorites-only-filter="true"
-        :show-track-number="false"
-        :hide-on-empty="true"
-        :forced-view-mode="itemsViewMode"
-      >
-        <template #title>
-          <span>{{ $t("tracks") }}</span>
-          <SquareArrowRightEnter
-            :size="18"
-            class="navigate-icon"
-            @click.stop="navigateTo('tracks')"
-          />
-        </template>
-      </ItemsListing>
-      <br />
-      <ItemsListing
-        itemtype="playlists"
-        :load-items="loadGenrePlaylists"
-        :allow-collapse="true"
-        :show-favorites-only-filter="true"
-        :hide-on-empty="true"
-        :forced-view-mode="itemsViewMode"
-      >
-        <template #title>
-          <span>{{ $t("playlists") }}</span>
-          <SquareArrowRightEnter
-            :size="18"
-            class="navigate-icon"
-            @click.stop="navigateTo('playlists')"
-          />
-        </template>
-      </ItemsListing>
-      <br />
-      <ItemsListing
-        itemtype="podcasts"
-        :load-items="loadGenrePodcasts"
-        :allow-collapse="true"
-        :show-favorites-only-filter="true"
-        :hide-on-empty="true"
-        :forced-view-mode="itemsViewMode"
-      >
-        <template #title>
-          <span>{{ $t("podcasts") }}</span>
-          <SquareArrowRightEnter
-            :size="18"
-            class="navigate-icon"
-            @click.stop="navigateTo('podcasts')"
-          />
-        </template>
-      </ItemsListing>
-      <br />
-      <ItemsListing
-        itemtype="audiobooks"
-        :load-items="loadGenreAudiobooks"
-        :allow-collapse="true"
-        :show-favorites-only-filter="true"
-        :hide-on-empty="true"
-        :forced-view-mode="itemsViewMode"
-      >
-        <template #title>
-          <span>{{ $t("audiobooks") }}</span>
-          <SquareArrowRightEnter
-            :size="18"
-            class="navigate-icon"
-            @click.stop="navigateTo('audiobooks')"
-          />
-        </template>
-      </ItemsListing>
-      <br />
+      <div class="genre-sections">
+        <ItemsListing
+          itemtype="artists"
+          :load-items="loadGenreArtists"
+          :allow-collapse="true"
+          :show-favorites-only-filter="true"
+          :hide-on-empty="true"
+          :forced-view-mode="itemsViewMode"
+        >
+          <template #title>
+            <span class="section-title-text">{{ $t("artists") }}</span>
+            <SquareArrowRightEnter
+              :size="18"
+              class="navigate-icon"
+              @click.stop="navigateTo('artists')"
+            />
+          </template>
+        </ItemsListing>
+        <ItemsListing
+          itemtype="albums"
+          :load-items="loadGenreAlbums"
+          :allow-collapse="true"
+          :show-favorites-only-filter="true"
+          :hide-on-empty="true"
+          :forced-view-mode="itemsViewMode"
+        >
+          <template #title>
+            <span class="section-title-text">{{ $t("albums") }}</span>
+            <SquareArrowRightEnter
+              :size="18"
+              class="navigate-icon"
+              @click.stop="navigateTo('albums')"
+            />
+          </template>
+        </ItemsListing>
+        <ItemsListing
+          itemtype="tracks"
+          :load-items="loadGenreTracks"
+          :allow-collapse="true"
+          :show-favorites-only-filter="true"
+          :show-track-number="false"
+          :hide-on-empty="true"
+          :forced-view-mode="itemsViewMode"
+        >
+          <template #title>
+            <span class="section-title-text">{{ $t("tracks") }}</span>
+            <SquareArrowRightEnter
+              :size="18"
+              class="navigate-icon"
+              @click.stop="navigateTo('tracks')"
+            />
+          </template>
+        </ItemsListing>
+        <ItemsListing
+          itemtype="playlists"
+          :load-items="loadGenrePlaylists"
+          :allow-collapse="true"
+          :show-favorites-only-filter="true"
+          :hide-on-empty="true"
+          :forced-view-mode="itemsViewMode"
+        >
+          <template #title>
+            <span class="section-title-text">{{ $t("playlists") }}</span>
+            <SquareArrowRightEnter
+              :size="18"
+              class="navigate-icon"
+              @click.stop="navigateTo('playlists')"
+            />
+          </template>
+        </ItemsListing>
+        <ItemsListing
+          itemtype="podcasts"
+          :load-items="loadGenrePodcasts"
+          :allow-collapse="true"
+          :show-favorites-only-filter="true"
+          :hide-on-empty="true"
+          :forced-view-mode="itemsViewMode"
+        >
+          <template #title>
+            <span class="section-title-text">{{ $t("podcasts") }}</span>
+            <SquareArrowRightEnter
+              :size="18"
+              class="navigate-icon"
+              @click.stop="navigateTo('podcasts')"
+            />
+          </template>
+        </ItemsListing>
+        <ItemsListing
+          itemtype="audiobooks"
+          :load-items="loadGenreAudiobooks"
+          :allow-collapse="true"
+          :show-favorites-only-filter="true"
+          :hide-on-empty="true"
+          :forced-view-mode="itemsViewMode"
+        >
+          <template #title>
+            <span class="section-title-text">{{ $t("audiobooks") }}</span>
+            <SquareArrowRightEnter
+              :size="18"
+              class="navigate-icon"
+              @click.stop="navigateTo('audiobooks')"
+            />
+          </template>
+        </ItemsListing>
+      </div>
     </template>
 
     <GenreAliasManager
@@ -149,6 +156,9 @@
       :existing-genre-names="existingGenreNames"
       @reload="loadItemDetails"
     />
+
+    <!-- Bottom spacer so last section never tucks under the playerbar -->
+    <div class="genre-bottom-spacer" aria-hidden="true" />
   </section>
 </template>
 
@@ -471,26 +481,152 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Brand teal tokens — mirrors vuetify.css globals */
+.genre-details {
+  --sl-teal: #2dd4bf;
+  --sl-teal-deep: #0f766e;
+  --sl-teal-soft: rgba(45, 212, 191, 0.12);
+  --sl-teal-soft-strong: rgba(45, 212, 191, 0.22);
+  position: relative;
+  padding-bottom: 0;
+}
+
 .rows-loading {
-  margin: 20px 0;
+  margin: 20px 16px;
+}
+
+.rows-loading :deep(.v-progress-linear__indeterminate) {
+  background: linear-gradient(
+    90deg,
+    var(--sl-teal-deep),
+    var(--sl-teal),
+    var(--sl-teal-deep)
+  ) !important;
+}
+
+/* Discovery overview rows — subtle vertical rhythm + teal section glow */
+.overview-container {
+  padding: 4px 16px 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .overview-row {
   margin-top: 10px;
+  position: relative;
+  padding-left: 10px;
 }
 
-.overview-container {
-  padding: 0 16px 16px 16px;
+.overview-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 2px;
+  background: linear-gradient(
+    180deg,
+    var(--sl-teal) 0%,
+    var(--sl-teal-deep) 100%
+  );
+  opacity: 0;
+  transition: opacity 200ms ease;
 }
 
+.overview-row:hover::before {
+  opacity: 0.85;
+}
+
+/* Traditional section list — give each section a touch of breathing room */
+.genre-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+/* Section heading text — subtle teal underline accent */
+.section-title-text {
+  position: relative;
+  display: inline-block;
+  letter-spacing: 0.01em;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 78%,
+    var(--sl-teal-soft-strong) 78%,
+    var(--sl-teal-soft-strong) 100%
+  );
+  padding: 0 2px;
+}
+
+/* Navigate-into-listing icon — teal hover */
 .navigate-icon {
-  margin-left: 6px;
+  margin-left: 8px;
   cursor: pointer;
-  opacity: 0.7;
+  opacity: 0.55;
   vertical-align: middle;
+  color: var(--sl-teal);
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease,
+    color 150ms ease;
 }
 
 .navigate-icon:hover {
   opacity: 1;
+  transform: translateX(2px);
+  color: var(--sl-teal);
+}
+
+/* Empty state for discovery view */
+.genre-empty-state {
+  margin: 48px auto;
+  padding: 32px 24px;
+  max-width: 420px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  border-radius: 16px;
+  background: var(--sl-teal-soft);
+  border: 1px solid var(--sl-teal-soft-strong);
+}
+
+.genre-empty-state .empty-icon {
+  color: var(--sl-teal);
+  opacity: 0.85;
+  filter: drop-shadow(0 0 18px rgba(45, 212, 191, 0.35));
+}
+
+.genre-empty-state .empty-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.genre-empty-state .empty-subtitle {
+  font-size: 0.875rem;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+/* Bottom spacer — keeps last section clear of the persistent playerbar */
+.genre-bottom-spacer {
+  height: 140px;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .overview-container {
+    padding: 4px 12px 16px 12px;
+  }
+  .genre-bottom-spacer {
+    height: 160px;
+  }
 }
 </style>

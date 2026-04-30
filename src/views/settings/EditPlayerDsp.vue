@@ -1,18 +1,18 @@
 <template>
-  <section v-if="dsp">
-    <v-toolbar color="transparent" class="border-b pr-4">
+  <section v-if="dsp" class="dsp-section" :class="{ 'dsp-section--enabled': dsp.enabled }">
+    <v-toolbar color="transparent" class="border-b pr-4 dsp-toolbar">
       <v-switch
         v-model="dsp.enabled"
         hide-details
         color="primary"
-        class="pl-4"
+        class="pl-4 dsp-enable-switch"
       />
-      <v-toolbar-title>{{
+      <v-toolbar-title class="dsp-toolbar-title">{{
         $t("settings.dsp.configure_on", { name: playerName })
       }}</v-toolbar-title>
       <v-menu offset-y transition="slide-y-transition">
         <template #activator="{ props: menuProps }">
-          <v-btn v-bind="menuProps" class="mr-4" :class="getButtonClass()">
+          <v-btn v-bind="menuProps" class="mr-4 dsp-preset-btn" :class="getButtonClass()">
             <v-icon class="p-0 ms-md-n1 me-md-2"> mdi-tray-arrow-down </v-icon>
             <span class="d-none d-md-inline">
               {{ $t("settings.dsp.presets.load") }}
@@ -43,7 +43,11 @@
           </v-list-item>
         </v-list>
       </v-menu>
-      <v-btn :class="getButtonClass()" @click="showSavePresetDialog = true">
+      <v-btn
+        :class="getButtonClass()"
+        class="dsp-preset-btn"
+        @click="showSavePresetDialog = true"
+      >
         <v-icon class="p-0 ms-md-n1 me-md-2"> mdi-content-save </v-icon>
         <span class="d-none d-md-inline">
           {{ $t("settings.dsp.presets.save") }}
@@ -52,7 +56,12 @@
     </v-toolbar>
 
     <v-container class="pa-4">
-      <v-alert v-if="!dsp.enabled" type="info" class="mt-4" color="transparent">
+      <v-alert
+        v-if="!dsp.enabled"
+        type="info"
+        class="mt-4 dsp-disabled-alert"
+        color="transparent"
+      >
         {{ $t("settings.dsp.disabled_message") }}
       </v-alert>
       <v-row :class="{ 'justify-center': mobile }" class="flex-nowrap">
@@ -184,11 +193,12 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="showSavePresetDialog = false">
+          <v-btn variant="text" color="primary" @click="showSavePresetDialog = false">
             {{ $t("cancel") }}
           </v-btn>
           <v-btn
             color="primary"
+            variant="flat"
             :disabled="!newPresetName.trim()"
             @click="savePreset"
           >
@@ -207,12 +217,15 @@
             v-model="newFilterType"
             :items="filterTypes"
             :label="$t('settings.dsp.filter.type')"
+            color="primary"
           />
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn @click="showAddFilterDialog = false">{{ $t("cancel") }}</v-btn>
-          <v-btn color="primary" @click="addFilter">{{
+          <v-btn variant="text" color="primary" @click="showAddFilterDialog = false">{{
+            $t("cancel")
+          }}</v-btn>
+          <v-btn color="primary" variant="flat" @click="addFilter">{{
             $t("settings.dsp.filter.add")
           }}</v-btn>
         </v-card-actions>
@@ -460,3 +473,60 @@ watch(
   { deep: true },
 );
 </script>
+
+<style scoped>
+.dsp-section {
+  transition: opacity 0.25s ease;
+}
+
+.dsp-section:not(.dsp-section--enabled) :deep(.v-row) {
+  opacity: 0.78;
+}
+
+/* Toolbar polish */
+.dsp-toolbar {
+  border-bottom-color: rgba(var(--v-theme-primary), 0.18) !important;
+}
+
+.dsp-toolbar-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.dsp-section--enabled .dsp-toolbar-title {
+  color: rgb(var(--v-theme-primary));
+}
+
+.dsp-enable-switch {
+  flex: 0 0 auto;
+}
+
+/* Preset buttons — let teal show through on hover */
+.dsp-preset-btn {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.dsp-preset-btn:hover {
+  color: rgb(var(--v-theme-primary));
+}
+
+.dsp-preset-btn:hover .v-icon {
+  color: rgb(var(--v-theme-primary));
+}
+
+/* Disabled-state alert subtler */
+.dsp-disabled-alert {
+  border: 1px dashed rgba(var(--v-theme-primary), 0.28);
+  border-radius: 8px;
+}
+
+.dsp-disabled-alert :deep(.v-alert__prepend .v-icon) {
+  color: rgb(var(--v-theme-primary)) !important;
+}
+</style>

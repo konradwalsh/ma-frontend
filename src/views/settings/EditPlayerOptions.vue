@@ -5,12 +5,12 @@
       <!-- Settable options -->
       <div v-if="playerOptionsSettable.length > 0">
         <v-card
-          class="mx-auto my-8"
-          elevation="2"
+          class="mx-auto my-8 player-options-card"
+          elevation="0"
           min-width="100%"
           :title="$t('player_options.settable', [playerName])"
         >
-          <div style="padding: 0px 20px 20px 20px">
+          <div class="player-options-content">
             <div v-for="option in playerOptionsSettable" :key="option.key">
               <PlayerOptionField
                 :player-option="option"
@@ -24,12 +24,12 @@
       <!-- Read-only options -->
       <div v-if="playerOptionsReadOnly.length > 0">
         <v-card
-          class="mx-auto my-8"
-          elevation="2"
+          class="mx-auto my-8 player-options-card player-options-card--readonly"
+          elevation="0"
           min-width="100%"
           :title="$t('player_options.read_only', [playerName])"
         >
-          <div style="padding: 0px 20px 20px 20px">
+          <div class="player-options-content">
             <div v-for="option in playerOptionsReadOnly" :key="option.key">
               <PlayerOptionField
                 :player-option="option"
@@ -131,3 +131,37 @@ const unsub = api.subscribe(
 );
 onBeforeUnmount(unsub);
 </script>
+
+<style scoped>
+.player-options-card {
+  border: 1px solid rgba(var(--v-theme-primary), 0.18);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.player-options-card :deep(.v-card-title) {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: rgb(var(--v-theme-primary));
+  padding: 18px 20px 14px;
+  background: rgba(var(--v-theme-primary), 0.06);
+  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.14);
+}
+
+.player-options-card--readonly :deep(.v-card-title) {
+  color: rgba(var(--v-theme-on-surface), 0.7);
+  background: rgba(var(--v-theme-on-surface), 0.04);
+  border-bottom-color: rgba(var(--v-theme-on-surface), 0.1);
+}
+
+.player-options-content {
+  padding: 8px 20px 20px;
+}
+
+.player-options-content > div + div {
+  border-top: 1px solid rgba(var(--v-theme-on-surface), 0.06);
+  margin-top: 4px;
+  padding-top: 4px;
+}
+</style>

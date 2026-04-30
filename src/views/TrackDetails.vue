@@ -123,3 +123,14 @@ const loadTrackAlbums = async function (params: LoadDataParams) {
   );
 };
 </script>
+
+<style scoped>
+/* Streamloader: subtle page-level polish for the track view.
+   The track hero (InfoHeader), appears-on + other-versions listings
+   (ItemsListing) and provider details all handle their own internal
+   styling. We only nudge the bottom of the page so the last section
+   doesn't crowd the playerbar. */
+section {
+  padding-bottom: 16px;
+}
+</style>

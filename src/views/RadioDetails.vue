@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <section class="radio-details">
     <InfoHeader :item="itemDetails" />
     <ItemsListing
       v-if="itemDetails"
@@ -16,7 +16,6 @@
       :hide-on-empty="true"
       :checksum="provider + itemId"
     />
-    <br />
     <!-- provider mapping details -->
     <ProviderDetails v-if="itemDetails" :item-details="itemDetails" />
   </section>
@@ -90,3 +89,18 @@ const loadRadioVersions = async function (params: LoadDataParams) {
   return allVersions;
 };
 </script>
+
+<style scoped>
+/* Streamloader: page-level cadence for the radio station view.
+   InfoHeader (logo + station info hero), ItemsListing (other versions across
+   providers) and ProviderDetails own their internal styling. We replace the
+   inline <br /> separator with proper spacing between sections and add bottom
+   padding so the last section doesn't crowd the playerbar — matches the
+   AlbumDetails cadence. */
+.radio-details {
+  padding-bottom: 16px;
+}
+.radio-details > * + * {
+  margin-top: 8px;
+}
+</style>

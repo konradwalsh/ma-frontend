@@ -415,15 +415,29 @@
         block
         color="primary"
         size="large"
+        class="save-btn"
         :disabled="!requiredValuesPresent || !hasUnsavedChanges"
         @click="submit"
       >
         {{ $t("settings.save") }}
       </v-btn>
-      <v-btn block variant="outlined" size="large" @click="handleClose">
+      <v-btn
+        block
+        variant="outlined"
+        size="large"
+        color="primary"
+        class="close-btn"
+        @click="handleClose"
+      >
         {{ $t("close") }}
       </v-btn>
-      <v-btn block variant="text" size="large" @click="resetToDefaults">
+      <v-btn
+        block
+        variant="text"
+        size="large"
+        class="reset-btn"
+        @click="resetToDefaults"
+      >
         {{ $t("settings.reset_to_defaults") }}
       </v-btn>
     </div>
@@ -458,12 +472,14 @@
       <v-card-actions>
         <v-btn
           v-if="showHelpInfo?.help_link"
+          variant="text"
+          color="primary"
           @click="openLink(showHelpInfo!.help_link!)"
         >
           {{ $t("read_more") }}
         </v-btn>
         <v-spacer />
-        <v-btn color="primary" @click="showHelpInfo = undefined">
+        <v-btn color="primary" variant="flat" @click="showHelpInfo = undefined">
           {{ $t("close") }}
         </v-btn>
       </v-card-actions>
@@ -970,7 +986,7 @@ const hasDescriptionOrHelpLink = function (conf_entry: ConfigEntryUI) {
 /* Category sections (non-collapsible) */
 .category-section {
   margin-bottom: 16px;
-  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  border: 1px solid rgba(var(--v-theme-primary), 0.16);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -1021,13 +1037,16 @@ const hasDescriptionOrHelpLink = function (conf_entry: ConfigEntryUI) {
 .help-btn {
   flex-shrink: 0;
   margin-top: 8px;
-  opacity: 0.6;
-  transition: opacity 0.2s ease;
+  opacity: 0.55;
+  transition:
+    opacity 0.2s ease,
+    color 0.2s ease;
   height: 36px;
 }
 
 .help-btn:hover {
   opacity: 1;
+  color: rgb(var(--v-theme-primary));
 }
 
 @media (min-width: 601px) {
@@ -1099,6 +1118,53 @@ const hasDescriptionOrHelpLink = function (conf_entry: ConfigEntryUI) {
   color: rgba(var(--v-theme-on-surface), 0.38) !important;
 }
 
+/* Save button — primary teal with subtle glow */
+.save-btn {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  box-shadow:
+    0 4px 12px -2px rgba(var(--v-theme-primary), 0.35),
+    0 2px 4px rgba(var(--v-theme-primary), 0.18) !important;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+.save-btn:not(.v-btn--disabled):hover {
+  box-shadow:
+    0 6px 16px -2px rgba(var(--v-theme-primary), 0.45),
+    0 3px 6px rgba(var(--v-theme-primary), 0.25) !important;
+  transform: translateY(-1px);
+}
+
+.save-btn.v-btn--disabled {
+  box-shadow: none !important;
+}
+
+/* Close button — outlined teal */
+.close-btn {
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  border-color: rgba(var(--v-theme-primary), 0.5) !important;
+}
+
+.close-btn:hover {
+  border-color: rgb(var(--v-theme-primary)) !important;
+  background: rgba(var(--v-theme-primary), 0.04) !important;
+}
+
+/* Reset button — subdued */
+.reset-btn {
+  font-weight: 500;
+  font-size: 0.875rem;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.reset-btn:hover {
+  opacity: 1;
+}
+
 /* Protocol panel actions (toggle + chevron) */
 .protocol-actions {
   display: flex;
@@ -1141,7 +1207,7 @@ const hasDescriptionOrHelpLink = function (conf_entry: ConfigEntryUI) {
   justify-content: center;
   padding: 8px 0 16px 0;
   margin-bottom: 8px;
-  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.18);
 }
 
 .advanced-settings-switch {
@@ -1178,15 +1244,15 @@ const hasDescriptionOrHelpLink = function (conf_entry: ConfigEntryUI) {
   padding: 16px 20px;
   background: rgba(var(--v-theme-primary), 0.08);
   border-radius: 8px 8px 0 0;
-  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  border: 1px solid rgba(var(--v-theme-primary), 0.16);
   border-bottom: none;
 }
 
 /* Protocol general settings (before accordion) */
 .protocol-general-settings {
   padding: 20px;
-  border-left: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-  border-right: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  border-left: 1px solid rgba(var(--v-theme-primary), 0.16);
+  border-right: 1px solid rgba(var(--v-theme-primary), 0.16);
   background: rgba(var(--v-theme-surface), 1);
 }
 
@@ -1202,18 +1268,18 @@ const hasDescriptionOrHelpLink = function (conf_entry: ConfigEntryUI) {
 
 /* Single protocol (non-collapsible) */
 .protocol-single-panel {
-  border-left: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-  border-right: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  border-left: 1px solid rgba(var(--v-theme-primary), 0.16);
+  border-right: 1px solid rgba(var(--v-theme-primary), 0.16);
+  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.16);
   border-radius: 0 0 8px 8px;
   background: rgba(var(--v-theme-surface), 1);
   padding: 20px;
 }
 
 .protocol-panels {
-  border-left: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-  border-right: 1px solid rgba(var(--v-theme-on-surface), 0.12);
-  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  border-left: 1px solid rgba(var(--v-theme-primary), 0.16);
+  border-right: 1px solid rgba(var(--v-theme-primary), 0.16);
+  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.16);
   border-radius: 0 0 8px 8px;
 }
 

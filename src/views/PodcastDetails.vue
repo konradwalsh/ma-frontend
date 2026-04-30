@@ -1,32 +1,34 @@
 <template>
-  <InfoHeader :item="itemDetails" />
-  <ItemsListing
-    v-if="itemDetails"
-    itemtype="podcastepisodes"
-    :parent-item="itemDetails"
-    :show-provider="false"
-    :show-library="false"
-    :show-favorites-only-filter="false"
-    :show-track-number="true"
-    :show-refresh-button="true"
-    :load-items="loadPodcastEpisodes"
-    :sort-keys="[
-      'position',
-      'position_desc',
-      'name',
-      'duration',
-      'duration_desc',
-    ]"
-    :update-available="updateAvailable"
-    :title="$t('podcast_episodes')"
-    :allow-key-hooks="true"
-    :path="`podcast.${props.itemId}.${props.provider}`"
-    :restore-state="true"
-    :no-server-side-sorting="true"
-  />
+  <section class="podcast-details">
+    <InfoHeader :item="itemDetails" />
+    <ItemsListing
+      v-if="itemDetails"
+      itemtype="podcastepisodes"
+      :parent-item="itemDetails"
+      :show-provider="false"
+      :show-library="false"
+      :show-favorites-only-filter="false"
+      :show-track-number="true"
+      :show-refresh-button="true"
+      :load-items="loadPodcastEpisodes"
+      :sort-keys="[
+        'position',
+        'position_desc',
+        'name',
+        'duration',
+        'duration_desc',
+      ]"
+      :update-available="updateAvailable"
+      :title="$t('podcast_episodes')"
+      :allow-key-hooks="true"
+      :path="`podcast.${props.itemId}.${props.provider}`"
+      :restore-state="true"
+      :no-server-side-sorting="true"
+    />
 
-  <!-- provider mapping details -->
-  <ProviderDetails v-if="itemDetails" :item-details="itemDetails" />
+    <!-- provider mapping details -->
+    <ProviderDetails v-if="itemDetails" :item-details="itemDetails" />
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -124,3 +126,14 @@ const loadPodcastEpisodes = async function (params: LoadDataParams) {
   return await api.getPodcastEpisodes(props.itemId, props.provider);
 };
 </script>
+
+<style scoped>
+/* Streamloader: page-level cadence for the podcast view.
+   InfoHeader (cover + show info hero), ItemsListing (episode list, including
+   played/resume state via context menu) and ProviderDetails own their internal
+   styling. We only add bottom padding so the last section doesn't crowd the
+   playerbar — matches the AlbumDetails cadence. */
+.podcast-details {
+  padding-bottom: 16px;
+}
+</style>

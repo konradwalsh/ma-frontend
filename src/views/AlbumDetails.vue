@@ -148,3 +148,14 @@ const UpdateItemInDb = async function () {
   });
 };
 </script>
+
+<style scoped>
+/* Streamloader: subtle page-level polish for the album view.
+   The album hero (InfoHeader, with vinyl effect), tracks + other-versions
+   listings (ItemsListing), image manager and provider details all handle
+   their own internal styling. We only nudge the bottom of the page so the
+   last section doesn't crowd the playerbar. */
+section {
+  padding-bottom: 16px;
+}
+</style>

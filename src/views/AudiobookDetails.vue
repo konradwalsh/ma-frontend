@@ -1,14 +1,16 @@
 <template>
-  <InfoHeader :item="itemDetails" />
+  <section class="audiobook-details">
+    <InfoHeader :item="itemDetails" />
 
-  <!-- audiobook chapters -->
-  <Chapters
-    v-if="itemDetails && itemDetails.metadata?.chapters"
-    :item-details="itemDetails"
-  />
+    <!-- audiobook chapters -->
+    <Chapters
+      v-if="itemDetails && itemDetails.metadata?.chapters"
+      :item-details="itemDetails"
+    />
 
-  <!-- provider mapping details -->
-  <ProviderDetails v-if="itemDetails" :item-details="itemDetails" />
+    <!-- provider mapping details -->
+    <ProviderDetails v-if="itemDetails" :item-details="itemDetails" />
+  </section>
 </template>
 
 <script setup lang="ts">
@@ -61,3 +63,14 @@ onMounted(() => {
   onBeforeUnmount(unsub);
 });
 </script>
+
+<style scoped>
+/* Streamloader: page-level cadence for the audiobook view.
+   InfoHeader (cover + author + narrator hero), Chapters (chapter list with
+   resume/progress affordances) and ProviderDetails all own their internal
+   styling. We only add bottom padding so the last section doesn't crowd
+   the playerbar — matches the AlbumDetails cadence. */
+.audiobook-details {
+  padding-bottom: 16px;
+}
+</style>

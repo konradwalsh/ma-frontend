@@ -15,6 +15,21 @@
           </div>
           <div class="header-info">
             <div class="header-title-row">
+              <span
+                v-if="api.players[config.player_id]"
+                class="status-dot"
+                :class="{
+                  'status-dot--online':
+                    api.players[config.player_id].available && config.enabled,
+                  'status-dot--offline':
+                    !api.players[config.player_id].available || !config.enabled,
+                }"
+                :title="
+                  api.players[config.player_id].available && config.enabled
+                    ? $t('online', 'Online')
+                    : $t('offline', 'Offline')
+                "
+              />
               <h2 class="header-title">
                 {{
                   config.name ||
@@ -27,6 +42,7 @@
                 variant="text"
                 size="small"
                 density="compact"
+                color="primary"
                 class="rename-btn"
                 @click="showRenameDialog = true"
               />
@@ -207,7 +223,7 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="text" @click="showRenameDialog = false">
+          <v-btn variant="text" color="primary" @click="showRenameDialog = false">
             {{ $t("close") }}
           </v-btn>
           <v-btn color="primary" variant="flat" @click="saveRename">
@@ -484,8 +500,13 @@ const onAction = async function (
 }
 
 .header-card {
-  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  border: 1px solid rgba(var(--v-theme-primary), 0.18);
   border-radius: 12px;
+  background: linear-gradient(
+    180deg,
+    rgba(var(--v-theme-primary), 0.04) 0%,
+    rgba(var(--v-theme-surface), 1) 100%
+  );
 }
 
 .header-content {
@@ -499,10 +520,11 @@ const onAction = async function (
   width: 56px;
   height: 56px;
   border-radius: 12px;
-  background: rgba(var(--v-theme-primary), 0.1);
+  background: rgba(var(--v-theme-primary), 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(var(--v-theme-primary), 0.18);
 }
 
 .header-info {
@@ -513,19 +535,57 @@ const onAction = async function (
 .header-title-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .header-title {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
   margin: 0;
   color: rgb(var(--v-theme-on-surface));
 }
 
+/* Online/offline status indicator */
+.status-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot--online {
+  background: rgb(var(--v-theme-primary));
+  box-shadow:
+    0 0 0 3px rgba(var(--v-theme-primary), 0.18),
+    0 0 8px rgba(var(--v-theme-primary), 0.5);
+  animation: status-pulse 2.4s ease-in-out infinite;
+}
+
+.status-dot--offline {
+  background: rgba(var(--v-theme-on-surface), 0.35);
+  box-shadow: 0 0 0 3px rgba(var(--v-theme-on-surface), 0.08);
+}
+
+@keyframes status-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 3px rgba(var(--v-theme-primary), 0.18),
+      0 0 8px rgba(var(--v-theme-primary), 0.5);
+  }
+  50% {
+    box-shadow:
+      0 0 0 5px rgba(var(--v-theme-primary), 0.1),
+      0 0 12px rgba(var(--v-theme-primary), 0.65);
+  }
+}
+
 .rename-btn {
-  opacity: 0.6;
+  opacity: 0.55;
   transition: opacity 0.2s ease;
 }
 
@@ -543,14 +603,21 @@ const onAction = async function (
 .header-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 14px;
+  row-gap: 6px;
 }
 
 .meta-item {
   display: inline-flex;
   align-items: center;
-  font-size: 0.813rem;
-  color: rgba(var(--v-theme-on-surface), 0.6);
+  font-size: 0.8125rem;
+  letter-spacing: 0.01em;
+  color: rgba(var(--v-theme-on-surface), 0.65);
+  font-variant-numeric: tabular-nums;
+}
+
+.meta-item .v-icon {
+  color: rgba(var(--v-theme-primary), 0.7);
 }
 
 .protocol-chips {
