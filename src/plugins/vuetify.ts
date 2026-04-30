@@ -50,7 +50,10 @@ export default createVuetify(
             overlay: "#e7e7e7ff",
             panel: "#ffffff",
             default: "#ffffff",
-            primary: "#03a9f4",
+            // Streamloader brand teal — matches the streamloader web UI
+            // CSS `--accent` light-mode value (Tailwind teal-700). Bright
+            // enough on light backgrounds, dark enough for white text.
+            primary: "#0f766e",
           },
         },
         dark: {
@@ -61,7 +64,11 @@ export default createVuetify(
             overlay: "#181818",
             panel: "#232323",
             default: "#000000",
-            primary: "#03a9f4",
+            // Streamloader brand teal-mint — matches the streamloader web
+            // UI CSS `--accent` dark-mode value (Tailwind teal-400). The
+            // brand is dark-mode-first; this is the canonical streamloader
+            // teal users see in the streamloader.konradwalsh.com dashboard.
+            primary: "#2dd4bf",
           },
         },
       },
