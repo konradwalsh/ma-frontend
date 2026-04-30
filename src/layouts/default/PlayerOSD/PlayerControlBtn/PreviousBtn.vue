@@ -3,6 +3,7 @@
   <Icon
     v-if="isVisible && player"
     v-bind="{ ...icon, ...$attrs }"
+    class="prev-btn-icon"
     :disabled="!canPrevious || isLoading"
     variant="button"
     @click="api.playerCommandPrevious(player.player_id)"
@@ -69,3 +70,23 @@ const isLoading = computed(() => {
   );
 });
 </script>
+
+<style>
+/* Streamloader brand: secondary action — neutral with subtle teal hover */
+.prev-btn-icon {
+  border-radius: 50%;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.prev-btn-icon:hover:not([disabled]):not(.disabled) {
+  background-color: rgba(15, 118, 110, 0.1); /* light teal tint */
+  color: #0f766e;
+}
+
+.v-theme--dark .prev-btn-icon:hover:not([disabled]):not(.disabled) {
+  background-color: rgba(45, 212, 191, 0.14);
+  color: #2dd4bf;
+}
+</style>

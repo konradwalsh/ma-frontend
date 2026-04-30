@@ -1,11 +1,20 @@
 <template>
   <DropdownMenu v-if="currentItem">
     <DropdownMenuTrigger as-child>
-      <Button variant="icon" :ripple="false" icon :title="$t('more_options')">
+      <Button
+        variant="icon"
+        :ripple="false"
+        icon
+        :title="$t('more_options')"
+        class="track-menu-trigger"
+      >
         <EllipsisIcon />
       </Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" class="z-[100001]">
+    <DropdownMenuContent
+      align="end"
+      class="z-[100001] player-track-menu-content"
+    >
       <DropdownMenuItem @click="onToggleFavorite">
         <Heart
           class="size-4"
@@ -128,3 +137,46 @@ const onStartRadio = () => {
   api.playMedia([currentTrack.value.uri], QueueOption.REPLACE, true);
 };
 </script>
+
+<style scoped>
+.track-menu-trigger {
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+  border-radius: 12px;
+}
+
+.track-menu-trigger:hover:not(:disabled) {
+  background-color: rgba(45, 212, 191, 0.12);
+  color: rgb(45, 212, 191);
+}
+
+:global(.v-theme--light) .track-menu-trigger:hover:not(:disabled) {
+  background-color: rgba(15, 118, 110, 0.1);
+  color: rgb(15, 118, 110);
+}
+</style>
+
+<style>
+/* Unscoped: DropdownMenuContent teleports to body, so scoped styles can't reach it.
+   Class is namespaced (.player-track-menu-content) so it does not bleed into other dropdowns. */
+.player-track-menu-content [role="menuitem"] {
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.player-track-menu-content [role="menuitem"]:hover,
+.player-track-menu-content [role="menuitem"]:focus,
+.player-track-menu-content [role="menuitem"][data-highlighted] {
+  background-color: rgba(45, 212, 191, 0.14) !important;
+  color: rgb(45, 212, 191) !important;
+}
+
+.v-theme--light .player-track-menu-content [role="menuitem"]:hover,
+.v-theme--light .player-track-menu-content [role="menuitem"]:focus,
+.v-theme--light .player-track-menu-content [role="menuitem"][data-highlighted] {
+  background-color: rgba(15, 118, 110, 0.12) !important;
+  color: rgb(15, 118, 110) !important;
+}
+</style>

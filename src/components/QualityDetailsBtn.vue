@@ -15,7 +15,7 @@
           !store.activePlayerQueue?.active ||
           store.activePlayerQueue?.items == 0
         "
-        class="mediadetails-content-type-btn"
+        class="mediadetails-content-type-btn streamloader-quality-pill"
         label
         :ripple="false"
         v-bind="props"
@@ -26,10 +26,10 @@
             backgroundColor: qualityTierToColor(maxOutputQualityTier),
           }"
         ></div>
-        <div v-if="maxOutputQualityTier == QualityTier.LOW">LQ</div>
-        <div v-else-if="maxOutputQualityTier == QualityTier.GOOD">SQ</div>
-        <div v-else-if="maxOutputQualityTier == QualityTier.LOSSLESS">HQ</div>
-        <div v-else-if="maxOutputQualityTier == QualityTier.HIRES">HR</div>
+        <div v-if="maxOutputQualityTier == QualityTier.LOW" class="quality-tier-label">LQ</div>
+        <div v-else-if="maxOutputQualityTier == QualityTier.GOOD" class="quality-tier-label">SQ</div>
+        <div v-else-if="maxOutputQualityTier == QualityTier.LOSSLESS" class="quality-tier-label">HQ</div>
+        <div v-else-if="maxOutputQualityTier == QualityTier.HIRES" class="quality-tier-label">HR</div>
       </v-chip>
     </template>
     <v-card class="mx-auto" :width="Math.min($vuetify.display.width - 25, 380)">
@@ -176,7 +176,7 @@
           </div>
           <div class="w-100">
             <!-- Input header -->
-            <div class="d-flex">
+            <div class="d-flex streamdetails-section-header">
               <div
                 class="streamdetails-separator"
                 style="width: 40px; margin-right: 10px"
@@ -187,7 +187,9 @@
                   backgroundColor: qualityTierToColor(inputQualityTier),
                 }"
               ></div>
-              {{ $t("streamdetails.input_header") }}
+              <span class="streamdetails-section-header-label">{{
+                $t("streamdetails.input_header")
+              }}</span>
               <div
                 class="streamdetails-separator flex-fill"
                 style="margin-left: 10px"
@@ -341,7 +343,7 @@
               :key="index"
             >
               <!-- Separator -->
-              <div class="d-flex">
+              <div class="d-flex streamdetails-section-header">
                 <div
                   class="streamdetails-separator"
                   style="width: 40px; margin-right: 10px"
@@ -354,7 +356,9 @@
                     ),
                   }"
                 ></div>
-                {{ $t("streamdetails.output_header") }}
+                <span class="streamdetails-section-header-label">{{
+                  $t("streamdetails.output_header")
+                }}</span>
                 <div
                   class="streamdetails-separator flex-fill"
                   style="margin-left: 10px"
@@ -874,6 +878,55 @@ export const iconFolder = new URL("@/assets/folder.svg", import.meta.url).href;
   letter-spacing: 0.1em;
   border-radius: 2px;
   margin: 0px;
+}
+
+/* Streamloader teal-tinted Hi-Res / Lossless pill — ALACarte aesthetic */
+.streamloader-quality-pill.v-chip {
+  background-color: rgba(45, 212, 191, 0.12) !important;
+  color: rgb(45, 212, 191) !important;
+  border: 1px solid rgba(45, 212, 191, 0.32) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.16em !important;
+  font-weight: 600 !important;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.streamloader-quality-pill.v-chip:hover {
+  background-color: rgba(45, 212, 191, 0.2) !important;
+  border-color: rgba(45, 212, 191, 0.48) !important;
+}
+
+.v-theme--light .streamloader-quality-pill.v-chip {
+  background-color: rgba(15, 118, 110, 0.1) !important;
+  color: rgb(15, 118, 110) !important;
+  border-color: rgba(15, 118, 110, 0.3) !important;
+}
+
+.v-theme--light .streamloader-quality-pill.v-chip:hover {
+  background-color: rgba(15, 118, 110, 0.16) !important;
+  border-color: rgba(15, 118, 110, 0.48) !important;
+}
+
+.streamloader-quality-pill .quality-tier-label {
+  line-height: 1;
+}
+
+/* Polished typography for the streamdetails popup card */
+.streamdetails-item {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.streamdetails-section-header-label {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0.78;
+  white-space: nowrap;
 }
 
 .streamdetails-item {

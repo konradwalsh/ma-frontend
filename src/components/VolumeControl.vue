@@ -333,9 +333,38 @@ const syncCheckBoxChange = async function (
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 6px;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
 }
+
+.expandbtn:hover {
+  background-color: rgba(45, 212, 191, 0.12);
+  color: rgb(45, 212, 191);
+}
+
+.v-theme--light .expandbtn:hover {
+  background-color: rgba(15, 118, 110, 0.12);
+  color: rgb(15, 118, 110);
+}
+
 .powerbtn {
   right: 8px;
+  border-radius: 6px;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.powerbtn:hover {
+  background-color: rgba(45, 212, 191, 0.14);
+  color: rgb(45, 212, 191);
+}
+
+.v-theme--light .powerbtn:hover {
+  background-color: rgba(15, 118, 110, 0.14);
+  color: rgb(15, 118, 110);
 }
 
 .volumesliderrow :deep(.v-list-item__prepend) {

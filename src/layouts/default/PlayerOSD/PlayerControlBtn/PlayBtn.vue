@@ -90,16 +90,69 @@ const isLoading = computed(() => {
 </script>
 
 <style>
+/* Streamloader brand: primary action — teal circle */
 .play-btn-icon {
   position: relative;
   border-radius: 50%;
-  background-color: #212121;
-  color: var(--play-icon-color, #fff);
+  background-color: #0f766e; /* brand teal — light theme */
+  color: var(--play-icon-color, #ffffff); /* on-primary glyph */
+  box-shadow:
+    0 4px 14px rgba(15, 118, 110, 0.35),
+    0 0 0 1px rgba(15, 118, 110, 0.18);
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+.play-btn-icon:hover {
+  background-color: #0d6660; /* slightly darker teal on hover */
+  box-shadow:
+    0 6px 18px rgba(15, 118, 110, 0.45),
+    0 0 0 1px rgba(15, 118, 110, 0.28);
+  transform: translateY(-1px);
+}
+
+.play-btn-icon:active {
+  transform: translateY(0);
+  box-shadow:
+    0 2px 8px rgba(15, 118, 110, 0.35),
+    0 0 0 1px rgba(15, 118, 110, 0.22);
 }
 
 .v-theme--dark .play-btn-icon {
-  background-color: #fff;
-  color: var(--play-icon-color, #212121);
+  background-color: #2dd4bf; /* brand teal — dark theme */
+  color: var(--play-icon-color, #06342f); /* on-primary glyph (very dark teal) */
+  box-shadow:
+    0 4px 14px rgba(45, 212, 191, 0.35),
+    0 0 0 1px rgba(45, 212, 191, 0.22);
+}
+
+.v-theme--dark .play-btn-icon:hover {
+  background-color: #4ce0cc;
+  box-shadow:
+    0 6px 20px rgba(45, 212, 191, 0.5),
+    0 0 0 1px rgba(45, 212, 191, 0.32);
+}
+
+.v-theme--dark .play-btn-icon:active {
+  box-shadow:
+    0 2px 8px rgba(45, 212, 191, 0.35),
+    0 0 0 1px rgba(45, 212, 191, 0.26);
+}
+
+/* Disabled state — desaturate so it doesn't claim attention */
+.play-btn-icon[disabled],
+.play-btn-icon.disabled {
+  background-color: rgba(15, 118, 110, 0.35);
+  box-shadow: none;
+  transform: none;
+}
+
+.v-theme--dark .play-btn-icon[disabled],
+.v-theme--dark .play-btn-icon.disabled {
+  background-color: rgba(45, 212, 191, 0.28);
+  box-shadow: none;
 }
 
 .play-btn-spinner {
@@ -109,5 +162,11 @@ const isLoading = computed(() => {
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 1;
+  /* Teal-tinted buffering ring — matches brand */
+  color: #0f766e;
+}
+
+.v-theme--dark .play-btn-spinner {
+  color: #2dd4bf;
 }
 </style>
