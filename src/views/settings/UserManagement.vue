@@ -28,17 +28,24 @@
       <Card
         v-for="user in filteredUsers"
         :key="user.user_id"
-        class="cursor-pointer hover:bg-accent/50 transition-colors"
+        class="user-card cursor-pointer transition-colors"
         @click="editUser(user)"
       >
         <CardContent class="px-4 py-0">
           <div class="flex items-center gap-4">
-            <Avatar class="size-12 shrink-0">
-              <AvatarImage v-if="user.avatar_url" :src="user.avatar_url" />
-              <AvatarFallback class="bg-muted">
-                <UserIcon :size="24" class="text-foreground" />
-              </AvatarFallback>
-            </Avatar>
+            <div class="relative shrink-0">
+              <Avatar class="size-12">
+                <AvatarImage v-if="user.avatar_url" :src="user.avatar_url" />
+                <AvatarFallback class="bg-muted">
+                  <UserIcon :size="24" class="text-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              <span
+                v-if="user.enabled"
+                class="user-active-dot"
+                :title="$t('auth.enable_user')"
+              />
+            </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-start justify-between gap-2">
                 <div class="flex-1 min-w-0">
@@ -312,3 +319,34 @@ watch(
   { immediate: true },
 );
 </script>
+
+<style scoped>
+.user-card {
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.user-card:hover {
+  background-color: rgba(45, 212, 191, 0.08);
+  border-color: rgba(45, 212, 191, 0.4);
+}
+
+:root.light .user-card:hover,
+.light .user-card:hover {
+  background-color: rgba(15, 118, 110, 0.06);
+  border-color: rgba(15, 118, 110, 0.35);
+}
+
+.user-active-dot {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #2dd4bf;
+  border: 2px solid var(--background, #0a0a0a);
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.35);
+}
+</style>

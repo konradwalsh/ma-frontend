@@ -3,10 +3,21 @@
     <!-- Version Information -->
     <Card>
       <CardHeader>
-        <CardTitle>{{ $t("settings.version_info") }}</CardTitle>
-        <CardDescription>
-          {{ $t("settings.server_version") }}
-        </CardDescription>
+        <div class="flex items-center gap-3">
+          <div class="streamloader-mark-wrapper">
+            <img
+              :src="streamloaderMark"
+              alt="streamloader"
+              class="streamloader-mark"
+            />
+          </div>
+          <div class="flex flex-col">
+            <CardTitle class="streamloader-wordmark">streamloader</CardTitle>
+            <CardDescription>
+              {{ $t("settings.version_info") }}
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
       <CardContent class="space-y-2">
         <Item variant="outline" size="sm" class="justify-between">
@@ -14,7 +25,7 @@
             <ItemTitle>{{ $t("settings.server_version") }}</ItemTitle>
           </ItemContent>
           <ItemContent class="flex-none text-right">
-            <span class="text-xs font-mono text-muted-foreground">
+            <span class="version-pill">
               {{ api.serverInfo.value?.server_version }}
             </span>
           </ItemContent>
@@ -76,6 +87,10 @@
             alt="Open Home Foundation"
             class="w-full h-auto opacity-90 transition-opacity group-hover:opacity-100"
           />
+        </div>
+        <div class="streamloader-credit">
+          streamloader is built on Music Assistant, a product from the Open Home
+          Foundation
         </div>
       </CardContent>
     </Card>
@@ -345,6 +360,7 @@
 
 <script setup lang="ts">
 import openHomeFoundationLogo from "@/assets/open-home-foundation-logo.svg";
+import streamloaderMark from "@/assets/streamloader-mark.svg";
 import Container from "@/components/Container.vue";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -392,5 +408,56 @@ onMounted(async () => {
 .font-monospace {
   font-family: monospace;
   font-size: 0.9em;
+}
+
+.streamloader-mark-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(45, 212, 191, 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  flex-shrink: 0;
+}
+
+.streamloader-mark {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
+.streamloader-wordmark {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: lowercase;
+}
+
+.version-pill {
+  display: inline-block;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.12);
+  color: rgb(15, 118, 110);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+}
+
+:global(.dark) .version-pill {
+  color: rgb(45, 212, 191);
+  background: rgba(45, 212, 191, 0.15);
+  border-color: rgba(45, 212, 191, 0.35);
+}
+
+.streamloader-credit {
+  margin-top: 12px;
+  font-size: 0.75rem;
+  color: rgba(120, 120, 130, 0.85);
+  text-align: center;
+  font-style: italic;
 }
 </style>

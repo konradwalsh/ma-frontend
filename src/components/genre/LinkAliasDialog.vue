@@ -6,7 +6,11 @@
       @interact-outside="(e: Event) => e.preventDefault()"
     >
       <DialogHeader>
-        <DialogTitle>{{ $t("link_alias") }}</DialogTitle>
+        <DialogTitle
+          class="font-semibold tracking-tight text-[1.05rem] leading-snug"
+        >
+          {{ $t("link_alias") }}
+        </DialogTitle>
       </DialogHeader>
       <v-autocomplete
         v-model="selectedAlias"
@@ -16,15 +20,20 @@
         :item-value="(alias: string) => alias"
         clearable
         hide-details
+        color="primary"
         :label="$t('link_alias')"
         :loading="aliasLoading"
         :menu-props="{ zIndex: 10000 }"
       />
       <DialogFooter>
-        <Button variant="outline" @click="model = false">
+        <Button variant="ghost" @click="model = false">
           {{ $t("cancel") }}
         </Button>
-        <Button :disabled="!selectedAlias || loading" @click="linkAlias">
+        <Button
+          :disabled="!selectedAlias || loading"
+          class="font-medium"
+          @click="linkAlias"
+        >
           {{ $t("link_alias") }}
         </Button>
       </DialogFooter>

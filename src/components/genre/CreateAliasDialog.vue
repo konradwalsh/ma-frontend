@@ -2,14 +2,27 @@
   <Dialog v-model:open="model">
     <DialogContent class="sm:max-w-[520px]">
       <DialogHeader>
-        <DialogTitle>{{ $t("add_alias") }}</DialogTitle>
+        <DialogTitle
+          class="font-semibold tracking-tight text-[1.05rem] leading-snug"
+        >
+          {{ $t("add_alias") }}
+        </DialogTitle>
       </DialogHeader>
-      <Input v-model="newAliasName" :placeholder="$t('add_alias')" />
+      <Input
+        v-model="newAliasName"
+        :placeholder="$t('add_alias')"
+        class="focus-visible:ring-primary focus-visible:border-primary"
+        @keydown.enter="addAlias"
+      />
       <DialogFooter>
-        <Button variant="outline" @click="model = false">
+        <Button variant="ghost" @click="model = false">
           {{ $t("cancel") }}
         </Button>
-        <Button :disabled="!newAliasName || loading" @click="addAlias">
+        <Button
+          :disabled="!newAliasName || loading"
+          class="font-medium"
+          @click="addAlias"
+        >
           {{ $t("add") }}
         </Button>
       </DialogFooter>

@@ -68,11 +68,19 @@
         </v-card-item>
         <v-card-text v-if="remoteAccessInfo.enabled" class="status-badges">
           <v-chip
-            :color="remoteAccessInfo.connected ? 'success' : 'warning'"
+            :color="remoteAccessInfo.connected ? 'primary' : 'warning'"
             size="default"
             variant="flat"
             class="status-chip"
+            :class="{ 'status-chip--connected': remoteAccessInfo.connected }"
           >
+            <v-icon start size="small">
+              {{
+                remoteAccessInfo.connected
+                  ? "mdi-check-circle"
+                  : "mdi-progress-clock"
+              }}
+            </v-icon>
             {{
               remoteAccessInfo.connected
                 ? $t("settings.remote_access_connected")
@@ -80,7 +88,7 @@
             }}
           </v-chip>
           <v-chip
-            :color="remoteAccessInfo.using_ha_cloud ? 'success' : 'default'"
+            :color="remoteAccessInfo.using_ha_cloud ? 'primary' : 'default'"
             size="default"
             variant="outlined"
             class="status-chip"
@@ -494,6 +502,7 @@ watch(
 
 .hero-card {
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  border-top: 3px solid rgb(var(--v-theme-primary));
 }
 
 .hero-content {
@@ -545,7 +554,7 @@ watch(
 
 .status-header {
   padding: 24px;
-  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.18);
 }
 
 .status-title {
@@ -572,6 +581,23 @@ watch(
 
 .status-chip {
   font-weight: 500;
+}
+
+.status-chip--connected {
+  box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.6);
+  animation: connected-pulse 2.4s ease-out infinite;
+}
+
+@keyframes connected-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(45, 212, 191, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(45, 212, 191, 0);
+  }
 }
 
 .upgrade-card {
@@ -751,6 +777,7 @@ watch(
   font-weight: 600;
   font-size: 1rem;
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(45, 212, 191, 0.35);
 }
 
 .step-content {

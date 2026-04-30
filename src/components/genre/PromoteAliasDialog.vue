@@ -2,14 +2,20 @@
   <Dialog v-model:open="model">
     <DialogContent class="sm:max-w-[520px]">
       <DialogHeader>
-        <DialogTitle>{{ $t("promote_alias") }}</DialogTitle>
+        <DialogTitle
+          class="font-semibold tracking-tight text-[1.05rem] leading-snug"
+        >
+          {{ $t("promote_alias") }}
+        </DialogTitle>
       </DialogHeader>
-      <p>{{ $t("confirm_promote_alias", [alias || ""]) }}</p>
+      <p class="text-sm text-muted-foreground leading-relaxed">
+        {{ $t("confirm_promote_alias", [alias || ""]) }}
+      </p>
       <DialogFooter>
-        <Button variant="outline" @click="model = false">
+        <Button variant="ghost" @click="model = false">
           {{ $t("cancel") }}
         </Button>
-        <Button :disabled="loading" @click="promoteAlias">
+        <Button :disabled="loading" class="font-medium" @click="promoteAlias">
           {{ $t("promote") }}
         </Button>
       </DialogFooter>

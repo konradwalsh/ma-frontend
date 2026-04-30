@@ -254,10 +254,15 @@ onMounted(async () => {
   min-height: 80px;
   border-bottom: none;
   background: transparent;
+  border-left: 3px solid transparent;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .settings-list-item:hover {
-  background-color: rgba(var(--v-theme-on-surface), 0.05);
+  background-color: rgba(var(--v-theme-primary), 0.06);
+  border-left-color: rgba(var(--v-theme-primary), 0.6);
 }
 
 .settings-list-item :deep(.v-list-item__prepend) {

@@ -2,14 +2,25 @@
   <Dialog v-model:open="model">
     <DialogContent class="sm:max-w-[520px]">
       <DialogHeader>
-        <DialogTitle>{{ $t("remove_alias") }}</DialogTitle>
+        <DialogTitle
+          class="font-semibold tracking-tight text-[1.05rem] leading-snug text-destructive"
+        >
+          {{ $t("remove_alias") }}
+        </DialogTitle>
       </DialogHeader>
-      <p>{{ $t("confirm_remove_alias", [alias || ""]) }}</p>
+      <p class="text-sm text-muted-foreground leading-relaxed">
+        {{ $t("confirm_remove_alias", [alias || ""]) }}
+      </p>
       <DialogFooter>
-        <Button variant="outline" @click="model = false">
+        <Button variant="ghost" @click="model = false">
           {{ $t("cancel") }}
         </Button>
-        <Button variant="destructive" :disabled="loading" @click="removeAlias">
+        <Button
+          variant="destructive"
+          :disabled="loading"
+          class="font-medium"
+          @click="removeAlias"
+        >
           {{ $t("remove") }}
         </Button>
       </DialogFooter>

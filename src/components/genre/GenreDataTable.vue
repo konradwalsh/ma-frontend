@@ -336,15 +336,15 @@ const table = useVueTable({
     </div>
 
     <div class="relative overflow-auto px-4 lg:px-6">
-      <div class="overflow-hidden rounded-lg border">
+      <div class="genre-data-table__shell overflow-hidden rounded-lg border">
         <div
           v-if="loading"
           class="absolute inset-0 z-10 flex items-center justify-center bg-background/60"
         >
           <Spinner class="size-5" />
         </div>
-        <Table class="border-separate border-spacing-0">
-          <TableHeader class="bg-muted">
+        <Table class="genre-data-table border-separate border-spacing-0">
+          <TableHeader class="genre-data-table__header bg-muted">
             <TableRow
               v-for="headerGroup in table.getHeaderGroups()"
               :key="headerGroup.id"
@@ -353,7 +353,10 @@ const table = useVueTable({
                 v-for="header in headerGroup.headers"
                 :key="header.id"
                 :col-span="header.colSpan"
-                :class="header.id === 'genre' ? 'pl-6' : ''"
+                :class="[
+                  'genre-data-table__head text-[0.7rem] font-semibold uppercase tracking-[0.06em] text-muted-foreground',
+                  header.id === 'genre' ? 'pl-6' : '',
+                ]"
               >
                 <FlexRender
                   v-if="!header.isPlaceholder"
@@ -369,6 +372,7 @@ const table = useVueTable({
                 v-for="row in table.getRowModel().rows"
                 :key="row.id"
                 :data-state="row.getIsSelected() && 'selected'"
+                class="genre-data-table__row transition-colors"
               >
                 <TableCell
                   v-for="cell in row.getVisibleCells()"
@@ -387,7 +391,7 @@ const table = useVueTable({
               <TableRow
                 v-for="row in excludedData"
                 :key="`excl-${row.id}`"
-                class="opacity-60"
+                class="genre-data-table__row genre-data-table__row--excluded opacity-60 transition-colors"
               >
                 <TableCell />
                 <TableCell>
@@ -494,7 +498,7 @@ const table = useVueTable({
         <div class="ml-auto flex items-center gap-2 lg:ml-0">
           <Button
             variant="outline"
-            class="hidden size-8 lg:flex"
+            class="genre-data-table__page-btn hidden size-8 lg:flex"
             size="icon"
             :disabled="!table.getCanPreviousPage()"
             @click="table.setPageIndex(0)"
@@ -504,7 +508,7 @@ const table = useVueTable({
           </Button>
           <Button
             variant="outline"
-            class="size-8"
+            class="genre-data-table__page-btn size-8"
             size="icon"
             :disabled="!table.getCanPreviousPage()"
             @click="table.previousPage()"
@@ -514,7 +518,7 @@ const table = useVueTable({
           </Button>
           <Button
             variant="outline"
-            class="size-8"
+            class="genre-data-table__page-btn size-8"
             size="icon"
             :disabled="!table.getCanNextPage()"
             @click="table.nextPage()"
@@ -524,7 +528,7 @@ const table = useVueTable({
           </Button>
           <Button
             variant="outline"
-            class="hidden size-8 lg:flex"
+            class="genre-data-table__page-btn hidden size-8 lg:flex"
             size="icon"
             :disabled="!table.getCanNextPage()"
             @click="table.setPageIndex(table.getPageCount() - 1)"
@@ -537,3 +541,41 @@ const table = useVueTable({
     </div>
   </div>
 </template>
+
+<style scoped>
+.genre-data-table__shell {
+  border-color: hsl(var(--border));
+}
+
+/* Subtle teal-tinted bottom border under the header */
+.genre-data-table__header :deep(tr) {
+  box-shadow: inset 0 -1px 0 0 hsl(var(--primary) / 0.18);
+}
+
+/* Teal accent on active sort indicator inside column headers */
+.genre-data-table__head :deep([data-state="open"]) {
+  color: hsl(var(--primary));
+}
+.genre-data-table__head :deep(button[aria-sort="ascending"]),
+.genre-data-table__head :deep(button[aria-sort="descending"]) {
+  color: hsl(var(--primary));
+}
+
+/* Row hover: teal-tinted background */
+.genre-data-table__row:hover > :deep(td) {
+  background-color: hsl(var(--primary) / 0.06);
+}
+.genre-data-table__row[data-state="selected"] > :deep(td) {
+  background-color: hsl(var(--primary) / 0.1);
+}
+.genre-data-table__row--excluded:hover > :deep(td) {
+  background-color: hsl(var(--primary) / 0.04);
+}
+
+/* Pagination buttons: teal hover */
+.genre-data-table__page-btn:not(:disabled):hover {
+  border-color: hsl(var(--primary) / 0.5);
+  color: hsl(var(--primary));
+  background-color: hsl(var(--primary) / 0.08);
+}
+</style>

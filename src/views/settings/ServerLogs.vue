@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-full flex-col p-6 pb-40">
     <Card class="flex flex-1 flex-col gap-0 overflow-hidden py-0 min-h-0">
-      <CardHeader class="shrink-0 border-b px-6 py-4">
+      <CardHeader class="log-header shrink-0 px-6 py-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div class="flex items-center gap-2">
             <Switch id="auto-refresh" v-model:checked="autoRefresh" />
@@ -13,13 +13,17 @@
             <Button
               variant="outline"
               size="sm"
+              class="teal-hover-btn"
               :disabled="refreshing"
               @click="refreshLog"
             >
-              <RefreshCw class="size-4" />
+              <RefreshCw
+                class="size-4"
+                :class="{ 'animate-spin': refreshing }"
+              />
               {{ $t("settings.reload") }}
             </Button>
-            <Button size="sm" @click="downloadLog">
+            <Button size="sm" class="teal-action-btn" @click="downloadLog">
               <Download class="size-4" />
               {{ $t("settings.download_log") }}
             </Button>
@@ -180,18 +184,46 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.log-header {
+  border-bottom: 1px solid rgba(45, 212, 191, 0.25);
+}
+
+.teal-hover-btn:hover:not(:disabled) {
+  border-color: rgb(15, 118, 110);
+  color: rgb(15, 118, 110);
+  background-color: rgba(45, 212, 191, 0.08);
+}
+
+:global(.dark) .teal-hover-btn:hover:not(:disabled) {
+  border-color: rgb(45, 212, 191);
+  color: rgb(45, 212, 191);
+  background-color: rgba(45, 212, 191, 0.1);
+}
+
+.teal-action-btn:hover:not(:disabled) {
+  background-color: rgb(15, 118, 110);
+  box-shadow: 0 2px 12px rgba(45, 212, 191, 0.4);
+}
+
+:global(.dark) .teal-action-btn:hover:not(:disabled) {
+  background-color: rgb(45, 212, 191);
+  color: rgb(15, 23, 42);
+  box-shadow: 0 2px 12px rgba(45, 212, 191, 0.45);
+}
+
 .log-container {
   max-height: 600px;
   overflow: auto;
   margin-top: 16px;
+  border-top: 1px solid rgba(120, 120, 130, 0.12);
 }
 
 .log-content {
   margin: 0;
   padding: 16px;
-  font-family: "Courier New", Courier, monospace;
+  font-family: "JetBrains Mono", "Courier New", Courier, monospace;
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-all;
 }

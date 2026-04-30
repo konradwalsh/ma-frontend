@@ -2,25 +2,30 @@
   <Dialog v-model:open="open">
     <DialogContent class="sm:max-w-[520px]">
       <DialogHeader>
-        <DialogTitle>{{
-          genreIds.length > 1
-            ? $t("delete_genres", [genreIds.length])
-            : $t("delete_genre")
-        }}</DialogTitle>
+        <DialogTitle
+          class="font-semibold tracking-tight text-[1.05rem] leading-snug text-destructive"
+        >
+          {{
+            genreIds.length > 1
+              ? $t("delete_genres", [genreIds.length])
+              : $t("delete_genre")
+          }}
+        </DialogTitle>
       </DialogHeader>
       <div class="py-4">
-        <p class="text-sm text-muted-foreground">
+        <p class="text-sm text-muted-foreground leading-relaxed">
           {{ confirmationMessage }}
         </p>
       </div>
       <DialogFooter>
-        <Button type="button" variant="outline" @click="open = false">
+        <Button type="button" variant="ghost" @click="open = false">
           {{ $t("cancel") }}
         </Button>
         <Button
           type="button"
           variant="destructive"
           :disabled="loading"
+          class="font-medium"
           @click="handleConfirm"
         >
           {{ $t("delete") }}

@@ -577,6 +577,18 @@ const getPriority = (task: BackgroundTask) => {
   background: transparent;
 }
 
+.tasks-list :deep(.v-list-item) {
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+  border-left: 3px solid transparent;
+}
+
+.tasks-list :deep(.v-list-item:hover) {
+  background-color: rgba(var(--v-theme-primary), 0.06);
+  border-left-color: rgba(var(--v-theme-primary), 0.5);
+}
+
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -588,7 +600,7 @@ const getPriority = (task: BackgroundTask) => {
 }
 
 .empty-icon {
-  color: rgba(var(--v-theme-on-surface), 0.3);
+  color: rgba(var(--v-theme-primary), 0.4);
   margin-bottom: 16px;
 }
 

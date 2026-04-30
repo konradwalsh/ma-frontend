@@ -2,10 +2,14 @@
   <Dialog v-model:open="open">
     <DialogContent class="sm:max-w-[520px]">
       <DialogHeader>
-        <DialogTitle>{{ $t("link_to_genre_title") }}</DialogTitle>
+        <DialogTitle
+          class="font-semibold tracking-tight text-[1.05rem] leading-snug"
+        >
+          {{ $t("link_to_genre_title") }}
+        </DialogTitle>
       </DialogHeader>
       <div class="space-y-4">
-        <p class="text-sm text-muted-foreground">
+        <p class="text-sm text-muted-foreground leading-relaxed">
           {{ $t("link_to_genre_description") }}
         </p>
         <Popover v-model:open="popoverOpen">
@@ -14,7 +18,7 @@
               variant="outline"
               role="combobox"
               :aria-expanded="popoverOpen"
-              class="w-full justify-between"
+              class="w-full justify-between focus-visible:ring-primary focus-visible:border-primary"
             >
               {{ selectedGenreName || t("select_target_genre") }}
               <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -42,7 +46,7 @@
                     }}
                     <Check
                       v-if="selectedTargetId === genre.item_id"
-                      class="ml-auto h-4 w-4"
+                      class="ml-auto h-4 w-4 text-primary"
                     />
                   </CommandItem>
                 </CommandGroup>
@@ -52,10 +56,14 @@
         </Popover>
       </div>
       <DialogFooter>
-        <Button variant="outline" @click="open = false">
+        <Button variant="ghost" @click="open = false">
           {{ $t("cancel") }}
         </Button>
-        <Button :disabled="!selectedTargetId || loading" @click="handleLink">
+        <Button
+          :disabled="!selectedTargetId || loading"
+          class="font-medium"
+          @click="handleLink"
+        >
           {{ $t("link_to_genre") }}
         </Button>
       </DialogFooter>
