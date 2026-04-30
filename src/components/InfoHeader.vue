@@ -69,6 +69,23 @@
               <MediaItemThumb :item="item" size="calc(100%)" />
             </v-avatar>
           </div>
+          <div v-else-if="item.media_type === MediaType.ALBUM" class="sl-vinyl-wrapper">
+            <!-- Streamloader-fork addition: ALACarte-style vinyl-emerging-
+                 from-cover hero, scoped to ALBUM only (other media types
+                 keep MA's original cover-only render below). On hover the
+                 vinyl slides out to the right with a slight tilt; on touch
+                 devices the effect is suppressed entirely so finger-drag
+                 doesn't trigger it. Vinyl SVG self-contained, lifted from
+                 the streamloader web UI's /static/vinyl.svg. -->
+            <img :src="vinylSvg" alt="" class="sl-vinyl-disc" />
+            <div class="sl-vinyl-cover">
+              <MediaItemThumb
+                :item="item"
+                size="calc(100%)"
+                style="max-height: 256px"
+              />
+            </div>
+          </div>
           <div v-else>
             <MediaItemThumb
               :item="item"
@@ -465,6 +482,10 @@ const mappedGenres = ref<Genre[]>([]);
 const imgGradient = new URL("../assets/info_gradient.jpg", import.meta.url)
   .href;
 
+// Streamloader-fork addition: vinyl asset for the ALACarte-style
+// album-cover hover reveal (sl-vinyl-* classes below).
+const vinylSvg = new URL("../assets/vinyl.svg", import.meta.url).href;
+
 const marqueeSync = new MarqueeTextSync();
 const router = useRouter();
 const { t, te } = useI18n();
@@ -703,6 +724,63 @@ const deleteGenre = () => {
   .description-text :deep(div) {
     -webkit-line-clamp: 3;
     line-clamp: 3;
+  }
+}
+
+/* ─── Streamloader-fork addition: ALACarte vinyl-cover hover reveal
+       (album-only — see v-else-if in template). Mirrors the
+       .vinyl-cover-wrapper rules in streamloader's web UI styles.css.
+       Cubic-bezier easing exits with a tiny overshoot for the slight
+       "spring out" feel. */
+
+.sl-vinyl-wrapper {
+  position: relative;
+  display: inline-block;
+  overflow: visible;
+  /* Same hover-tilt-and-scale that streamloader's UI applies to album
+     items so the whole composition reads as a unit, not just the disc. */
+  transition: transform 700ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.sl-vinyl-cover {
+  position: relative;
+  z-index: 2;
+  display: block;
+}
+
+.sl-vinyl-disc {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 96%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  transform: translate(0, -50%) rotate(-40deg);
+  transform-origin: center center;
+  transition: transform 700ms cubic-bezier(0.34, 1.36, 0.64, 1);
+  z-index: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
+}
+
+.sl-vinyl-wrapper:hover .sl-vinyl-disc {
+  transform: translate(45%, -50%) rotate(0deg);
+}
+
+.sl-vinyl-wrapper:hover {
+  transform: rotate(-3deg) scale(1.03);
+}
+
+/* Touch devices: disable hover effect entirely. The reveal is a
+   desktop-mouse affordance; on a phone the user's finger drag would
+   either always-trigger it (cluttering the cover) or never-trigger it
+   (depending on browser). Either way it adds nothing on touch. */
+@media (hover: none) {
+  .sl-vinyl-wrapper:hover .sl-vinyl-disc {
+    transform: translate(0, -50%) rotate(-40deg);
+  }
+  .sl-vinyl-wrapper:hover {
+    transform: none;
   }
 }
 </style>

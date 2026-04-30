@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-hidden="true">
+  <defs>
+    <radialGradient id="vinylBody" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1a1a1a"/>
+      <stop offset="60%" stop-color="#0a0a0a"/>
+      <stop offset="100%" stop-color="#000"/>
+    </radialGradient>
+    <radialGradient id="vinylSheen" cx="35%" cy="35%" r="55%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="55%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+  <!-- Disc body -->
+  <circle cx="300" cy="300" r="290" fill="url(#vinylBody)"/>
+  <!-- Concentric grooves -->
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.07">
+    <circle cx="300" cy="300" r="280" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="270" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="260" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="250" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="240" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="230" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="220" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="210" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="200" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="190" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="180" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="170" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="160" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="150" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="140" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="130" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="120" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="110" stroke-width="0.6"/>
+    <circle cx="300" cy="300" r="100" stroke-width="0.6"/>
+  </g>
+  <!-- Lead-in groove (slightly stronger) -->
+  <circle cx="300" cy="300" r="285" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="0.8"/>
+  <circle cx="300" cy="300" r="95"  fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="0.8"/>
+  <!-- Sheen highlight -->
+  <circle cx="300" cy="300" r="290" fill="url(#vinylSheen)"/>
+  <!-- Center label -->
+  <circle cx="300" cy="300" r="80" fill="#2bd9ba"/>
+  <circle cx="300" cy="300" r="80" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1"/>
+  <!-- Spindle hole -->
+  <circle cx="300" cy="300" r="6" fill="#000"/>
+</svg>
