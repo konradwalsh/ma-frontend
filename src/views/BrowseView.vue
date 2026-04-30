@@ -171,18 +171,41 @@ const navigateToSegment = (path: string | null) => {
   color: inherit;
   cursor: pointer;
   text-decoration: underline;
+  text-decoration-color: rgba(45, 212, 191, 0.4);
+  text-underline-offset: 3px;
   font-family: inherit;
   font-size: inherit;
-  padding: 0;
+  padding: 2px 4px;
   margin: 0;
+  border-radius: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 200px;
+  transition:
+    color 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    background-color 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    text-decoration-color 220ms ease;
 }
 
 .breadcrumb-link:hover {
-  opacity: 0.7;
+  color: #2dd4bf;
+  background-color: rgba(45, 212, 191, 0.08);
+  text-decoration-color: #2dd4bf;
+}
+
+.breadcrumb-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.55);
+  color: #2dd4bf;
+}
+
+@media (hover: none) {
+  .breadcrumb-link:hover {
+    color: inherit;
+    background-color: transparent;
+    text-decoration-color: rgba(45, 212, 191, 0.4);
+  }
 }
 
 .breadcrumb-text {
@@ -197,6 +220,19 @@ const navigateToSegment = (path: string | null) => {
   opacity: 0.5;
   margin: 0 2px;
   flex-shrink: 0;
+  transition: color 220ms ease, opacity 220ms ease;
+}
+
+.breadcrumb-segment:hover .breadcrumb-separator {
+  color: rgba(45, 212, 191, 0.7);
+  opacity: 0.85;
+}
+
+@media (hover: none) {
+  .breadcrumb-segment:hover .breadcrumb-separator {
+    color: inherit;
+    opacity: 0.5;
+  }
 }
 
 /* Scale down font size when there are many segments */

@@ -67,19 +67,23 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style scoped>
-/* Streamloader brand teal — declared locally so this component doesn't
-   depend on theme tokens. Light uses #0f766e for AA contrast on white;
-   dark uses the brighter #2dd4bf so the focus ring still reads on slate. */
+<style>
+/* Streamloader brand teal — declared in an UNSCOPED block on purpose.
+   Vue's `scoped` attribute appends [data-v-hash] to every selector, so
+   `:root { --foo: ... }` becomes `:root[data-v-hash]` which never matches
+   <html>. Custom properties have to be hoisted out of scoped blocks to
+   actually reach the document root. (Audit-flagged in batch 23.) */
 :root {
   --sl-teal: #0f766e;
   --sl-teal-rgb: 15, 118, 110;
 }
-:deep(.v-theme--dark) {
+.v-theme--dark {
   --sl-teal: #2dd4bf;
   --sl-teal-rgb: 45, 212, 191;
 }
+</style>
 
+<style scoped>
 .filters-container {
   display: flex;
   align-items: stretch;

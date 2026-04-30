@@ -91,7 +91,7 @@
           class="resume-auto-scroll"
           @click="resumeAutoScroll"
         >
-          {{ $t("resume_auto_scroll") || "Resume auto-scroll" }}
+          Resume auto-scroll
         </button>
       </Transition>
     </div>

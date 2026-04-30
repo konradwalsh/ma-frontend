@@ -185,18 +185,23 @@ const {
 } = useBackgroundTaskDisplay(() => props.task);
 </script>
 
-<style scoped>
-/* Streamloader brand teal — defined locally so we don't depend on theme tokens.
-   Light theme uses the deeper #0f766e for legible contrast; dark uses #2dd4bf. */
+<style>
+/* Streamloader brand teal — declared in an UNSCOPED block on purpose.
+   Vue's `scoped` attribute appends [data-v-hash] to every selector, so
+   `:root { --foo: ... }` becomes `:root[data-v-hash]` which never matches
+   <html>. Custom properties have to be hoisted out of scoped blocks to
+   actually reach the document root. (Audit-flagged in batch 23.) */
 :root {
   --sl-teal: #0f766e;
   --sl-teal-rgb: 15, 118, 110;
 }
-:deep(.v-theme--dark) {
+.v-theme--dark {
   --sl-teal: #2dd4bf;
   --sl-teal-rgb: 45, 212, 191;
 }
+</style>
 
+<style scoped>
 .task-name {
   font-weight: 500;
   /* slightly tighter than 16px for denser list scan, with snug tracking */

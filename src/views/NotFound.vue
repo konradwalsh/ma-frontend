@@ -78,6 +78,25 @@ const router = useRouter();
   min-height: 100vh;
   overflow: hidden;
   padding: 32px 24px;
+  background-image: radial-gradient(
+    ellipse 1600px 1100px at 50% -200px,
+    rgba(45, 212, 191, 0.18) 0%,
+    transparent 60%
+  );
+}
+
+.not-found::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 -40% 0;
+  height: 70%;
+  background: radial-gradient(
+    ellipse 900px 500px at 50% 100%,
+    rgba(45, 212, 191, 0.08) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
 }
 
 .content {
@@ -131,15 +150,18 @@ const router = useRouter();
   border-radius: 50%;
   background: radial-gradient(
     circle at 35% 35%,
-    hsl(var(--primary) / 0.9),
-    hsl(var(--primary) / 0.6)
+    hsl(var(--primary) / 0.95),
+    hsl(var(--primary) / 0.65)
   );
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.4),
+    0 0 24px rgba(45, 212, 191, 0.45),
+    0 0 48px rgba(45, 212, 191, 0.2);
   position: relative;
   z-index: 1;
 }
@@ -222,6 +244,9 @@ const router = useRouter();
 
 .error-code span {
   color: hsl(var(--primary));
+  text-shadow:
+    0 0 18px rgba(45, 212, 191, 0.45),
+    0 0 38px rgba(45, 212, 191, 0.22);
   animation: digit-pulse 2s ease-in-out infinite;
 }
 
@@ -292,5 +317,36 @@ const router = useRouter();
   gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
+  margin-top: 4px;
+}
+
+.actions :deep(button) {
+  transition:
+    transform 240ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 240ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
+}
+
+.actions :deep(button:hover) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.4),
+    0 8px 28px rgba(45, 212, 191, 0.25);
+}
+
+.actions :deep(button:focus-visible) {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(45, 212, 191, 0.6),
+    0 8px 24px rgba(45, 212, 191, 0.18);
+}
+
+@media (hover: none) {
+  .actions :deep(button:hover) {
+    transform: none;
+    box-shadow: none;
+  }
 }
 </style>
