@@ -2,7 +2,9 @@
   <Dialog v-model:open="model">
     <DialogContent class="sm:max-w-[520px]">
       <DialogHeader>
-        <DialogTitle>{{ $t("add_genre") }}</DialogTitle>
+        <DialogTitle class="font-medium tracking-tight">
+          {{ $t("add_genre") }}
+        </DialogTitle>
       </DialogHeader>
       <form id="form-add-genre" @submit.prevent="form.handleSubmit">
         <FieldGroup>
@@ -83,12 +85,13 @@
         </FieldGroup>
       </form>
       <DialogFooter>
-        <Button type="button" variant="outline" @click="handleClose">
+        <Button type="button" variant="ghost" @click="handleClose">
           {{ $t("cancel") }}
         </Button>
         <Button
           type="submit"
           form="form-add-genre"
+          variant="default"
           :disabled="loading"
           :loading="loading"
         >

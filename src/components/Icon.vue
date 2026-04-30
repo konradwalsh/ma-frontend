@@ -111,7 +111,12 @@ onBeforeUnmount(() => {
 
 .icon-container--button:focus {
   outline: none;
-  color: #00ff00;
+}
+
+.icon-container--button:focus-visible {
+  outline: 2px solid rgb(var(--v-theme-primary));
+  outline-offset: 2px;
+  color: rgb(var(--v-theme-primary));
 }
 
 .icon-container--button:active {

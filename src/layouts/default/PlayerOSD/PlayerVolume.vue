@@ -690,24 +690,57 @@ watch(
   padding: 4px;
   cursor: pointer;
   opacity: 0.7;
-  transition: opacity 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   color: inherit;
+  border-radius: 8px;
 }
 
 .volume-icon-btn:hover {
   opacity: 1;
+  /* Subtle teal wash from global shadcn --primary (streamloader teal) */
+  background-color: color-mix(in srgb, var(--primary) 14%, transparent);
+  color: var(--primary);
 }
 
 .volume-icon-btn:active {
-  opacity: 0.5;
+  opacity: 0.85;
+  background-color: color-mix(in srgb, var(--primary) 22%, transparent);
 }
 
 .volume-icon-btn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+  background-color: transparent;
+  color: inherit;
+}
+
+/*
+ * Tint the underlying reka-ui Slider with the brand teal (--primary).
+ * The shared Slider component uses surface-variant; we override here via
+ * :deep() so we don't touch the shared component (other agents own it).
+ */
+.volume-slider :deep([data-slot="slider-range"]) {
+  background-color: var(--primary);
+}
+
+.volume-slider :deep([data-slot="slider-thumb"])::before {
+  background-color: var(--primary);
+}
+
+.volume-slider
+  :deep([data-slot="slider-thumb"]:hover)::before {
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.volume-slider
+  :deep([data-slot="slider-thumb"]:focus-visible)::before {
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 28%, transparent);
 }
 
 .volume-level-text {

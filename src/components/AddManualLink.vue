@@ -2,7 +2,11 @@
   Dialog to Add (or edit) a custom Radio, Track or Playlist
 -->
 <template>
-  <v-dialog v-model="model" transition="dialog-bottom-transition">
+  <v-dialog
+    v-model="model"
+    transition="dialog-bottom-transition"
+    class="add-manual-link-dialog"
+  >
     <v-card>
       <Toolbar
         icon="mdi-playlist-plus"
@@ -14,6 +18,7 @@
         <v-text-field
           v-model="url"
           variant="outlined"
+          color="primary"
           :label="isEditMode ? $t('uri_read_only') : $t('enter_url')"
           :disabled="loading"
           :readonly="isEditMode"
@@ -22,18 +27,20 @@
         <v-text-field
           v-model="name"
           variant="outlined"
+          color="primary"
           :label="$t('enter_name')"
           :disabled="loading"
         />
         <v-text-field
           v-model="image"
           variant="outlined"
+          color="primary"
           :label="$t('image_url')"
           :disabled="loading"
         />
         <v-card-actions>
           <v-spacer />
-          <v-btn variant="outlined" @click="model = false">{{
+          <v-btn variant="text" @click="model = false">{{
             $t("cancel")
           }}</v-btn>
           <v-btn
@@ -229,3 +236,14 @@ const save = async function () {
   }
 };
 </script>
+
+<style>
+/* Dialog title typography polish (matches AddProviderDialog/CreatePlaylistDialog).
+   Unscoped because Vuetify's v-dialog renders into a portal outside this
+   component's scope; we narrow the selector via the dialog's wrapper class. */
+.add-manual-link-dialog .v-toolbar-title,
+.add-manual-link-dialog .v-toolbar-title__placeholder {
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+</style>

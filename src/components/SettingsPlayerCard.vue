@@ -5,6 +5,8 @@
       'player-disabled': !playerConfig.enabled,
       'player-unavailable': !isAvailable,
       'player-needs-setup': playerConfig.enabled && needsSetup,
+      'player-selected': selected,
+      'player-online': playerConfig.enabled && isAvailable && !needsSetup,
     }"
     @click="handleClick"
   >
@@ -84,6 +86,11 @@
             color="grey"
             :title="$t('settings.player_not_available')"
           />
+          <span
+            v-else
+            class="status-dot status-dot--online"
+            :title="$t('settings.player_online') || 'Online'"
+          />
         </div>
       </div>
     </div>
@@ -97,9 +104,15 @@ import { PlayerConfig } from "@/plugins/api/interfaces";
 import { $t } from "@/plugins/i18n";
 import { computed } from "vue";
 
-const props = defineProps<{
-  playerConfig: PlayerConfig;
-}>();
+const props = withDefaults(
+  defineProps<{
+    playerConfig: PlayerConfig;
+    selected?: boolean;
+  }>(),
+  {
+    selected: false,
+  },
+);
 
 const emit = defineEmits<{
   (e: "click", playerConfig: PlayerConfig): void;
@@ -149,15 +162,21 @@ const handleMenu = (event: Event) => {
 
 <style scoped>
 .player-card {
+  position: relative;
+  border: 1px solid transparent;
   transition:
     transform 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
   cursor: pointer;
 }
 
 .player-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: rgba(var(--v-theme-primary), 0.25);
+  background-color: rgba(var(--v-theme-primary), 0.04);
 }
 
 .player-disabled {
@@ -170,6 +189,32 @@ const handleMenu = (event: Event) => {
 
 .player-needs-setup {
   border-left: 3px solid rgb(var(--v-theme-warning));
+}
+
+.player-selected {
+  border-color: rgba(var(--v-theme-primary), 0.7) !important;
+  background-color: rgba(var(--v-theme-primary), 0.1);
+  box-shadow:
+    inset 3px 0 0 0 rgb(var(--v-theme-primary)),
+    0 0 0 1px rgba(var(--v-theme-primary), 0.35),
+    0 6px 18px rgba(var(--v-theme-primary), 0.22) !important;
+}
+
+.player-selected:hover {
+  background-color: rgba(var(--v-theme-primary), 0.14);
+}
+
+.status-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  align-self: center;
+}
+
+.status-dot--online {
+  background-color: rgb(var(--v-theme-primary));
+  box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.18);
 }
 
 .player-warning-card {

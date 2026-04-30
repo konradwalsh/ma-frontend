@@ -31,6 +31,9 @@
             :id="player.player_id"
             :key="player.player_id"
             style="margin: 10px 0px"
+            :class="{
+              'is-active-player': player.player_id === store.activePlayerId,
+            }"
             :player="player"
             :show-volume-control="true"
             :show-menu-button="true"
@@ -75,6 +78,10 @@
                   :id="player.player_id"
                   :key="player.player_id"
                   style="margin: 8px 0px"
+                  :class="{
+                    'is-active-player':
+                      player.player_id === store.activePlayerId,
+                  }"
                   :player="player"
                   :show-volume-control="true"
                   :show-menu-button="true"
@@ -456,9 +463,75 @@ const selectDefaultPlayer = function () {
 
 .expansion :deep(.v-expansion-panel-title) {
   padding: 10px 16px;
+  /* Subtle teal accent strip on the "All players" group header */
+  position: relative;
+}
+
+.expansion :deep(.v-expansion-panel-title) > h3 {
+  position: relative;
+  padding-left: 10px;
+}
+
+.expansion :deep(.v-expansion-panel-title) > h3::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 14px;
+  background-color: var(--primary);
+  border-radius: 2px;
+  opacity: 0.85;
 }
 
 .expansion :deep(.v-expansion-panel-text__wrapper) {
   padding: 10px 5px;
+}
+
+/* Streamloader teal accent for the speaker icon in the panel header */
+.player-header-icon {
+  color: var(--primary);
+  opacity: 0.9;
+}
+
+.player-header-title {
+  /* Slightly stronger title; teal underline accent on the title itself */
+  position: relative;
+}
+
+/* Player rows: hover affordance + active-player teal indicator.
+ * We wrap the existing PlayerCard list items via :deep() because PlayerCard
+ * is a shared component owned by another agent — we only style its container.
+ */
+.player-content :deep(.v-list-item),
+.player-content :deep(.player-card) {
+  position: relative;
+  border-radius: 10px;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.player-content :deep(.v-list-item:hover),
+.player-content :deep(.player-card:hover) {
+  background-color: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+/*
+ * Active/selected player gets a clear left-edge teal indicator + soft fill.
+ * The .is-active-player class is bound in the template based on
+ * store.activePlayerId, so this stays reactive without touching PlayerCard.
+ */
+.player-content :deep(.is-active-player) {
+  position: relative;
+  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
+  box-shadow:
+    inset 3px 0 0 0 var(--primary),
+    0 0 0 1px color-mix(in srgb, var(--primary) 28%, transparent);
+}
+
+.player-content :deep(.is-active-player:hover) {
+  background-color: color-mix(in srgb, var(--primary) 16%, transparent);
 }
 </style>
