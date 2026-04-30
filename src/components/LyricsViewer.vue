@@ -12,6 +12,8 @@
       v-else-if="hasTimestamps"
       ref="syncedContainerRef"
       class="synced-container"
+      @wheel.passive="onUserScroll"
+      @touchmove.passive="onUserScroll"
     >
       <Transition name="intro-fade">
         <div v-if="beforeFirstLyric" class="lyrics-intro">
@@ -55,6 +57,7 @@
             {{ line.text }}
           </template>
           <!-- Musical break notes -->
+          <!-- (active line gets teal glow via .lyrics-line.active::after halo) -->
           <template v-else>
             <span
               v-for="n in NOTE_COUNT"
@@ -81,6 +84,16 @@
           </template>
         </div>
       </div>
+      <Transition name="resume-pill">
+        <button
+          v-if="autoScrollPaused"
+          type="button"
+          class="resume-auto-scroll"
+          @click="resumeAutoScroll"
+        >
+          {{ $t("resume_auto_scroll") || "Resume auto-scroll" }}
+        </button>
+      </Transition>
     </div>
     <!-- Non-synced lyrics: simple scrollable list (hidden in karaoke mode) -->
     <ScrollArea
@@ -149,6 +162,33 @@ const lineRefs = new Map<number, HTMLElement>();
 // Transform-based positioning
 const contentTranslateY = ref(0);
 const contentTransitionEnabled = ref(false);
+
+// Auto-scroll pause: when the user manually scrolls/wheels the synced
+// container we suppress the position-driven repositioning until they
+// click the "Resume auto-scroll" pill. Purely additive — never blocks
+// activeLyricIndex updates so the active line treatment stays correct.
+const autoScrollPaused = ref(false);
+let resumePauseTimer: ReturnType<typeof setTimeout> | null = null;
+const onUserScroll = () => {
+  // Debounce: brief manual interactions shouldn't trip the pill, but
+  // any deliberate scroll keeps the pill visible.
+  if (resumePauseTimer) clearTimeout(resumePauseTimer);
+  resumePauseTimer = setTimeout(() => {
+    autoScrollPaused.value = true;
+  }, 120);
+};
+const resumeAutoScroll = () => {
+  autoScrollPaused.value = false;
+  if (resumePauseTimer) {
+    clearTimeout(resumePauseTimer);
+    resumePauseTimer = null;
+  }
+  // Snap back to the active line.
+  if (activeLyricIndex.value >= 0) {
+    contentTransitionEnabled.value = true;
+    nextTick(() => computeTranslateY(activeLyricIndex.value));
+  }
+};
 
 const setLineRef = (el: HTMLElement | null, index: number) => {
   if (el) {
@@ -377,6 +417,10 @@ const findActiveLineIndex = (positionMs: number): number => {
 };
 
 const computeTranslateY = (index: number) => {
+  // While the user has paused auto-scroll, leave the transform alone so
+  // their manual position is preserved. activeLyricIndex still updates
+  // so the active-line styling stays in sync.
+  if (autoScrollPaused.value) return;
   const el = lineRefs.get(index);
   const container = syncedContainerRef.value;
   if (!el || !container) return;
@@ -396,6 +440,11 @@ watch(
     activeLyricIndex.value = -1;
     contentTranslateY.value = 99999;
     contentTransitionEnabled.value = false;
+    autoScrollPaused.value = false;
+    if (resumePauseTimer) {
+      clearTimeout(resumePauseTimer);
+      resumePauseTimer = null;
+    }
     lineRefs.clear();
     fetchLyrics();
     nextTick(() => {
@@ -459,6 +508,10 @@ watch(beforeFirstLyric, (isBefore) => {
 
 onBeforeUnmount(() => {
   lineRefs.clear();
+  if (resumePauseTimer) {
+    clearTimeout(resumePauseTimer);
+    resumePauseTimer = null;
+  }
 });
 </script>
 
@@ -521,7 +574,10 @@ onBeforeUnmount(() => {
 .synced-content {
   text-align: center;
   will-change: transform;
-  transition: transform v-bind(transitionDuration) ease;
+  /* Subtle overshoot easing — gives the active-line repositioning a
+     gentle settle, matching ALACarte's now-playing motion. */
+  transition: transform v-bind(transitionDuration)
+    cubic-bezier(0.34, 1.36, 0.64, 1);
 }
 
 /* Non-synced static lyrics */
@@ -539,11 +595,16 @@ onBeforeUnmount(() => {
 .lyrics-line {
   padding: 10px 4px;
   font-size: clamp(2rem, 4vw, 4rem);
-  font-weight: bold;
+  font-weight: 600;
   opacity: 0.35;
   margin: 8px 0;
-  will-change: opacity;
-  transition: opacity v-bind(transitionDuration) ease;
+  letter-spacing: -0.005em;
+  will-change: opacity, transform, text-shadow;
+  transition:
+    opacity v-bind(transitionDuration) ease,
+    transform v-bind(transitionDuration) cubic-bezier(0.34, 1.36, 0.64, 1),
+    text-shadow v-bind(transitionDuration) ease,
+    font-weight v-bind(transitionDuration) ease;
 }
 
 .lyrics-line.lyrics-line--far {
@@ -557,6 +618,109 @@ onBeforeUnmount(() => {
 .lyrics-line.active {
   opacity: 1;
   color: v-bind(textColor);
+  font-weight: 800;
+  /* Subtle teal glow + slight scale — high-visibility, on-brand. */
+  transform: scale(1.04);
+  text-shadow:
+    0 0 18px rgba(45, 212, 191, 0.45),
+    0 0 36px rgba(45, 212, 191, 0.18);
+}
+
+@media (prefers-color-scheme: light) {
+  .lyrics-line.active {
+    text-shadow:
+      0 0 18px rgba(15, 118, 110, 0.4),
+      0 0 36px rgba(15, 118, 110, 0.15);
+  }
+}
+
+/* Resume auto-scroll pill */
+.resume-auto-scroll {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: rgba(45, 212, 191, 1);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(45, 212, 191, 0.5);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    0 0 0 0 rgba(45, 212, 191, 0);
+  cursor: pointer;
+  z-index: 2;
+  transition:
+    background 180ms ease,
+    box-shadow 220ms ease,
+    border-color 180ms ease,
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.resume-auto-scroll:hover {
+  background: rgba(45, 212, 191, 0.12);
+  border-color: rgba(45, 212, 191, 0.85);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.4),
+    0 0 0 4px rgba(45, 212, 191, 0.12);
+}
+
+.resume-auto-scroll:focus-visible {
+  outline: none;
+  border-color: rgba(45, 212, 191, 1);
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.4),
+    0 0 0 3px rgba(45, 212, 191, 0.55);
+}
+
+.resume-auto-scroll:active {
+  transform: translateX(-50%) scale(0.97);
+}
+
+@media (hover: none) {
+  .resume-auto-scroll:hover {
+    background: rgba(0, 0, 0, 0.55);
+    border-color: rgba(45, 212, 191, 0.5);
+    box-shadow:
+      0 4px 14px rgba(0, 0, 0, 0.35),
+      0 0 0 0 rgba(45, 212, 191, 0);
+  }
+}
+
+.resume-pill-enter-active,
+.resume-pill-leave-active {
+  transition:
+    opacity 200ms ease,
+    transform 260ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+.resume-pill-enter-from,
+.resume-pill-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lyrics-line.active {
+    transform: none;
+  }
+  .synced-content,
+  .lyrics-line {
+    transition-timing-function: ease;
+  }
+  .resume-auto-scroll,
+  .resume-pill-enter-active,
+  .resume-pill-leave-active {
+    transition: opacity 120ms ease;
+  }
+  .resume-pill-enter-from,
+  .resume-pill-leave-to {
+    transform: translateX(-50%);
+  }
 }
 
 .break-note {

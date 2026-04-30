@@ -3,11 +3,13 @@
     <GenreManagementHeader />
 
     <!-- Background Scanner -->
-    <Card>
+    <Card class="genre-card">
       <CardHeader>
         <div class="flex items-center gap-2">
-          <ScanLine class="size-4 text-primary" />
-          <CardTitle>{{ $t("settings.background_scanner") }}</CardTitle>
+          <ScanLine class="size-4 genre-section-icon" />
+          <CardTitle class="genre-section-title">{{
+            $t("settings.background_scanner")
+          }}</CardTitle>
         </div>
         <CardDescription>
           {{ $t("settings.background_scanner_description") }}
@@ -23,11 +25,13 @@
     </Card>
 
     <!-- Genre Library Administration -->
-    <Card>
+    <Card class="genre-card">
       <CardHeader>
         <div class="flex items-center gap-2">
-          <ChartGantt class="size-4 text-primary" />
-          <CardTitle>{{ $t("settings.genre_statistics") }}</CardTitle>
+          <ChartGantt class="size-4 genre-section-icon" />
+          <CardTitle class="genre-section-title">{{
+            $t("settings.genre_statistics")
+          }}</CardTitle>
         </div>
         <CardDescription>{{
           $t("settings.genre_statistics_description")
@@ -42,11 +46,13 @@
     </Card>
 
     <!-- Restore Options -->
-    <Card>
+    <Card class="genre-card">
       <CardHeader>
         <div class="flex items-center gap-2">
-          <RefreshCw class="size-4 text-primary" />
-          <CardTitle>{{ $t("settings.restore_genres") }}</CardTitle>
+          <RefreshCw class="size-4 genre-section-icon" />
+          <CardTitle class="genre-section-title">{{
+            $t("settings.restore_genres")
+          }}</CardTitle>
         </div>
       </CardHeader>
       <CardContent class="space-y-4">
@@ -229,3 +235,44 @@ onBeforeUnmount(() => {
   }
 });
 </script>
+
+<style scoped>
+.genre-card {
+  transition:
+    border-color 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.genre-card:hover {
+  border-color: rgba(45, 212, 191, 0.5);
+  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.08);
+}
+
+@media (hover: none) {
+  .genre-card:hover {
+    border-color: hsl(var(--border));
+    box-shadow: none;
+  }
+}
+
+.genre-section-icon {
+  color: #2dd4bf;
+}
+
+.genre-section-title {
+  position: relative;
+  padding-bottom: 6px;
+  display: inline-block;
+}
+
+.genre-section-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 28px;
+  height: 2px;
+  background: #2dd4bf;
+  border-radius: 1px;
+}
+</style>

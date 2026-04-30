@@ -1,6 +1,7 @@
 <template>
   <div :style="`width: ${width}px; height: 30px;`">
     <v-btn
+      class="menu-btn-trigger"
       variant="tonal"
       :style="`
             width: ${width}px;
@@ -63,3 +64,33 @@ const emit = defineEmits<{
   (e: "menu"): void;
 }>();
 </script>
+
+<style scoped>
+.menu-btn-trigger {
+  transition:
+    background-color 200ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 200ms ease,
+    border-color 200ms ease;
+}
+
+.menu-btn-trigger:hover:not(:disabled) {
+  background-color: rgba(45, 212, 191, 0.08) !important;
+}
+
+.menu-btn-trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #2dd4bf;
+}
+
+@media (hover: none) {
+  .menu-btn-trigger:hover:not(:disabled) {
+    background-color: transparent !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-btn-trigger {
+    transition: none;
+  }
+}
+</style>

@@ -229,6 +229,21 @@ const getCreditsMarkdown = function (credits: string[]) {
 .header-card {
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
   border-radius: 12px;
+  transition:
+    border-color 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.header-card:hover {
+  border-color: rgba(45, 212, 191, 0.5);
+  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.08);
+}
+
+@media (hover: none) {
+  .header-card:hover {
+    border-color: rgba(var(--v-theme-on-surface), 0.12);
+    box-shadow: none;
+  }
 }
 
 .header-content {
@@ -251,6 +266,19 @@ const getCreditsMarkdown = function (credits: string[]) {
   font-weight: 600;
   margin: 0 0 8px 0;
   color: rgb(var(--v-theme-on-surface));
+  position: relative;
+  padding-bottom: 6px;
+}
+
+.header-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 32px;
+  height: 2px;
+  background: #2dd4bf;
+  border-radius: 1px;
 }
 
 .header-description {

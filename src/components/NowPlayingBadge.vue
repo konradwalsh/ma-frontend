@@ -44,6 +44,32 @@ const props = withDefaults(defineProps<Props>(), {
   font-size: 0.55rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.55);
+  animation: nowPlayingBadgePulse 2s ease-in-out infinite;
+  will-change: box-shadow, transform;
+}
+
+@keyframes nowPlayingBadgePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.45);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 8px 4px rgba(45, 212, 191, 0);
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .now-playing-badge {
+    animation: none;
+    box-shadow: none;
+  }
+  .now-playing-icon .bar {
+    animation: none;
+    transform: scaleY(0.6);
+  }
 }
 
 .is-playing {

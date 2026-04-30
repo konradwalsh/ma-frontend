@@ -229,4 +229,76 @@ const toolbarMenuItems = computed(() => {
 panel-item-details :deep(.v-list-item__content) {
   height: 30px;
 }
+
+/* --- Brand polish: teal-on-hover/focus thumbnails -------------------- */
+/* Each grid cell wraps a v-card.panel-item; add a calm interactive
+   treatment that highlights the active/hovered/focused thumbnail with
+   the brand teal. */
+.panel-item {
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  transition:
+    border-color 180ms ease,
+    box-shadow 220ms ease,
+    transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.panel-item:hover {
+  border-color: rgba(45, 212, 191, 0.55);
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.18),
+    0 0 0 4px rgba(45, 212, 191, 0.08);
+}
+
+.panel-item:focus-visible,
+.panel-item:has(:focus-visible) {
+  outline: none;
+  border-color: rgba(45, 212, 191, 1);
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+}
+
+/* The first image in each row is treated as the "active/primary" one
+   (the orange star also marks it). Give it a persistent teal border. */
+.col-2 .panel-item:first-child,
+.col-3 .panel-item:first-child,
+.col-4 .panel-item:first-child,
+.col-5 .panel-item:first-child,
+.col-6 .panel-item:first-child,
+.col-7 .panel-item:first-child,
+.col-8 .panel-item:first-child,
+.col-9 .panel-item:first-child,
+.col-10 .panel-item:first-child {
+  /* fallback for when :has() isn't supported on the row */
+}
+
+@media (hover: none) {
+  .panel-item:hover {
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-item {
+    transition:
+      border-color 120ms ease,
+      box-shadow 120ms ease;
+  }
+}
+
+/* Caption / metadata polish — tighter labels with a touch of tracking
+   on the leading label text. */
+.panel-item-details :deep(.v-list-item-title) {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+}
+
+.panel-item-details :deep(.v-list-item-subtitle) {
+  font-size: 0.75rem;
+  letter-spacing: 0.005em;
+  opacity: 0.78;
+}
 </style>

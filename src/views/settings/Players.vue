@@ -521,6 +521,32 @@ watch(
   background: transparent;
 }
 
+.players-list :deep(.v-list-item) {
+  transition:
+    background-color 200ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 200ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.players-list :deep(.v-list-item:hover) {
+  background-color: rgba(45, 212, 191, 0.08);
+  box-shadow: inset 3px 0 0 #2dd4bf;
+}
+
+.players-list :deep(.v-list-item:focus-visible) {
+  outline: none;
+  background-color: rgba(45, 212, 191, 0.1);
+  box-shadow:
+    inset 3px 0 0 #2dd4bf,
+    0 0 0 2px rgba(45, 212, 191, 0.35);
+}
+
+@media (hover: none) {
+  .players-list :deep(.v-list-item:hover) {
+    background-color: transparent;
+    box-shadow: none;
+  }
+}
+
 .player-name {
   font-weight: 500;
   font-size: 16px;
@@ -547,7 +573,11 @@ watch(
 .protocol-chip {
   text-transform: uppercase;
   font-size: 10px;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.01em;
+  font-weight: 500;
+  background-color: rgba(45, 212, 191, 0.1) !important;
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  color: rgb(var(--v-theme-on-surface));
 }
 
 .protocol-chip--unavailable {
@@ -595,7 +625,20 @@ watch(
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(var(--v-theme-primary), 0.15);
+  background: rgba(45, 212, 191, 0.14);
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  color: #2dd4bf;
+  transition: background-color 200ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.players-list :deep(.v-list-item:hover) .player-icon-wrapper {
+  background: rgba(45, 212, 191, 0.22);
+}
+
+@media (hover: none) {
+  .players-list :deep(.v-list-item:hover) .player-icon-wrapper {
+    background: rgba(45, 212, 191, 0.14);
+  }
 }
 
 .player-disabled {
@@ -638,11 +681,29 @@ watch(
 }
 
 .hint-link {
-  color: rgb(var(--v-theme-primary));
+  color: #2dd4bf;
   text-decoration: none;
+  font-weight: 500;
+  transition: color 180ms cubic-bezier(0.34, 1.36, 0.64, 1);
 }
 
 .hint-link:hover {
   text-decoration: underline;
+  color: #5eead4;
+}
+
+.hint-link:focus-visible {
+  outline: none;
+  text-decoration: underline;
+  color: #5eead4;
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.4);
+  border-radius: 2px;
+}
+
+@media (hover: none) {
+  .hint-link:hover {
+    color: #2dd4bf;
+    text-decoration: none;
+  }
 }
 </style>

@@ -193,6 +193,21 @@ const onAction = async function (
 .header-card {
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
   border-radius: 12px;
+  transition:
+    border-color 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.header-card:hover {
+  border-color: rgba(45, 212, 191, 0.5);
+  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.08);
+}
+
+@media (hover: none) {
+  .header-card:hover {
+    border-color: rgba(var(--v-theme-on-surface), 0.12);
+    box-shadow: none;
+  }
 }
 
 .header-content {
@@ -206,7 +221,8 @@ const onAction = async function (
   width: 56px;
   height: 56px;
   border-radius: 12px;
-  background: rgba(var(--v-theme-primary), 0.1);
+  background: rgba(45, 212, 191, 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -222,6 +238,19 @@ const onAction = async function (
   font-weight: 600;
   margin: 0 0 8px 0;
   color: rgb(var(--v-theme-on-surface));
+  position: relative;
+  padding-bottom: 6px;
+}
+
+.header-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 32px;
+  height: 2px;
+  background: #2dd4bf;
+  border-radius: 1px;
 }
 
 .header-description {

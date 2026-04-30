@@ -17,9 +17,9 @@
     </Container>
 
     <Dialog v-model:open="showRevokeDialog">
-      <DialogContent class="sm:max-w-md">
+      <DialogContent class="sm:max-w-md revoke-dialog">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle class="revoke-dialog-title">
             {{
               tokenToRevoke?.is_long_lived
                 ? $t("auth.revoke_token")
@@ -35,16 +35,21 @@
                 : $t("auth.revoke_session_confirm")
             }}
           </p>
-          <div class="rounded-md bg-destructive/10 p-4">
+          <div class="rounded-md bg-destructive/10 p-4 revoke-target">
             <p class="font-medium">{{ tokenToRevoke?.name }}</p>
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" @click="showRevokeDialog = false">
+          <Button
+            variant="outline"
+            class="revoke-cancel-btn"
+            @click="showRevokeDialog = false"
+          >
             {{ $t("cancel") }}
           </Button>
           <Button
             variant="destructive"
+            class="revoke-confirm-btn"
             :loading="revokingToken"
             @click="handleRevokeToken"
           >
@@ -167,6 +172,106 @@ onMounted(() => {
 @media (max-width: 600px) {
   .profile-container {
     padding: 12px;
+  }
+}
+
+/* Revoke confirmation dialog — on-brand teal accents */
+.revoke-dialog {
+  border: 1px solid rgba(45, 212, 191, 0.18);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.28),
+    0 0 60px -12px rgba(45, 212, 191, 0.22);
+}
+
+.revoke-dialog-title {
+  position: relative;
+  padding-bottom: 10px;
+}
+
+/* small teal divider underline beneath the title */
+.revoke-dialog-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 32px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    rgba(45, 212, 191, 0.9) 0%,
+    rgba(15, 118, 110, 0.6) 100%
+  );
+  box-shadow: 0 0 12px rgba(45, 212, 191, 0.45);
+}
+
+.revoke-target {
+  border: 1px solid rgba(45, 212, 191, 0.14);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.revoke-target:hover {
+  border-color: rgba(45, 212, 191, 0.28);
+}
+
+/* Cancel — subtle teal lean on hover, keeps outline variant */
+.revoke-cancel-btn {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.25s cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 0.25s ease;
+}
+
+.revoke-cancel-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(45, 212, 191, 0.55),
+    0 0 0 4px rgba(45, 212, 191, 0.18);
+}
+
+@media (hover: hover) {
+  .revoke-cancel-btn:hover {
+    border-color: rgba(45, 212, 191, 0.55);
+    background-color: rgba(45, 212, 191, 0.08);
+  }
+}
+
+/* Revoke — destructive but teal-leaning, not raw red */
+.revoke-confirm-btn {
+  transition:
+    background-color 0.2s ease,
+    transform 0.25s cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 0.25s ease;
+}
+
+.revoke-confirm-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(45, 212, 191, 0.6),
+    0 0 0 4px rgba(45, 212, 191, 0.2),
+    0 0 18px rgba(45, 212, 191, 0.35);
+}
+
+@media (hover: hover) {
+  .revoke-confirm-btn:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 8px 22px rgba(0, 0, 0, 0.28),
+      0 0 0 1px rgba(45, 212, 191, 0.35),
+      0 0 24px -4px rgba(45, 212, 191, 0.45);
+  }
+}
+
+@media (hover: none) {
+  .revoke-cancel-btn:hover,
+  .revoke-confirm-btn:hover {
+    transform: none;
+    box-shadow: none;
+    background-color: initial;
+    border-color: initial;
   }
 }
 </style>
