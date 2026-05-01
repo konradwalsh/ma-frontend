@@ -28,12 +28,17 @@
       <Info :size="16" aria-hidden="true" />
     </button>
     <v-dialog v-model="dialogOpen" max-width="460" scrollable>
-      <v-card class="sl-src-diag__card">
-        <v-card-title class="sl-src-diag__title">
+      <v-card
+        class="sl-src-diag__card"
+        role="dialog"
+        aria-labelledby="sl-src-diag-title"
+        aria-describedby="sl-src-diag-body"
+      >
+        <v-card-title id="sl-src-diag-title" class="sl-src-diag__title">
           {{ diagnostic.title }}
           <div class="sl-src-diag__title-rule"></div>
         </v-card-title>
-        <v-card-text class="sl-src-diag__body">
+        <v-card-text id="sl-src-diag-body" class="sl-src-diag__body">
           <p class="sl-src-diag__lede">{{ diagnostic.body }}</p>
           <div
             v-if="diagnostic.providerNames.length"

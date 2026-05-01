@@ -444,9 +444,24 @@ const loadSearchResults = async function (
             })
           : Promise.resolve([]),
       ]);
+      // Defensive normalize: backend versions may omit empty buckets from
+      // the SearchResults payload (esp. `audiobooks`, `podcasts`, `radio`,
+      // `genres` on older servers). WidgetRow.vue gates rendering on
+      // `widgetRow.items.length > 0` — accessing `.length` on `undefined`
+      // throws a TypeError that bubbles to StreamloaderErrorBoundary
+      // (added in batch 42 around <router-view>) and shows the user the
+      // "Something went wrong" fallback INSTEAD of the search results,
+      // which reads as "search doesn't work anymore". The interface
+      // declares all buckets non-optional but runtime payloads can lie.
       searchResult.value = {
-        ...results,
-        genres: results.genres?.length ? results.genres : genres,
+        artists: results.artists ?? [],
+        albums: results.albums ?? [],
+        tracks: results.tracks ?? [],
+        playlists: results.playlists ?? [],
+        radio: results.radio ?? [],
+        podcasts: results.podcasts ?? [],
+        audiobooks: results.audiobooks ?? [],
+        genres: results.genres?.length ? results.genres : (genres ?? []),
       };
     }
   } else {
@@ -491,7 +506,10 @@ const keyListener = function (e: KeyboardEvent) {
   if (!searchHasFocus.value && e.key == "Backspace" && store.globalSearchTerm) {
     store.globalSearchTerm = store.globalSearchTerm.slice(0, -1);
   } else if (!searchHasFocus.value && e.key.length == 1) {
-    store.globalSearchTerm += e.key;
+    // Coerce undefined/null → "" before concat so we don't end up with
+    // "undefinedabc" or "nullabc" in the search term (Vuetify's `clearable`
+    // emits `null`, and the initial store value is `undefined`).
+    store.globalSearchTerm = (store.globalSearchTerm || "") + e.key;
   }
 };
 document.addEventListener("keyup", keyListener);

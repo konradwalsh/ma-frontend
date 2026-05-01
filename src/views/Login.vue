@@ -174,10 +174,14 @@
 
                 <!-- Username Field -->
                 <div class="mb-4">
-                  <label class="text-body-2 font-weight-medium mb-2 d-block">
+                  <label
+                    for="login-username"
+                    class="text-body-2 font-weight-medium mb-2 d-block"
+                  >
                     {{ $t("login.username", "Username") }}
                   </label>
                   <v-text-field
+                    id="login-username"
                     v-model="username"
                     :placeholder="
                       $t('login.username_placeholder', 'Enter your username')
@@ -187,15 +191,21 @@
                     hide-details="auto"
                     :disabled="isAuthenticating"
                     autofocus
+                    autocomplete="username"
+                    aria-required="true"
                   />
                 </div>
 
                 <!-- Password Field -->
                 <div class="mb-6">
-                  <label class="text-body-2 font-weight-medium mb-2 d-block">
+                  <label
+                    for="login-password"
+                    class="text-body-2 font-weight-medium mb-2 d-block"
+                  >
                     {{ $t("login.password", "Password") }}
                   </label>
                   <v-text-field
+                    id="login-password"
                     v-model="password"
                     :placeholder="
                       $t('login.password_placeholder', 'Enter your password')
@@ -209,6 +219,10 @@
                     "
                     :error-messages="loginError"
                     :disabled="isAuthenticating"
+                    autocomplete="current-password"
+                    aria-required="true"
+                    :aria-invalid="!!loginError"
+                    aria-describedby="login-password-error"
                     @click:append-inner="showPassword = !showPassword"
                     @keyup.enter="login"
                   />

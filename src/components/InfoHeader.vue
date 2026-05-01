@@ -206,7 +206,10 @@
                      because the bar is absolutely positioned. -->
                 <div class="selectable sl-hero-title">
                   {{ headerTitle }}
-                  <span class="sl-hero-title-underline" aria-hidden="true"></span>
+                  <span
+                    class="sl-hero-title-underline"
+                    aria-hidden="true"
+                  ></span>
                 </div>
               </MarqueeText>
               <!-- Streamloader-fork addition: subtle teal PLAYLIST badge
@@ -1792,7 +1795,9 @@ const deleteGenre = () => {
 .sl-hero-title {
   position: relative;
   letter-spacing: -0.015em;
-  font-feature-settings: "kern" 1, "liga" 1;
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1;
   padding-bottom: 4px;
 }
 
@@ -1803,21 +1808,13 @@ const deleteGenre = () => {
   height: 2px;
   width: 0;
   border-radius: 2px;
-  background: linear-gradient(
-    90deg,
-    #2dd4bf 0%,
-    rgba(45, 212, 191, 0) 100%
-  );
-  animation: sl-hero-underline-grow 720ms cubic-bezier(0.22, 1, 0.36, 1)
-    180ms forwards;
+  background: linear-gradient(90deg, #2dd4bf 0%, rgba(45, 212, 191, 0) 100%);
+  animation: sl-hero-underline-grow 720ms cubic-bezier(0.22, 1, 0.36, 1) 180ms
+    forwards;
 }
 
 :global(.v-theme--light) .sl-hero-title-underline {
-  background: linear-gradient(
-    90deg,
-    #0f766e 0%,
-    rgba(15, 118, 110, 0) 100%
-  );
+  background: linear-gradient(90deg, #0f766e 0%, rgba(15, 118, 110, 0) 100%);
 }
 
 @keyframes sl-hero-underline-grow {

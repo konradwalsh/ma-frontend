@@ -1717,6 +1717,12 @@
             "aria_label": "{label}. Press {key} to open keyboard shortcuts.",
             "dismiss_aria_label": "Dismiss shortcut hint"
         },
+        "keyboard_shortcuts": {
+            "title": "Keyboard Shortcuts",
+            "esc_hint_prefix": "Press",
+            "esc_key": "Esc",
+            "esc_hint_suffix": "to close"
+        },
         "install_prompt": {
             "title": "Install Streamloader as an app",
             "description": "Faster launch, full-screen, and a home-screen icon.",

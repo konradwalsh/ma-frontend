@@ -2,6 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { defineComponent, h } from "vue";
 
+// vue-i18n's useI18n() throws "Need to install with `app.use` function"
+// when called outside an installed plugin. The shared mock resolves keys
+// against the real en.json so the rendered title/hint match expectations.
+vi.mock("vue-i18n", async () => {
+  const { vueI18nMock } = await import("../i18n-mock");
+  return vueI18nMock();
+});
+
 // Hoisted shortcut fixture — keeps the dialog under test independent from
 // the real composable, so a future binding rename in
 // useKeyboardShortcuts.ts can't accidentally break this dialog test.

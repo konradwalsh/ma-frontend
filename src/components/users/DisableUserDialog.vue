@@ -4,14 +4,19 @@
     max-width="480"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <v-card>
+    <v-card
+      role="alertdialog"
+      aria-labelledby="disable-user-title"
+      aria-describedby="disable-user-body"
+    >
       <v-card-title
+        id="disable-user-title"
         class="text-h6 pl-6 pb-0 font-weight-medium"
         style="letter-spacing: -0.01em"
       >
         {{ $t("auth.disable_user") }}
       </v-card-title>
-      <v-card-text class="px-6 pb-2">
+      <v-card-text id="disable-user-body" class="px-6 pb-2">
         <p class="text-body-1 mb-4">
           {{ $t("auth.confirm_disable_user") }}
         </p>

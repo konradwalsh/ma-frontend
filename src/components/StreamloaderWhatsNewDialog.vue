@@ -22,21 +22,26 @@
     max-width="480"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <v-card class="swn-card">
+    <v-card
+      class="swn-card"
+      role="dialog"
+      aria-labelledby="swn-title"
+      aria-describedby="swn-body"
+    >
       <img
         src="@/assets/streamloader-mark.svg"
         alt=""
         class="swn-card__mark"
         aria-hidden="true"
       />
-      <v-card-title class="swn-title">
+      <v-card-title id="swn-title" class="swn-title">
         {{ t("streamloader.whats_new.title") }}
         <div class="swn-title-rule"></div>
       </v-card-title>
       <v-card-subtitle class="swn-version">{{
         t("streamloader.whats_new.version", { version: currentVersion })
       }}</v-card-subtitle>
-      <v-card-text class="swn-body">
+      <v-card-text id="swn-body" class="swn-body">
         <ul class="swn-list">
           <li v-for="(item, idx) in items" :key="idx" class="swn-item">
             <span class="swn-item__bullet" aria-hidden="true"></span>

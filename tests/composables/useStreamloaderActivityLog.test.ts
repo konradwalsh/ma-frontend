@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { nextTick } from "vue";
+import { nextTick, ref, type Ref } from "vue";
 import { TaskStatus, type BackgroundTask } from "@/plugins/api/interfaces";
 
 // We replace the `useBackgroundTasks` source with a fresh reactive ref per
@@ -7,10 +7,23 @@ import { TaskStatus, type BackgroundTask } from "@/plugins/api/interfaces";
 // vi.resetModules() between tests). Building the ref inside the mock
 // factory keeps `vue` accessible there — vi.hoisted() runs before imports
 // and would crash on a top-level `import { ref }` reference.
+//
+// We also expose the underlying ref via a module-scoped getter so the
+// kind-inference tests can mutate `tasks.value` after the composable has
+// initialized and watch the ingest pipeline in action.
+const { tasksRefHolder } = vi.hoisted(() => ({
+  tasksRefHolder: { current: null as Ref<BackgroundTask[]> | null },
+}));
+
 vi.mock("@/composables/useBackgroundTasks", async () => {
   const { ref } = await import("vue");
   return {
-    useBackgroundTasks: () => ({ tasks: ref<BackgroundTask[]>([]) }),
+    useBackgroundTasks: () => {
+      if (!tasksRefHolder.current) {
+        tasksRefHolder.current = ref<BackgroundTask[]>([]);
+      }
+      return { tasks: tasksRefHolder.current };
+    },
   };
 });
 
@@ -22,7 +35,50 @@ const LAST_VIEW_KEY = "frontend.settings.streamloader.activityLogLastViewedAt";
 // before each test gives us a clean instance so cases don't bleed.
 const loadFresh = async () => {
   vi.resetModules();
+  // Reset the shared tasks ref too so the next composable mount sees an
+  // empty in-flight list and the ingest watcher fires for any task we add.
+  tasksRefHolder.current = null;
   return await import("@/composables/useStreamloaderActivityLog");
+};
+
+// Helper for kind-inference tests. Builds a minimal BackgroundTask with
+// just the fields the inferKind / buildMessage code paths consult. Caller
+// can spread overrides for `name`, `status`, `metadata`, `last_error`.
+const makeTask = (overrides: Partial<BackgroundTask>): BackgroundTask =>
+  ({
+    id: `task-${Math.random().toString(36).slice(2, 7)}`,
+    name: "task",
+    status: TaskStatus.RUNNING,
+    translation_args: [],
+    logs: [],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    failure_count: 0,
+    failure_messages: [],
+    metadata: {} as BackgroundTask["metadata"],
+    allow_retry: false,
+    allow_cancel: false,
+    ...overrides,
+  }) as BackgroundTask;
+
+// Drives a transition RUNNING -> terminalStatus through the ingest watcher
+// by setting the tasks ref twice and awaiting reactivity. Returns the head
+// of the resulting entries list, which is what the assertions inspect.
+const driveTransition = async (
+  useLog: () => { entries: { value: { kind: string; message: string }[] } },
+  task: BackgroundTask,
+  terminalStatus: TaskStatus,
+) => {
+  const composable = useLog();
+  // Seed the tasks ref with the in-flight task so lastSeenStatus picks up
+  // RUNNING/PENDING. The composable's watcher will fire on the NEXT mutation.
+  tasksRefHolder.current!.value = [task];
+  await nextTick();
+  // Now flip the same task to its terminal status — this is the transition
+  // ingest() looks for. Use a NEW array reference so the deep watcher fires.
+  tasksRefHolder.current!.value = [{ ...task, status: terminalStatus }];
+  await nextTick();
+  return composable.entries.value[0];
 };
 
 describe("useStreamloaderActivityLog", () => {
@@ -136,5 +192,81 @@ describe("useStreamloaderActivityLog", () => {
     });
     expect(hasUnread.value).toBe(true);
     expect(unreadCount.value).toBe(1);
+  });
+
+  // The composable's `inferKind` walks task.name + task.metadata.task_domain
+  // to bucket activity into one of five kinds. The matrix below pins each
+  // branch — a regex tweak that, say, drops "fetch" from the download set
+  // would silently mis-categorise downloads as generic "task" entries.
+  it("inferKind: classifies a task whose name contains 'download' as 'download'", async () => {
+    const { useStreamloaderActivityLog } = await loadFresh();
+    const head = await driveTransition(
+      useStreamloaderActivityLog,
+      makeTask({ name: "Download album: Kind of Blue" }),
+      TaskStatus.SUCCESS,
+    );
+    expect(head?.kind).toBe("download");
+  });
+
+  it("inferKind: classifies a task with 'scan' in the name as 'scan'", async () => {
+    const { useStreamloaderActivityLog } = await loadFresh();
+    const head = await driveTransition(
+      useStreamloaderActivityLog,
+      makeTask({ name: "Scan library" }),
+      TaskStatus.SUCCESS,
+    );
+    expect(head?.kind).toBe("scan");
+  });
+
+  it("inferKind: classifies a task with task_domain=music_sync as 'scan' even when the name doesn't include 'scan'", async () => {
+    const { useStreamloaderActivityLog } = await loadFresh();
+    const head = await driveTransition(
+      useStreamloaderActivityLog,
+      makeTask({
+        name: "Refresh artists",
+        metadata: { task_domain: "music_sync" } as BackgroundTask["metadata"],
+      }),
+      TaskStatus.SUCCESS,
+    );
+    expect(head?.kind).toBe("scan");
+  });
+
+  it("inferKind: classifies a 'replaygain' task as 'replaygain'", async () => {
+    const { useStreamloaderActivityLog } = await loadFresh();
+    const head = await driveTransition(
+      useStreamloaderActivityLog,
+      makeTask({ name: "ReplayGain analysis" }),
+      TaskStatus.SUCCESS,
+    );
+    expect(head?.kind).toBe("replaygain");
+  });
+
+  it("inferKind: ANY failed task is 'error' regardless of name (fail-fast wins over name match)", async () => {
+    // The download keyword would normally bucket this as "download", but
+    // FAILED short-circuits to error so the bell badge surfaces a problem
+    // even if the task name reads benign.
+    const { useStreamloaderActivityLog } = await loadFresh();
+    const head = await driveTransition(
+      useStreamloaderActivityLog,
+      makeTask({
+        name: "Download album: Kind of Blue",
+        last_error: "Network timeout",
+      }),
+      TaskStatus.FAILED,
+    );
+    expect(head?.kind).toBe("error");
+    // The buildMessage path also formats failed tasks with the reason.
+    expect(head?.message).toContain("Failed");
+    expect(head?.message).toContain("Network timeout");
+  });
+
+  it("inferKind: tasks that match no keyword fall through to the generic 'task' bucket", async () => {
+    const { useStreamloaderActivityLog } = await loadFresh();
+    const head = await driveTransition(
+      useStreamloaderActivityLog,
+      makeTask({ name: "Reindex search shards" }),
+      TaskStatus.SUCCESS,
+    );
+    expect(head?.kind).toBe("task");
   });
 });

@@ -16,12 +16,17 @@
     scrollable
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <v-card class="ksd-card">
-      <v-card-title class="ksd-title">
-        Keyboard Shortcuts
+    <v-card
+      class="ksd-card"
+      role="dialog"
+      aria-labelledby="ksd-title"
+      aria-describedby="ksd-body"
+    >
+      <v-card-title id="ksd-title" class="ksd-title">
+        {{ t("streamloader.keyboard_shortcuts.title") }}
         <div class="ksd-title-rule"></div>
       </v-card-title>
-      <v-card-text class="ksd-body">
+      <v-card-text id="ksd-body" class="ksd-body">
         <div
           v-for="group in groupedShortcuts"
           :key="group.name"
@@ -47,7 +52,11 @@
       </v-card-text>
       <v-card-actions class="ksd-footer">
         <span class="ksd-hint">
-          Press <kbd class="ksd-kbd ksd-kbd-inline">Esc</kbd> to close
+          {{ t("streamloader.keyboard_shortcuts.esc_hint_prefix") }}
+          <kbd class="ksd-kbd ksd-kbd-inline">{{
+            t("streamloader.keyboard_shortcuts.esc_key")
+          }}</kbd>
+          {{ t("streamloader.keyboard_shortcuts.esc_hint_suffix") }}
         </span>
         <v-spacer />
       </v-card-actions>
@@ -57,10 +66,13 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import {
   KEYBOARD_SHORTCUTS,
   type KeyboardShortcut,
 } from "@/composables/useKeyboardShortcuts";
+
+const { t } = useI18n();
 
 defineProps<{
   modelValue: boolean;

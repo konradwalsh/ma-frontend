@@ -18,9 +18,9 @@ const { apiMock } = vi.hoisted(() => ({
     // Type the spy explicitly so per-test mockImplementation() calls
     // match the `(eventType, cb) => unsubscribe` shape that the
     // production api.subscribe contract uses.
-    subscribe: vi.fn<(eventType: unknown, cb: (evt: unknown) => void) => () => void>(
-      () => () => {},
-    ),
+    subscribe: vi.fn<
+      (eventType: unknown, cb: (evt: unknown) => void) => () => void
+    >(() => () => {}),
     providers: {} as Record<string, unknown>,
   },
 }));
@@ -268,7 +268,9 @@ describe("StreamloaderDiscover.vue", () => {
 
     // Fire MEDIA_ITEM_ADDED → both album loaders re-run, recently-played
     // is untouched (the event isn't relevant to the artist rail).
-    handlers[EventType.MEDIA_ITEM_ADDED]!({ event: EventType.MEDIA_ITEM_ADDED });
+    handlers[EventType.MEDIA_ITEM_ADDED]!({
+      event: EventType.MEDIA_ITEM_ADDED,
+    });
     await flushPromises();
     expect(apiMock.getLibraryAlbums).toHaveBeenCalledTimes(4);
     expect(apiMock.getRecentlyPlayedItems).toHaveBeenCalledTimes(1);
