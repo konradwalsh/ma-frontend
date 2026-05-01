@@ -60,6 +60,49 @@
       variant="comfortable"
       class="settings-overview"
     >
+      <!-- Search + Recent (Streamloader-fork addition: organize landing) -->
+      <div class="settings-toolbar">
+        <div class="settings-search-wrap">
+          <Icon icon="mdi-magnify" size="20" class="settings-search-icon" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            class="settings-search-input"
+            :placeholder="t('search')"
+            :aria-label="t('search')"
+          />
+          <button
+            v-if="searchQuery"
+            type="button"
+            class="settings-search-clear"
+            :title="t('close')"
+            @click="searchQuery = ''"
+          >
+            <Icon icon="mdi-close-circle" size="18" />
+          </button>
+        </div>
+
+        <div
+          v-if="!searchQuery && recentSections.length > 0"
+          class="settings-recent"
+        >
+          <span class="settings-recent-label">{{ t("recent") }}:</span>
+          <button
+            v-for="section in recentSections"
+            :key="`recent-${section.name}`"
+            type="button"
+            class="settings-recent-chip"
+            @click="navigateToSection(section)"
+          >
+            <span
+              class="settings-recent-dot"
+              :style="getIconBackgroundStyle(section.color)"
+            />
+            {{ t(section.label) }}
+          </button>
+        </div>
+      </div>
+
       <!-- Onboarding welcome message -->
       <div v-if="store.isOnboarding" class="onboarding-card">
         <div class="onboarding-header">
@@ -135,145 +178,132 @@
       </div>
 
       <div v-if="settingsViewMode === 'card'" class="settings-card-view">
-        <div class="settings-featured">
-          <Card
-            v-for="section in [...musicSections, ...playerSections]"
-            :key="section.name"
-            class="setting-card"
-            @click="router.push(section.route)"
+        <transition-group name="settings-group-fade" tag="div">
+          <section
+            v-for="group in visibleGroups"
+            :key="group.id"
+            class="settings-group"
           >
-            <CardHeader>
-              <div class="setting-header-top">
-                <div
-                  class="setting-icon"
-                  :style="getIconBackgroundStyle(section.color)"
-                >
-                  <Icon :icon="section.icon" size="20" color="white" />
-                </div>
-                <div class="setting-chevron">
-                  <Icon icon="mdi-chevron-right" size="20" />
-                </div>
-              </div>
-              <CardTitle class="setting-title">
-                {{ t(section.label) }}
-              </CardTitle>
-              <CardDescription class="setting-description">
-                {{ t(section.description) }}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
+            <div class="settings-group-header">
+              <span class="settings-group-title">{{ t(group.label) }}</span>
+              <span class="settings-group-divider" />
+            </div>
+            <div
+              :class="
+                group.id === 'players_dsp'
+                  ? 'settings-featured'
+                  : 'settings-grid'
+              "
+            >
+              <Card
+                v-for="section in group.sections"
+                :key="section.name"
+                class="setting-card"
+                tabindex="0"
+                role="button"
+                @click="navigateToSection(section)"
+                @keydown.enter.prevent="navigateToSection(section)"
+                @keydown.space.prevent="navigateToSection(section)"
+              >
+                <CardHeader>
+                  <div class="setting-header-top">
+                    <div
+                      class="setting-icon"
+                      :style="getIconBackgroundStyle(section.color)"
+                    >
+                      <Icon :icon="section.icon" size="20" color="white" />
+                    </div>
+                    <div class="setting-header-right">
+                      <span
+                        v-if="badgeForSection(section.name)"
+                        class="setting-badge"
+                        :class="`setting-badge--${badgeForSection(section.name)!.tone}`"
+                      >
+                        {{ badgeForSection(section.name)!.text }}
+                      </span>
+                      <div class="setting-chevron">
+                        <Icon icon="mdi-chevron-right" size="20" />
+                      </div>
+                    </div>
+                  </div>
+                  <CardTitle class="setting-title">
+                    {{ t(section.label) }}
+                  </CardTitle>
+                  <CardDescription class="setting-description">
+                    {{ t(section.description) }}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </div>
+          </section>
+        </transition-group>
 
-        <div class="settings-grid">
-          <Card
-            v-for="section in regularSections"
-            :key="section.name"
-            class="setting-card"
-            @click="router.push(section.route)"
-          >
-            <CardHeader>
-              <div class="setting-header-top">
-                <div
-                  class="setting-icon"
-                  :style="getIconBackgroundStyle(section.color)"
-                >
-                  <Icon :icon="section.icon" size="20" color="white" />
-                </div>
-                <div class="setting-chevron">
-                  <Icon icon="mdi-chevron-right" size="20" />
-                </div>
-              </div>
-              <CardTitle class="setting-title">
-                {{ t(section.label) }}
-              </CardTitle>
-              <CardDescription class="setting-description">
-                {{ t(section.description) }}
-              </CardDescription>
-            </CardHeader>
-          </Card>
+        <div
+          v-if="visibleGroups.length === 0"
+          class="settings-empty"
+        >
+          <Icon icon="mdi-magnify-close" size="32" />
+          <p>{{ t("no_results") }}</p>
         </div>
       </div>
 
       <div v-else class="settings-list-view">
-        <v-list class="settings-list">
-          <ListItem
-            v-for="section in providersSection"
-            :key="section.name"
-            link
-            class="settings-list-item"
-            @click="router.push(section.route)"
+        <transition-group name="settings-group-fade" tag="div">
+          <section
+            v-for="group in visibleGroups"
+            :key="`list-${group.id}`"
+            class="settings-group"
           >
-            <template #prepend>
-              <div
-                class="setting-list-icon"
-                :style="getIconBackgroundStyle(section.color)"
+            <div class="settings-group-header">
+              <span class="settings-group-title">{{ t(group.label) }}</span>
+              <span class="settings-group-divider" />
+            </div>
+            <v-list class="settings-list">
+              <ListItem
+                v-for="section in group.sections"
+                :key="section.name"
+                link
+                class="settings-list-item"
+                @click="navigateToSection(section)"
               >
-                <Icon :icon="section.icon" size="20" color="white" />
-              </div>
-            </template>
-            <template #title>
-              {{ t(section.label) }}
-            </template>
-            <template #subtitle>
-              {{ t(section.description) }}
-            </template>
-            <template #append>
-              <Icon icon="mdi-chevron-right" size="20" />
-            </template>
-          </ListItem>
+                <template #prepend>
+                  <div
+                    class="setting-list-icon"
+                    :style="getIconBackgroundStyle(section.color)"
+                  >
+                    <Icon :icon="section.icon" size="20" color="white" />
+                  </div>
+                </template>
+                <template #title>
+                  <div class="settings-list-title-row">
+                    <span>{{ t(section.label) }}</span>
+                    <span
+                      v-if="badgeForSection(section.name)"
+                      class="setting-badge"
+                      :class="`setting-badge--${badgeForSection(section.name)!.tone}`"
+                    >
+                      {{ badgeForSection(section.name)!.text }}
+                    </span>
+                  </div>
+                </template>
+                <template #subtitle>
+                  {{ t(section.description) }}
+                </template>
+                <template #append>
+                  <Icon icon="mdi-chevron-right" size="20" />
+                </template>
+              </ListItem>
+            </v-list>
+          </section>
+        </transition-group>
 
-          <ListItem
-            v-for="section in playersSection"
-            :key="section.name"
-            link
-            class="settings-list-item"
-            @click="router.push(section.route)"
-          >
-            <template #prepend>
-              <div
-                class="setting-list-icon"
-                :style="getIconBackgroundStyle(section.color)"
-              >
-                <Icon :icon="section.icon" size="20" color="white" />
-              </div>
-            </template>
-            <template #title>
-              {{ t(section.label) }}
-            </template>
-            <template #subtitle>
-              {{ t(section.description) }}
-            </template>
-            <template #append>
-              <Icon icon="mdi-chevron-right" size="20" />
-            </template>
-          </ListItem>
-
-          <ListItem
-            v-for="section in otherSettingsSections"
-            :key="section.name"
-            link
-            class="settings-list-item"
-            @click="router.push(section.route)"
-          >
-            <template #prepend>
-              <div
-                class="setting-list-icon"
-                :style="getIconBackgroundStyle(section.color)"
-              >
-                <Icon :icon="section.icon" size="20" color="white" />
-              </div>
-            </template>
-            <template #title>
-              {{ t(section.label) }}
-            </template>
-            <template #subtitle>
-              {{ t(section.description) }}
-            </template>
-            <template #append>
-              <Icon icon="mdi-chevron-right" size="20" />
-            </template>
-          </ListItem>
-        </v-list>
+        <div
+          v-if="visibleGroups.length === 0"
+          class="settings-empty"
+        >
+          <Icon icon="mdi-magnify-close" size="32" />
+          <p>{{ t("no_results") }}</p>
+        </div>
       </div>
     </Container>
 
@@ -636,6 +666,173 @@ const otherSettingsSections = computed(() => {
   );
 });
 
+// Streamloader-fork addition: grouped sections, search, recent, and badges
+// for the settings landing page.
+type SettingsSection = (typeof allSettingsSections)[number];
+
+interface SettingsGroup {
+  id: string;
+  label: string;
+  sectionNames: string[];
+}
+
+const SETTINGS_GROUPS: SettingsGroup[] = [
+  {
+    id: "players_dsp",
+    label: "settings.group.players_dsp",
+    sectionNames: ["music_providers", "players", "player_providers"],
+  },
+  {
+    id: "library_providers",
+    label: "settings.group.library_providers",
+    sectionNames: [
+      "metadata_providers",
+      "audio_analysis_providers",
+      "plugin_providers",
+    ],
+  },
+  {
+    id: "streamloader",
+    label: "settings.group.streamloader",
+    sectionNames: ["streamloader", "frontend"],
+  },
+  {
+    id: "system_logs",
+    label: "settings.group.system_logs",
+    sectionNames: ["system", "users", "remote_access", "profile"],
+  },
+  {
+    id: "about",
+    label: "settings.group.about",
+    sectionNames: ["about"],
+  },
+];
+
+const searchQuery = ref("");
+
+const sectionMatchesQuery = (section: SettingsSection, q: string) => {
+  if (!q) return true;
+  const haystack = `${t(section.label)} ${t(section.description)}`.toLowerCase();
+  return haystack.includes(q.toLowerCase());
+};
+
+const visibleGroups = computed(() => {
+  const available = settingsSections.value;
+  const byName = new Map(available.map((s) => [s.name, s]));
+  const used = new Set<string>();
+  const q = searchQuery.value.trim();
+
+  const groups = SETTINGS_GROUPS.map((g) => {
+    const sections = g.sectionNames
+      .map((n) => byName.get(n))
+      .filter((s): s is SettingsSection => Boolean(s))
+      .filter((s) => sectionMatchesQuery(s, q));
+    sections.forEach((s) => used.add(s.name));
+    return { ...g, sections };
+  });
+
+  // Pick up any sections not assigned to a group above so nothing disappears
+  // if a future setting is added without updating SETTINGS_GROUPS.
+  const leftover = available
+    .filter((s) => !used.has(s.name))
+    .filter((s) => sectionMatchesQuery(s, q));
+  if (leftover.length > 0) {
+    groups.push({
+      id: "other",
+      label: "settings.group.other",
+      sectionNames: leftover.map((s) => s.name),
+      sections: leftover,
+    });
+  }
+
+  return groups.filter((g) => g.sections.length > 0);
+});
+
+// Badges driven by existing reactive sources.
+const offlineProviderCount = computed(() => {
+  try {
+    return Object.values(api.providers).filter((p) => p && !p.available).length;
+  } catch {
+    return 0;
+  }
+});
+
+// Optional: server may expose an update flag in future; keep optional read.
+const updateAvailable = computed(() => {
+  const info = api.serverInfo.value as Record<string, unknown> | undefined;
+  if (!info) return false;
+  return Boolean(
+    (info as { update_available?: boolean }).update_available,
+  );
+});
+
+const badgeForSection = (
+  name: string,
+): { text: string; tone: "warn" | "info" } | null => {
+  if (
+    (name === "player_providers" ||
+      name === "music_providers" ||
+      name === "metadata_providers" ||
+      name === "plugin_providers" ||
+      name === "audio_analysis_providers") &&
+    offlineProviderCount.value > 0
+  ) {
+    return { text: t("settings.backend_offline"), tone: "warn" };
+  }
+  if (name === "about" && updateAvailable.value) {
+    return { text: t("settings.update_available"), tone: "info" };
+  }
+  return null;
+};
+
+// Recently visited settings (stored in localStorage, last 3).
+const RECENT_KEY = "settings.recent.v1";
+const RECENT_MAX = 3;
+const recentNames = ref<string[]>([]);
+
+const loadRecent = () => {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    if (!raw) {
+      recentNames.value = [];
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      recentNames.value = parsed.filter((x): x is string => typeof x === "string");
+    }
+  } catch {
+    recentNames.value = [];
+  }
+};
+
+const persistRecent = (name: string) => {
+  try {
+    const next = [name, ...recentNames.value.filter((n) => n !== name)].slice(
+      0,
+      RECENT_MAX,
+    );
+    recentNames.value = next;
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  } catch {
+    // ignore localStorage errors (private mode, quota, etc.)
+  }
+};
+
+loadRecent();
+
+const recentSections = computed(() => {
+  const byName = new Map(settingsSections.value.map((s) => [s.name, s]));
+  return recentNames.value
+    .map((n) => byName.get(n))
+    .filter((s): s is SettingsSection => Boolean(s));
+});
+
+const navigateToSection = (section: SettingsSection) => {
+  persistRecent(section.name);
+  router.push(section.route);
+};
+
 const getIconBackgroundStyle = (color: string) => {
   const colorMap: Record<string, string> = {
     indigo: "rgb(99, 102, 241)",
@@ -955,7 +1152,224 @@ const documentationUrl = computed(() => {
 .settings-card-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+}
+
+/* Streamloader-fork: group + search + recent + badge styles */
+.settings-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.settings-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(var(--v-theme-surface), 0.7);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  border-radius: 10px;
+  padding: 0 36px 0 38px;
+  height: 40px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.settings-search-wrap:focus-within {
+  border-color: rgba(20, 184, 166, 0.55);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+}
+
+.settings-search-icon {
+  position: absolute;
+  left: 12px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.settings-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgb(var(--v-theme-on-surface));
+  font-size: 0.95rem;
+  height: 100%;
+}
+
+.settings-search-clear {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  opacity: 0.55;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 50%;
+  color: inherit;
+}
+
+.settings-search-clear:hover {
+  opacity: 1;
+}
+
+.settings-recent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.settings-recent-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(var(--v-theme-on-surface), 0.55);
+}
+
+.settings-recent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(20, 184, 166, 0.08);
+  border: 1px solid rgba(20, 184, 166, 0.25);
+  color: rgb(var(--v-theme-on-surface));
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.settings-recent-chip:hover {
+  background: rgba(20, 184, 166, 0.16);
+  border-color: rgba(20, 184, 166, 0.45);
+  transform: translateY(-1px);
+}
+
+.settings-recent-chip:focus-visible {
+  outline: 2px solid rgba(20, 184, 166, 0.55);
+  outline-offset: 2px;
+}
+
+.settings-recent-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-group + .settings-group {
+  margin-top: 4px;
+}
+
+.settings-group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.settings-group-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(20, 184, 166, 0.95);
+  white-space: nowrap;
+}
+
+.settings-group-divider {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(20, 184, 166, 0.35) 0%,
+    rgba(20, 184, 166, 0.05) 100%
+  );
+}
+
+.setting-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.setting-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.setting-badge--warn {
+  background: rgba(239, 68, 68, 0.15);
+  color: rgb(239, 68, 68);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.setting-badge--info {
+  background: rgba(20, 184, 166, 0.15);
+  color: rgb(13, 148, 136);
+  border: 1px solid rgba(20, 184, 166, 0.35);
+}
+
+.settings-list-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 16px;
+  color: rgba(var(--v-theme-on-surface), 0.55);
+  text-align: center;
+}
+
+.setting-card:focus-visible {
+  outline: none;
+  border-color: rgba(20, 184, 166, 0.65);
+  box-shadow:
+    0 0 0 3px rgba(20, 184, 166, 0.25),
+    0 8px 22px -10px rgba(20, 184, 166, 0.45);
+}
+
+.settings-group-fade-enter-active,
+.settings-group-fade-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.settings-group-fade-enter-from,
+.settings-group-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 
 .settings-featured {

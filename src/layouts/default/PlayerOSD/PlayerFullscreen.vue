@@ -419,10 +419,11 @@
                       class="queue-row-drag-handle"
                       :class="{
                         'is-visible':
-                          hoveredQueueIndex == index ||
-                          dragSourceIndex !== -1,
+                          hoveredQueueIndex == index || dragSourceIndex !== -1,
                       }"
-                      :title="$t('queue_move_up') + ' / ' + $t('queue_move_down')"
+                      :title="
+                        $t('queue_move_up') + ' / ' + $t('queue_move_down')
+                      "
                       :draggable="activeQueuePanel == 0"
                       @click.stop
                       @dragstart="
@@ -1847,7 +1848,8 @@ const onQueueRowDragOver = function (e: DragEvent, index: number) {
   const target = e.currentTarget as HTMLElement | null;
   if (target) {
     const rect = target.getBoundingClientRect();
-    dropPosition.value = e.clientY < rect.top + rect.height / 2 ? "above" : "below";
+    dropPosition.value =
+      e.clientY < rect.top + rect.height / 2 ? "above" : "below";
   }
   dragOverIndex.value = index;
   dragLastClientY.value = e.clientY;
@@ -1889,8 +1891,7 @@ const onQueueRowDrop = function (e: DragEvent, index: number) {
   // When moving downward across other rows, the source removal shifts
   // subsequent rows up by one — account for that so pos_shift matches the
   // user's intended drop position.
-  const finalIndex =
-    targetSlot > source ? targetSlot - 1 : targetSlot;
+  const finalIndex = targetSlot > source ? targetSlot - 1 : targetSlot;
   const posShift = finalIndex - source;
   if (posShift === 0) {
     resetDragState();

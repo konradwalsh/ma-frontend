@@ -94,6 +94,8 @@
     "remove_library": "Remove from library",
     "remove_playlist": "Remove from playlist",
     "search": "Search",
+    "recent": "Recent",
+    "no_results": "No matching settings",
     "settings": {
         "add_new": "Add new",
         "add_provider": "Add a new provider",
@@ -543,6 +545,16 @@
         "frontend_description": "Customize the user interface theme and appearance",
         "streamloader": "Streamloader",
         "streamloader_description": "Customize streamloader-specific UI: vinyl display, source badge, activity widgets, and provider shortcuts",
+        "backend_offline": "Backend offline",
+        "update_available": "Update available",
+        "group": {
+            "players_dsp": "Players & DSP",
+            "library_providers": "Library & Providers",
+            "streamloader": "Streamloader",
+            "system_logs": "System & Logs",
+            "about": "About",
+            "other": "Other"
+        },
         "provider_type": "Type",
         "onboarding_title": "Welcome to Music Assistant!",
         "profile_description": "Manage your personal account settings and preferences",
@@ -1475,7 +1487,10 @@
                 "song_skipped": "Song skipped!",
                 "try_different_search": "Try a different search term",
                 "unknown_artist": "Unknown Artist",
-                "view_songs": "View Songs"
+                "view_songs": "View Songs",
+                "added_to_queue_short": "Added to queue",
+                "offline_banner": "Offline — songs you add will queue when reconnected",
+                "pull_to_refresh": "Pull to refresh"
             },
             "add": "Add",
             "boost": "Boost",

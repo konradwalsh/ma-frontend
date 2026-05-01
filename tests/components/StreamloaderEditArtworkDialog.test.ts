@@ -11,14 +11,16 @@ const { artworkMock, resetArtworkMock } = vi.hoisted(() => {
       string,
       { source: "url" | "upload"; value: string; queued_at: string }
     >(),
-    setOverride: vi.fn((id: string, source: "url" | "upload", value: string) => {
-      state.overrides.set(id, {
-        source,
-        value,
-        queued_at: new Date().toISOString(),
-      });
-      return true;
-    }),
+    setOverride: vi.fn(
+      (id: string, source: "url" | "upload", value: string) => {
+        state.overrides.set(id, {
+          source,
+          value,
+          queued_at: new Date().toISOString(),
+        });
+        return true;
+      },
+    ),
     removeOverride: vi.fn((id: string) => {
       state.overrides.delete(id);
       return true;
@@ -264,9 +266,9 @@ describe("StreamloaderEditArtworkDialog.vue", () => {
 
     // Once a valid URL is in place Apply must enable, otherwise users
     // could never submit.
-    await wrapper.find<HTMLInputElement>("#sl-eaw-url").setValue(
-      "https://example.com/x.png",
-    );
+    await wrapper
+      .find<HTMLInputElement>("#sl-eaw-url")
+      .setValue("https://example.com/x.png");
     await nextTick();
     const apply2 = wrapper
       .findAll(".v-btn-stub")
@@ -276,9 +278,9 @@ describe("StreamloaderEditArtworkDialog.vue", () => {
 
   it("Apply forwards the URL to setOverride and closes the dialog", async () => {
     const wrapper = mountDialog({ modelValue: true, itemId: "track-4" });
-    await wrapper.find<HTMLInputElement>("#sl-eaw-url").setValue(
-      "https://example.com/cover.jpg",
-    );
+    await wrapper
+      .find<HTMLInputElement>("#sl-eaw-url")
+      .setValue("https://example.com/cover.jpg");
     await nextTick();
     const apply = wrapper
       .findAll(".v-btn-stub")

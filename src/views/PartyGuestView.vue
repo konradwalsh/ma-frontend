@@ -11,17 +11,36 @@
       <span class="brand-wordmark">streamloader</span>
     </div>
 
-    <!-- Search Section -->
-    <PartySearchBar
-      ref="searchBarRef"
-      v-model:search-query="searchQuery"
-      v-model:search-filter="searchFilter"
-      :has-searched="hasSearched"
-      :show-back="hasSearched || !!selectedArtist"
-      @clear="handleClear"
-      @back="goBack"
-      @submit="performSearch"
-    />
+    <!-- Search Section
+         Streamloader-fork: wrapped in a sticky container so on mobile the
+         input stays pinned to the top while the results list scrolls under
+         it. Backdrop-blur keeps the brand teal halo visible but softens
+         scrolling content for legibility. -->
+    <div class="search-sticky">
+      <PartySearchBar
+        ref="searchBarRef"
+        v-model:search-query="searchQuery"
+        v-model:search-filter="searchFilter"
+        :has-searched="hasSearched"
+        :show-back="hasSearched || !!selectedArtist"
+        @clear="handleClear"
+        @back="goBack"
+        @submit="performSearch"
+      />
+    </div>
+
+    <!-- Streamloader-fork: offline banner. Driven by navigator.onLine +
+         online/offline window events. Lets guests know that taps will be
+         optimistically dropped while offline and they should re-add once
+         reconnection happens (we do not auto-replay queued adds). -->
+    <Transition name="offline-banner">
+      <div v-if="isOffline" class="offline-banner" role="status">
+        <WifiOff :size="14" class="offline-icon" />
+        <span class="offline-text">
+          {{ $t("providers.party.guest_page.offline_banner") }}
+        </span>
+      </div>
+    </Transition>
 
     <!-- Search Loading State
          Streamloader fork: prominent brand spinner + staged hints + cancel
@@ -165,7 +184,35 @@
           {{ $t("providers.party.guest_page.refresh") }}
         </Button>
       </div>
-      <div ref="resultsListRef" class="results-list" @scroll="handleScroll">
+      <!-- Streamloader-fork: pull-to-refresh. Visual indicator grows as
+           the user drags down past the top of the list; releasing past
+           the threshold re-runs the last search. -->
+      <div
+        ref="resultsListRef"
+        class="results-list results-list--ptr"
+        :class="{ 'results-list--refreshing': isRefreshing }"
+        :style="{ '--ptr-offset': `${pullOffset}px` }"
+        @scroll="handleScroll"
+        @touchstart.passive="onPtrTouchStart"
+        @touchmove.passive="onPtrTouchMove"
+        @touchend="onPtrTouchEnd"
+        @touchcancel="onPtrTouchEnd"
+      >
+        <div
+          v-if="pullOffset > 0 || isRefreshing"
+          class="ptr-indicator"
+          :class="{ 'ptr-indicator--armed': pullOffset >= PTR_THRESHOLD }"
+          :style="{
+            '--ptr-progress': Math.min(pullOffset / PTR_THRESHOLD, 1),
+          }"
+          aria-hidden="true"
+        >
+          <RefreshCw
+            :size="18"
+            class="ptr-spinner"
+            :class="{ 'ptr-spinner--spinning': isRefreshing }"
+          />
+        </div>
         <PartyResultItem
           v-for="item in displayedResults"
           :key="`${item.media_type}-${item.item_id}`"
@@ -257,7 +304,14 @@ import {
 } from "@/plugins/api/interfaces";
 import { $t } from "@/plugins/i18n";
 import { store } from "@/plugins/store";
-import { ArrowLeft, Music, RefreshCw, Search, Zap } from "lucide-vue-next";
+import {
+  ArrowLeft,
+  Music,
+  RefreshCw,
+  Search,
+  WifiOff,
+  Zap,
+} from "lucide-vue-next";
 import {
   computed,
   nextTick,
@@ -368,6 +422,72 @@ const expandedResultItemId = ref("");
 const toggleExpandedResult = (itemId: string) => {
   expandedResultItemId.value =
     expandedResultItemId.value === itemId ? "" : itemId;
+};
+
+// Streamloader-fork: pull-to-refresh state. Touch-only; only engages when
+// the results list is already scrolled to the top to avoid hijacking
+// normal upward flicks. Threshold ~80px, indicator grows as the user pulls.
+const PTR_THRESHOLD = 80;
+const PTR_MAX = 120;
+const pullOffset = ref(0);
+const isRefreshing = ref(false);
+const ptrStartY = ref<number | null>(null);
+const ptrTracking = ref(false);
+
+const onPtrTouchStart = (e: TouchEvent) => {
+  // Only track from a top-of-list state — otherwise the user is scrolling
+  // back up through results, not asking for a refresh.
+  const el = resultsListRef.value;
+  if (!el || el.scrollTop > 0 || isRefreshing.value) {
+    ptrTracking.value = false;
+    return;
+  }
+  ptrStartY.value = e.touches[0]?.clientY ?? null;
+  ptrTracking.value = true;
+};
+
+const onPtrTouchMove = (e: TouchEvent) => {
+  if (!ptrTracking.value || ptrStartY.value === null) return;
+  const currentY = e.touches[0]?.clientY ?? ptrStartY.value;
+  const dy = currentY - ptrStartY.value;
+  if (dy <= 0) {
+    pullOffset.value = 0;
+    return;
+  }
+  // Rubber-band so it never feels like the list is being torn off.
+  const damped = Math.min(PTR_MAX, dy * 0.55);
+  pullOffset.value = damped;
+};
+
+const onPtrTouchEnd = async () => {
+  if (!ptrTracking.value) return;
+  ptrTracking.value = false;
+  ptrStartY.value = null;
+
+  if (pullOffset.value >= PTR_THRESHOLD && !isRefreshing.value && hasSearched.value) {
+    isRefreshing.value = true;
+    try {
+      await refreshSearch();
+    } finally {
+      isRefreshing.value = false;
+      pullOffset.value = 0;
+    }
+  } else {
+    pullOffset.value = 0;
+  }
+};
+
+// Streamloader-fork: offline indicator. Uses navigator.onLine + window
+// online/offline events. We only render a banner — we do not buffer adds
+// while offline (the user is told to retry once back online).
+const isOffline = ref(
+  typeof navigator !== "undefined" && navigator.onLine === false,
+);
+const handleOnline = () => {
+  isOffline.value = false;
+};
+const handleOffline = () => {
+  isOffline.value = true;
 };
 const queueSectionRef = ref<InstanceType<typeof PartyQueueSection> | null>(
   null,
@@ -603,6 +723,11 @@ onMounted(async () => {
   history.pushState(null, "", location.href);
   window.addEventListener("popstate", handleBack);
 
+  // Streamloader-fork: track network state so we can warn guests when adds
+  // won't reach the server.
+  window.addEventListener("online", handleOnline);
+  window.addEventListener("offline", handleOffline);
+
   cleanupCountdown = rateLimit.startCountdown();
 
   await refreshPartyPlayer();
@@ -638,6 +763,8 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener("popstate", handleBack);
+  window.removeEventListener("online", handleOnline);
+  window.removeEventListener("offline", handleOffline);
   cleanupQueueEvents?.();
   cleanupCountdown?.();
   cleanupProvidersSub?.();
@@ -710,6 +837,75 @@ onBeforeUnmount(() => {
     );
 }
 
+/* Streamloader-fork: sticky search bar wrapper. On mobile this pins the
+   search input to the top of the viewport so guests can refine their query
+   without scrolling back up. Backdrop-filter blurs scrolling content for
+   legibility while keeping the brand teal halo visible. */
+.search-sticky {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .search-sticky {
+    position: sticky;
+    top: 0;
+    /* Pull through the parent padding so the blur reaches the viewport edge */
+    margin: -0.75rem -0.75rem 0;
+    padding: 0.75rem 0.75rem 0.25rem;
+    background: rgba(13, 31, 36, 0.55);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    border-bottom: 1px solid rgba(45, 212, 191, 0.12);
+  }
+}
+
+/* Streamloader-fork: offline banner. Compact pill styled in muted amber so
+   it reads as a warning without screaming. Slides down on transition. */
+.offline-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.32);
+  font-size: 0.8rem;
+  color: rgba(var(--v-theme-on-surface), 0.9);
+  flex-shrink: 0;
+}
+
+.offline-icon {
+  color: rgb(245, 158, 11);
+  flex-shrink: 0;
+}
+
+.offline-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.offline-banner-enter-active,
+.offline-banner-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+.offline-banner-enter-from,
+.offline-banner-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .offline-banner-enter-active,
+  .offline-banner-leave-active {
+    transition: none;
+  }
+}
+
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -763,6 +959,83 @@ onBeforeUnmount(() => {
   min-height: 0;
   padding-right: 0.5rem;
 }
+
+/* Streamloader-fork: pull-to-refresh. The list is translated downward as
+   the user pulls; --ptr-offset is set inline by PartyGuestView. The
+   indicator above grows in opacity/scale up to the threshold. */
+.results-list--ptr {
+  position: relative;
+  transform: translateY(var(--ptr-offset, 0));
+  transition: transform 0.2s ease;
+  /* Disable native overscroll bounce so our PTR feels canonical, not stacked
+     on top of the browser's. */
+  overscroll-behavior-y: contain;
+}
+
+.results-list--ptr.results-list--refreshing {
+  transform: translateY(56px);
+}
+
+.ptr-indicator {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(
+    -50%,
+    calc(-100% + min(var(--ptr-offset, 0px), 56px))
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: rgba(45, 212, 191, calc(0.18 * var(--ptr-progress, 0)));
+  border: 1px solid rgba(45, 212, 191, calc(0.4 * var(--ptr-progress, 0)));
+  box-shadow: 0 0 12px rgba(45, 212, 191, calc(0.32 * var(--ptr-progress, 0)));
+  color: rgb(var(--v-theme-primary));
+  pointer-events: none;
+  opacity: var(--ptr-progress, 0);
+  z-index: 5;
+}
+
+.ptr-indicator--armed {
+  opacity: 1;
+  background: rgba(45, 212, 191, 0.25);
+  border-color: rgba(45, 212, 191, 0.55);
+  box-shadow: 0 0 16px rgba(45, 212, 191, 0.5);
+}
+
+.ptr-spinner {
+  transform: rotate(calc(var(--ptr-progress, 0) * 180deg));
+  transition: transform 0.05s linear;
+}
+
+@keyframes ptr-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ptr-spinner--spinning {
+  animation: ptr-spin 0.9s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .results-list--ptr {
+    transition: none;
+  }
+  .ptr-spinner {
+    transition: none;
+  }
+  .ptr-spinner--spinning {
+    animation: none;
+  }
+}
+
 
 .back-btn {
   flex-shrink: 0;

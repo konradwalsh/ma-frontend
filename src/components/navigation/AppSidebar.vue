@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import NavMain from "@/components/navigation/NavMain.vue";
+import StreamloaderActivityLog from "@/components/StreamloaderActivityLog.vue";
 import StreamloaderLibraryStats from "@/components/StreamloaderLibraryStats.vue";
 import {
   Sidebar,
@@ -78,6 +79,7 @@ onUnmounted(() => {
     </SidebarContent>
     <SidebarFooter>
       <StreamloaderLibraryStats />
+      <StreamloaderActivityLog />
       <NavMobile v-if="isMobile" />
       <SidebarTrigger v-else />
     </SidebarFooter>

@@ -5,6 +5,7 @@
       'result-item--expanded': isExpanded,
       'result-item--clickable':
         item.media_type === 'track' || item.media_type === 'artist',
+      'result-item--success-pulse': showSuccessPulse,
     }"
     @click="onItemClick"
   >
@@ -101,7 +102,7 @@ import type { Artist, Track } from "@/plugins/api/interfaces";
 import { MediaType } from "@/plugins/api/interfaces";
 import { $t } from "@/plugins/i18n";
 import { CircleCheck, Coins, ListPlus, Music, Rocket } from "lucide-vue-next";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 
 const props = defineProps<{
@@ -128,6 +129,22 @@ const emit = defineEmits<{
 const isAdded = computed(() =>
   "uri" in props.item ? props.addedItems.has(props.item.uri) : false,
 );
+
+// Streamloader-fork: brief green pulse on the row right after a successful
+// add — guests get a tactile "yes, it landed" cue before the row swaps to
+// the "Added" state. 400ms keeps it from feeling laggy.
+const showSuccessPulse = ref(false);
+let pulseTimer: ReturnType<typeof setTimeout> | null = null;
+watch(isAdded, (nowAdded, wasAdded) => {
+  if (nowAdded && !wasAdded) {
+    showSuccessPulse.value = true;
+    if (pulseTimer) clearTimeout(pulseTimer);
+    pulseTimer = setTimeout(() => {
+      showSuccessPulse.value = false;
+      pulseTimer = null;
+    }, 400);
+  }
+});
 const isInQueue = computed(() =>
   "uri" in props.item ? props.queuedUris.has(props.item.uri) : false,
 );
@@ -203,6 +220,35 @@ const prettyItemName = computed(() => {
   background: rgba(var(--v-theme-primary), 0.12);
   border-color: rgba(var(--v-theme-primary), 0.32);
   box-shadow: 0 0 0 1px rgba(var(--v-theme-primary), 0.18);
+}
+
+/* Streamloader-fork: success pulse — brief green flash after a guest taps
+   "Add to queue" and the server confirms. 400ms; respects reduced-motion. */
+@keyframes party-result-success-pulse {
+  0% {
+    background: rgba(34, 197, 94, 0.35);
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.55);
+  }
+  60% {
+    background: rgba(34, 197, 94, 0.2);
+    box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.35);
+  }
+  100% {
+    background: rgba(var(--v-theme-surface-variant), 0.07);
+    box-shadow: none;
+  }
+}
+
+.result-item--success-pulse {
+  animation: party-result-success-pulse 400ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .result-item--success-pulse {
+    animation: none;
+    /* Static, low-motion fallback — single state, no flash. */
+    background: rgba(34, 197, 94, 0.18);
+  }
 }
 
 .result-info {
@@ -341,5 +387,26 @@ const prettyItemName = computed(() => {
   font-weight: 600;
   color: rgb(var(--v-theme-primary));
   opacity: 0.8;
+}
+
+/* Streamloader-fork: larger touch targets on mobile so a guest can tap
+   confidently without zooming. Row >=64px, action buttons >=44x44 per
+   Apple/Material accessibility guidance. */
+@media (max-width: 768px) {
+  .result-item {
+    min-height: 64px;
+    padding: 0.85rem 0.75rem;
+  }
+
+  .action-btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0 0.85rem;
+    font-size: 0.85rem;
+  }
+
+  .result-actions {
+    gap: 0.75rem;
+  }
 }
 </style>

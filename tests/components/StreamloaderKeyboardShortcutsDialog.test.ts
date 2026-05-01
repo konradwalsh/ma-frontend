@@ -7,11 +7,26 @@ import { defineComponent, h } from "vue";
 // useKeyboardShortcuts.ts can't accidentally break this dialog test.
 const { shortcutsFixture } = vi.hoisted(() => ({
   shortcutsFixture: [
-    { id: "play-pause", keys: ["Space"], action: "Play / pause", group: "Playback" },
+    {
+      id: "play-pause",
+      keys: ["Space"],
+      action: "Play / pause",
+      group: "Playback",
+    },
     { id: "next", keys: ["→"], action: "Next track", group: "Playback" },
     { id: "volume-up", keys: ["↑"], action: "Volume +5", group: "Volume" },
-    { id: "fullscreen", keys: ["F"], action: "Toggle fullscreen", group: "View" },
-    { id: "help", keys: ["Shift", "/"], action: "Open this help", group: "Help" },
+    {
+      id: "fullscreen",
+      keys: ["F"],
+      action: "Toggle fullscreen",
+      group: "View",
+    },
+    {
+      id: "help",
+      keys: ["Shift", "/"],
+      action: "Open this help",
+      group: "Help",
+    },
   ],
 }));
 
@@ -155,9 +170,7 @@ describe("StreamloaderKeyboardShortcutsDialog.vue", () => {
 
   it("emits update:modelValue=false when Esc is pressed (Vuetify default)", async () => {
     const wrapper = mountDialog(true);
-    await wrapper
-      .find(".v-dialog-stub")
-      .trigger("keydown", { key: "Escape" });
+    await wrapper.find(".v-dialog-stub").trigger("keydown", { key: "Escape" });
     const events = wrapper.emitted("update:modelValue");
     expect(events).toBeTruthy();
     expect(events![0]).toEqual([false]);

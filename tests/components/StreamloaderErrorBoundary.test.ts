@@ -125,9 +125,9 @@ describe("StreamloaderErrorBoundary.vue", () => {
 
     // Stop the child from throwing on the next render, then click Try again.
     await wrapper.setData({ explode: false });
-    const tryAgain = wrapper.findAll(".v-btn-stub").find((btn) =>
-      btn.text().includes("Try again"),
-    );
+    const tryAgain = wrapper
+      .findAll(".v-btn-stub")
+      .find((btn) => btn.text().includes("Try again"));
     expect(tryAgain).toBeTruthy();
     await tryAgain!.trigger("click");
     await nextTick();
