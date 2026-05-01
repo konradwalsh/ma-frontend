@@ -16,8 +16,16 @@
          top-right, lives at v-app root so it overlays every page.
          Hidden in frameless (HA ingress companion) mode to avoid
          duplicating status indication when a host shell already
-         provides its own. -->
-    <StreamloaderHealthPill v-if="!store.frameless" />
+         provides its own. UX bug fix: this floating pill was overlapping
+         page-level controls (hamburger / per-view header buttons), so it
+         is now OFF by default. The new sidebar dot
+         (StreamloaderHealthDot, mounted from NavMain.vue next to the
+         "streamloader" item) provides the same status signal without
+         occluding chrome. Users who want the old badge back can flip
+         the toggle in Streamloader Settings → Player Display. -->
+    <StreamloaderHealthPill
+      v-if="!store.frameless && showFloatingHealthPill"
+    />
     <!-- Streamloader-fork feature: live "what's happening right now"
          widget. Stacks beneath the health pill; renders nothing when
          there are no in-flight streamloader tasks (zero visual cost
@@ -80,6 +88,12 @@ import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
 // When off we skip the live-region render AND short-circuit the speak()
 // path so we don't churn aria-live state for users who opted out.
 const announceQueueChanges = useStreamloaderPref("announceQueueChanges");
+
+// Streamloader settings page → "Show floating health pill". Defaults to
+// OFF; the sidebar StreamloaderHealthDot (rendered from NavMain.vue) is
+// the new primary status indicator. This pref keeps the legacy floating
+// pill available as an opt-in for users who preferred it.
+const showFloatingHealthPill = useStreamloaderPref("showFloatingHealthPill");
 
 // Streamloader-fork addition: register global music-player keyboard shortcuts
 // (Space/arrows/M/F/Esc). Composable handles input-bail + cleanup.

@@ -90,6 +90,18 @@
           :model-value="showSourceBadge"
           @update:model-value="setPref('showSourceBadge')"
         />
+
+        <v-divider />
+
+        <!-- Floating top-right health pill (legacy). Off by default —
+             the sidebar dot next to the "streamloader" menu item is the
+             new primary indicator and avoids overlapping page chrome. -->
+        <SLToggleRow
+          label="Show floating health pill"
+          description="Bring back the older top-right status badge. The sidebar dot next to the streamloader menu item shows the same state without overlapping page controls, so this is off by default."
+          :model-value="showFloatingHealthPill"
+          @update:model-value="setPref('showFloatingHealthPill')"
+        />
       </CardContent>
     </Card>
 
@@ -317,6 +329,9 @@ const showSourceBadge = useStreamloaderPref("showSourceBadge");
 const showActivityPulse = useStreamloaderPref("showActivityPulse");
 const showRecentlyDownloaded = useStreamloaderPref("showRecentlyDownloaded");
 const announceQueueChanges = useStreamloaderPref("announceQueueChanges");
+// Streamloader-fork UX bug fix: floating top-right pill is now opt-in.
+// Default false — see DEFAULT_STREAMLOADER_PREFS.
+const showFloatingHealthPill = useStreamloaderPref("showFloatingHealthPill");
 
 const setPref = (key: keyof StreamloaderPrefDefaults) => (next: boolean) =>
   setStreamloaderPref(key, next);

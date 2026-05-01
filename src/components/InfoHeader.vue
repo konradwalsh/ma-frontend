@@ -82,31 +82,46 @@
                  The spin animation is gated on the active player's
                  PlaybackState.PLAYING so a paused queue freezes the disc.
                  Vinyl SVG self-contained, lifted from the streamloader
-                 web UI's /static/vinyl.svg. -->
-            <img
-              :src="vinylSvg"
-              alt=""
-              class="sl-vinyl-disc"
-              :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
-            />
-            <!-- Streamloader-fork addition (batch MMM3): album-cover
-                 thumbnail printed onto the vinyl's center label.
-                 Mirrors the disc's translate+rotate so it tracks the
-                 spin perfectly; brand-teal ring keeps the streamloader
-                 identity even with arbitrary covers. -->
+                 web UI's /static/vinyl.svg.
+
+                 Streamloader-fork fix (batch MMM4): split the protrude
+                 translate from the spin rotate onto separate wrappers.
+                 A combined translate+rotate on a single element rotates
+                 around the box's pre-translate center (the transform-
+                 origin is fixed in the box's local coords) — that made
+                 the disc orbit the cover instead of spinning in place.
+                 Now: .sl-vinyl-disc-protrude handles ONLY the protrude
+                 offset (never rotates), and .sl-vinyl-disc-spin nested
+                 inside handles ONLY the rotation (around its own center,
+                 which is the disc's center because the protrude wrapper
+                 already placed it there). The label is a descendant of
+                 the spinning wrapper so it tracks the disc perfectly. -->
             <div
-              v-if="vinylLabelImage"
-              class="sl-vinyl-label"
-              :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
+              class="sl-vinyl-disc-protrude"
               aria-hidden="true"
             >
-              <img :src="vinylLabelImage" alt="" />
+              <div
+                class="sl-vinyl-disc-spin"
+                :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
+              >
+                <img :src="vinylSvg" alt="" class="sl-vinyl-disc" />
+                <!-- Streamloader-fork addition (batch MMM3 / MMM4):
+                     album-cover thumbnail printed onto the vinyl's
+                     center label. Centered on the disc and inherits the
+                     spin wrapper's rotation, so it stays anchored to
+                     the spindle. Brand-teal ring keeps the streamloader
+                     identity even with arbitrary covers. -->
+                <div v-if="vinylLabelImage" class="sl-vinyl-label">
+                  <img :src="vinylLabelImage" alt="" />
+                </div>
+              </div>
+              <!-- Streamloader-fork addition (batch MMM3): fixed
+                   (non-rotating) sheen overlay sells the "physical
+                   object" look. Lives in the protrude wrapper so it
+                   tracks the disc's position but stays out of the
+                   spin wrapper so the highlight does not rotate. -->
+              <div class="sl-vinyl-sheen"></div>
             </div>
-            <!-- Streamloader-fork addition (batch MMM3): fixed
-                 (non-rotating) sheen overlay sells the "physical
-                 object" look. Sits above the disc but is not part of
-                 the spinning element so the highlight stays put. -->
-            <div class="sl-vinyl-sheen" aria-hidden="true"></div>
             <div class="sl-vinyl-cover">
               <MediaItemThumb
                 :item="item"
@@ -679,7 +694,13 @@ import { authManager } from "@/plugins/auth";
 import { eventbus } from "@/plugins/eventbus";
 import { store } from "@/plugins/store";
 import { IconHeart, IconHeartFilled } from "@tabler/icons-vue";
-import { ArrowLeft, ImagePlus, Merge, RefreshCw, Trash2 } from "lucide-vue-next";
+import {
+  ArrowLeft,
+  ImagePlus,
+  Merge,
+  RefreshCw,
+  Trash2,
+} from "lucide-vue-next";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
@@ -1061,9 +1082,7 @@ const triggerRescanMetadata = async () => {
   rescanPendingUri = target.uri;
   queueRescanItemId(target.item_id);
 
-  toast.info(
-    `Rescanning metadata for ${displayName}… this may take a moment.`,
-  );
+  toast.info(`Rescanning metadata for ${displayName}… this may take a moment.`);
 
   try {
     const updated = await api.refreshItem(target);
@@ -1195,18 +1214,27 @@ const deleteGenre = () => {
 
 .sl-vinyl-cover {
   position: relative;
+  /* Cover sits IN FRONT of the protruded disc (LP-from-sleeve look). */
   z-index: 2;
   display: block;
 }
 
-.sl-vinyl-disc {
+/* Streamloader-fork fix (batch MMM4): protrude wrapper. Holds the
+   disc + label + sheen in their offset position. NEVER rotates so the
+   spin axis stays anchored at the disc's actual center.
+   Sized 96% of cover width so it inherits the disc's aspect ratio
+   and dimensions; placed at top:50% / left:0 then translated up by
+   half its own height so its center aligns with the cover's vertical
+   midline. The horizontal protrude offset is mode-specific below. */
+.sl-vinyl-disc-protrude {
   position: absolute;
   top: 50%;
   left: 0;
   width: 96%;
-  height: auto;
   aspect-ratio: 1 / 1;
-  transform: translate(0, -50%) rotate(-40deg);
+  /* Resting (legacy hover-mode) pose: tucked behind cover, slightly
+     offset to convey the sleeved-LP look even before the user hovers. */
+  transform: translate(0, -50%);
   transform-origin: center center;
   transition: transform 700ms cubic-bezier(0.34, 1.36, 0.64, 1);
   z-index: 1;
@@ -1214,63 +1242,81 @@ const deleteGenre = () => {
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
 }
 
+/* Streamloader-fork fix (batch MMM4): spin wrapper. Sits inside the
+   protrude wrapper at full size, so its own center IS the disc's
+   center (no translate of its own). transform-origin: center center
+   means the rotation is around that disc center — spin in place. */
+.sl-vinyl-disc-spin {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+}
+
+.sl-vinyl-disc {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 /* Mode 1 (default for legacy): hover-only reveal. */
-.sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc {
-  transform: translate(45%, -50%) rotate(0deg);
+.sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc-protrude {
+  /* Peek out ~40% of the disc width to the right past the cover edge.
+     translate(40%, -50%) on the protrude wrapper preserves the spin
+     axis at the disc's true center. */
+  transform: translate(40%, -50%);
 }
 .sl-vinyl-wrapper.vinyl-mode--hover:hover {
   transform: rotate(-3deg) scale(1.03);
 }
 
-/* Mode 2 + 3: vinyl always peeks out by ~45% of its width. The
-   protrusion is on the wrapper's resting state for the disc; spin
-   in mode 3 is layered on top via a nested rotating element below. */
-.sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-disc,
-.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc {
-  transform: translate(45%, -50%) rotate(0deg);
+/* Mode 2 + 3: vinyl always peeks out — ~40% of the disc width is
+   visible past the cover's right edge. */
+.sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-disc-protrude,
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-protrude {
+  transform: translate(40%, -50%);
 }
 
-/* Mode 3: continuous slow spin — 8s per revolution. The transform
-   property is already used for the protrude offset, so we animate
-   rotate() via the modern individual-transform property which composes
-   with the translate() above. Pause class freezes the spin without
-   resetting the angle. */
-.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc {
+/* Mode 3: continuous slow spin — 8s per revolution. Animation is
+   applied to the spin wrapper (NOT the protrude wrapper), so the
+   rotation happens around the disc's own center. The pause class
+   freezes the spin without resetting the angle. */
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-spin {
   animation: sl-vinyl-spin 8s linear infinite;
 }
 .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning
-  .sl-vinyl-disc.sl-vinyl-spinning--paused {
+  .sl-vinyl-disc-spin.sl-vinyl-spinning--paused {
   animation-play-state: paused;
 }
 
 @keyframes sl-vinyl-spin {
   from {
-    rotate: 0deg;
+    transform: rotate(0deg);
   }
   to {
-    rotate: 360deg;
+    transform: rotate(360deg);
   }
 }
 
-/* Streamloader-fork addition (batch MMM3): center-label thumbnail.
-   Mirrors the disc's positioning/transform so the album cover prints
-   onto the label area and rotates in perfect lockstep with the disc. */
+/* Streamloader-fork addition (batch MMM3 / MMM4): center-label
+   thumbnail. Lives INSIDE the spin wrapper, centered on the disc via
+   the standard top:50%/left:50% + translate(-50%, -50%) trick. Because
+   it inherits the spin wrapper's rotation, it tracks the disc with no
+   additional transform math. */
 .sl-vinyl-label {
   position: absolute;
   top: 50%;
-  left: 0;
-  /* Disc is 96% of wrapper width; label is ~28% of disc → 26.9% of
-     wrapper width. Centered over the spindle. */
-  width: 26.9%;
-  aspect-ratio: 1 / 1;
-  /* Match disc resting transform: same rotate(-40deg) "tucked" pose. */
-  transform: translate(33.55%, -50%) rotate(-40deg);
-  transform-origin: center center;
-  transition: transform 700ms cubic-bezier(0.34, 1.36, 0.64, 1);
-  z-index: 1;
-  pointer-events: none;
+  left: 50%;
+  /* ~27% of the disc — covers the SVG's teal label area while leaving
+     an outer teal ring visible for brand identity. */
+  width: 27%;
+  height: 27%;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   overflow: hidden;
+  pointer-events: none;
   /* Brand-teal ring keeps streamloader identity around any cover art. */
   box-shadow:
     0 0 0 2px #2bd9ba,
@@ -1285,43 +1331,15 @@ const deleteGenre = () => {
   object-fit: cover;
 }
 
-/* Hover-mode: label peeks out alongside the disc on hover. */
-.sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-label {
-  /* Disc translates 45% of disc width = 43.2% of wrapper; label needs
-     same horizontal travel to track the spindle hole. */
-  transform: translate(176.95%, -50%) rotate(0deg);
-}
-
-/* Always-visible (modes 2 + 3): label rides along with the disc. */
-.sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-label,
-.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-label {
-  transform: translate(176.95%, -50%) rotate(0deg);
-}
-
-/* Mode 3: spin label in lockstep with the disc. Same 8s linear loop
-   so phase stays aligned for the lifetime of the page. */
-.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-label {
-  animation: sl-vinyl-spin 8s linear infinite;
-}
-.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning
-  .sl-vinyl-label.sl-vinyl-spinning--paused {
-  animation-play-state: paused;
-}
-
 /* Streamloader-fork addition (batch MMM3): fixed sheen highlight.
-   Sits above the disc + label but does NOT rotate — sells the look
-   of a physical object catching room light. Pointer-events disabled
-   so it doesn't intercept clicks on the underlying cover. */
+   Lives in the protrude wrapper so it tracks the disc's position, but
+   sits outside the spin wrapper so it does NOT rotate — sells the
+   look of a physical object catching room light. */
 .sl-vinyl-sheen {
   position: absolute;
-  top: 50%;
-  left: 0;
-  width: 96%;
-  aspect-ratio: 1 / 1;
-  transform: translate(0, -50%);
+  inset: 0;
   border-radius: 50%;
   pointer-events: none;
-  z-index: 1;
   background: radial-gradient(
     circle at 32% 28%,
     rgba(255, 255, 255, 0.18) 0%,
@@ -1331,19 +1349,9 @@ const deleteGenre = () => {
   mix-blend-mode: screen;
 }
 
-.sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-sheen,
-.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-sheen {
-  transform: translate(45%, -50%);
-}
-
-.sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-sheen {
-  transform: translate(45%, -50%);
-}
-
 /* Respect users who've asked the OS to reduce motion. */
 @media (prefers-reduced-motion: reduce) {
-  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc,
-  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-label {
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-spin {
     animation: none;
   }
 }
@@ -1353,13 +1361,7 @@ const deleteGenre = () => {
    either always-trigger or never-trigger it depending on browser, and
    neither adds anything. Always-visible modes are unaffected. */
 @media (hover: none) {
-  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc {
-    transform: translate(0, -50%) rotate(-40deg);
-  }
-  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-label {
-    transform: translate(33.55%, -50%) rotate(-40deg);
-  }
-  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-sheen {
+  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc-protrude {
     transform: translate(0, -50%);
   }
   .sl-vinyl-wrapper.vinyl-mode--hover:hover {

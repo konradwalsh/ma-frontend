@@ -106,7 +106,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import api, { ConnectionState } from "@/plugins/api";
 import { store } from "@/plugins/store";
 import { eventbus } from "@/plugins/eventbus";

@@ -12,6 +12,18 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+// Streamloader-fork (UX bug: the floating top-right HealthPill was
+// overlapping page chrome controls). The status indicator now lives
+// inline on the "streamloader" sidebar item as a small colored dot.
+// We special-case the render here (rather than wiring a slot through
+// every consumer) because there's exactly one item that needs it and
+// the v-if check below is essentially free.
+import StreamloaderHealthDot from "@/components/StreamloaderHealthDot.vue";
+
+// Stable identifier for the streamloader sidebar entry. Matches the
+// `path` set in getMenuItems.ts; using the URL keeps us decoupled from
+// i18n-translated labels.
+const STREAMLOADER_NAV_URL = "/settings/streamloader";
 
 interface NavItem {
   title: string;
@@ -77,6 +89,12 @@ const handleClick = (item: NavItem, event: Event) => {
               :stroke-width="isActive(item.url) ? 2.5 : 2"
             />
             <span>{{ item.title }}</span>
+            <!-- Streamloader provider health dot — inline next to the
+                 "streamloader" label only. Renders nothing on every other
+                 nav item. The dot itself self-hides during cold-boot when
+                 the provider list hasn't arrived yet, so there's no
+                 layout flicker. -->
+            <StreamloaderHealthDot v-if="item.url === STREAMLOADER_NAV_URL" />
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

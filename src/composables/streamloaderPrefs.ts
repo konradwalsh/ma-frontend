@@ -28,16 +28,23 @@ export interface StreamloaderPrefDefaults {
   showActivityPulse: boolean;
   showRecentlyDownloaded: boolean;
   announceQueueChanges: boolean;
+  showFloatingHealthPill: boolean;
 }
 
 // All-on by default — these features are the whole point of the fork. Users
 // who want a quieter UI flip them off in the new Streamloader settings page.
+//
+// `showFloatingHealthPill` is the exception: it defaults OFF because the
+// provider status is now surfaced as a small dot next to the "streamloader"
+// sidebar item. The floating top-right pill remains an opt-in for users who
+// preferred the older always-visible badge.
 export const DEFAULT_STREAMLOADER_PREFS: StreamloaderPrefDefaults = {
   showLibraryStats: true,
   showSourceBadge: true,
   showActivityPulse: true,
   showRecentlyDownloaded: true,
   announceQueueChanges: true,
+  showFloatingHealthPill: false,
 };
 
 const storageKey = (key: keyof StreamloaderPrefDefaults): string =>
