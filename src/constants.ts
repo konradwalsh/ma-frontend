@@ -1,5 +1,9 @@
 export const DEFAULT_MENU_ITEMS = [
   "discover",
+  // Streamloader-fork addition: dedicated curated discover page (recently
+  // added / random picks / recently active artists). Sits directly after
+  // the upstream /discover entry so the two appear together near the top.
+  "streamloaderdiscover",
   "search",
   "party",
   "artists",

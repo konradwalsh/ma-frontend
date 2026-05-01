@@ -303,6 +303,20 @@ const routes: RouteRecordRaw[] = [
         ],
       },
       {
+        // Streamloader-fork addition: dedicated curated "Discover" page.
+        // The existing /discover route already serves HomeView (upstream
+        // recommendation rails); this sibling route surfaces a tighter,
+        // local-library-only set of rails (recently added, random picks,
+        // recently active artists). Kept on its own path so we don't
+        // change existing /discover behaviour.
+        path: "/streamloader-discover",
+        name: "streamloaderdiscover",
+        component: () =>
+          import(
+            /* webpackChunkName: "streamloaderdiscover" */ "@/views/StreamloaderDiscover.vue"
+          ),
+      },
+      {
         // Streamloader-fork addition: top-level "Recently Played" view.
         // Surfaces the global play-history (api.getRecentlyPlayedItems)
         // that's otherwise buried inside PlayerFullscreen → PLAYED tab,

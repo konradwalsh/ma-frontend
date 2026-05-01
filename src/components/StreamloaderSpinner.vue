@@ -16,7 +16,7 @@
     class="sl-spinner"
     :style="{ '--sl-spin-size': `${size}px` }"
     role="status"
-    :aria-label="label"
+    :aria-label="resolvedLabel"
   >
     <span class="sl-spinner__glow" aria-hidden="true"></span>
     <img
@@ -26,24 +26,32 @@
       class="sl-spinner__mark"
       draggable="false"
     />
-    <span class="sl-spinner__sr">{{ label }}</span>
+    <span class="sl-spinner__sr">{{ resolvedLabel }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
 import markUrl from "@/assets/streamloader-mark.svg";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
-withDefaults(
+const { t } = useI18n();
+
+const props = withDefaults(
   defineProps<{
     /** Render diameter in px. Clamped 32-48 in CSS. */
     size?: number;
-    /** Screen-reader label; visually hidden. */
+    /** Screen-reader label; visually hidden. Defaults to a localized "Loading". */
     label?: string;
   }>(),
   {
     size: 40,
-    label: "Loading",
+    label: "",
   },
+);
+
+const resolvedLabel = computed(
+  () => props.label || t("streamloader.spinner.default_label"),
 );
 </script>
 

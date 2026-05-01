@@ -30,8 +30,12 @@
     role="status"
     :aria-label="
       visibleTasks.length === 1
-        ? t('streamloader.activity_pulse.aria_label_one', { count: visibleTasks.length })
-        : t('streamloader.activity_pulse.aria_label_other', { count: visibleTasks.length })
+        ? t('streamloader.activity_pulse.aria_label_one', {
+            count: visibleTasks.length,
+          })
+        : t('streamloader.activity_pulse.aria_label_other', {
+            count: visibleTasks.length,
+          })
     "
   >
     <div class="sl-activity-pulse__header">

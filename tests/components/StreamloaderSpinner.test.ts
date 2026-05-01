@@ -7,6 +7,14 @@ vi.mock("@/assets/streamloader-mark.svg", () => ({
   default: "/test/streamloader-mark.svg",
 }));
 
+// The spinner now calls `useI18n()` to localize the default screen-reader
+// label. Resolve keys against the real en.json so existing assertions
+// against "Loading" still hold.
+vi.mock("vue-i18n", async () => {
+  const { vueI18nMock } = await import("../i18n-mock");
+  return vueI18nMock();
+});
+
 import StreamloaderSpinner from "@/components/StreamloaderSpinner.vue";
 
 describe("StreamloaderSpinner.vue", () => {

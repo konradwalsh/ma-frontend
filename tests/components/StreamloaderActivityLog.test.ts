@@ -217,9 +217,9 @@ describe("StreamloaderActivityLog.vue", () => {
     const wrapper = mountLog();
     // The Streamloader empty-state stub passes through children, so its
     // presence is asserted via the component name registration.
-    expect(wrapper.findComponent({ name: "StreamloaderEmptyState" }).exists()).toBe(
-      true,
-    );
+    expect(
+      wrapper.findComponent({ name: "StreamloaderEmptyState" }).exists(),
+    ).toBe(true);
     expect(wrapper.find(".sl-activity-log__list").exists()).toBe(false);
   });
 

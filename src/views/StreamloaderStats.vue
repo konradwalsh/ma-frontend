@@ -29,42 +29,64 @@
     <Toolbar
       :icon="BarChart3"
       color="background"
-      title="Streamloader Stats"
+      :title="$t('streamloader.stats.toolbar_title')"
     />
 
     <Container variant="comfortable" class="sl-stats-container">
       <!-- Page header with brand-teal underline (matches RecentlyPlayed) -->
       <div class="sl-stats-header">
-        <h1 class="sl-stats-title">Streamloader Stats</h1>
+        <h1 class="sl-stats-title">
+          {{ $t("streamloader.stats.page_title") }}
+        </h1>
         <div class="sl-stats-subtitle">
-          A quick read on your library, provider, and recent activity.
+          {{ $t("streamloader.stats.subtitle") }}
         </div>
       </div>
 
       <div class="sl-stats-grid">
         <!-- Library counts -->
-        <article class="sl-stat-card sl-stat-card--real" aria-labelledby="sl-stat-library">
+        <article
+          class="sl-stat-card sl-stat-card--real"
+          aria-labelledby="sl-stat-library"
+        >
           <header class="sl-stat-card__head">
             <Library :size="18" class="sl-stat-card__icon" />
-            <h2 id="sl-stat-library" class="sl-stat-card__title">Library</h2>
+            <h2 id="sl-stat-library" class="sl-stat-card__title">
+              {{ $t("streamloader.stats.card_library_title") }}
+            </h2>
           </header>
           <div class="sl-stat-card__body">
             <div v-if="hasLibraryCounts" class="sl-stat-trio">
               <div class="sl-stat-trio__cell">
-                <div class="sl-stat-trio__value">{{ libraryFormatted.tracks }}</div>
-                <div class="sl-stat-trio__label">tracks</div>
+                <div class="sl-stat-trio__value">
+                  {{ libraryFormatted.tracks }}
+                </div>
+                <div class="sl-stat-trio__label">
+                  {{ $t("streamloader.stats.label_tracks") }}
+                </div>
               </div>
               <div class="sl-stat-trio__cell">
-                <div class="sl-stat-trio__value">{{ libraryFormatted.artists }}</div>
-                <div class="sl-stat-trio__label">artists</div>
+                <div class="sl-stat-trio__value">
+                  {{ libraryFormatted.artists }}
+                </div>
+                <div class="sl-stat-trio__label">
+                  {{ $t("streamloader.stats.label_artists") }}
+                </div>
               </div>
               <div class="sl-stat-trio__cell">
-                <div class="sl-stat-trio__value">{{ libraryFormatted.albums }}</div>
-                <div class="sl-stat-trio__label">albums</div>
+                <div class="sl-stat-trio__value">
+                  {{ libraryFormatted.albums }}
+                </div>
+                <div class="sl-stat-trio__label">
+                  {{ $t("streamloader.stats.label_albums") }}
+                </div>
               </div>
             </div>
             <div v-else class="sl-stat-card__loading">
-              <StreamloaderSpinner :size="36" label="Loading library counts" />
+              <StreamloaderSpinner
+                :size="36"
+                :label="$t('streamloader.stats.loading_library_label')"
+              />
             </div>
           </div>
           <footer v-if="hasLibraryCounts" class="sl-stat-card__foot">
@@ -73,41 +95,61 @@
         </article>
 
         <!-- Provider status -->
-        <article class="sl-stat-card sl-stat-card--real" aria-labelledby="sl-stat-provider">
+        <article
+          class="sl-stat-card sl-stat-card--real"
+          aria-labelledby="sl-stat-provider"
+        >
           <header class="sl-stat-card__head">
             <StreamloaderHealthDot />
-            <h2 id="sl-stat-provider" class="sl-stat-card__title">Provider</h2>
+            <h2 id="sl-stat-provider" class="sl-stat-card__title">
+              {{ $t("streamloader.stats.card_provider_title") }}
+            </h2>
           </header>
           <div class="sl-stat-card__body">
             <div class="sl-stat-card__big">{{ providerStatusLabel }}</div>
             <div class="sl-stat-card__sub">{{ providerName }}</div>
           </div>
           <footer class="sl-stat-card__foot">
-            <span class="sl-stat-card__foot-label">Last activity</span>
-            <span class="sl-stat-card__foot-value">{{ lastActivityLabel }}</span>
+            <span class="sl-stat-card__foot-label">
+              {{ $t("streamloader.stats.foot_last_activity") }}
+            </span>
+            <span class="sl-stat-card__foot-value">{{
+              lastActivityLabel
+            }}</span>
           </footer>
         </article>
 
         <!-- Recent activity summary -->
-        <article class="sl-stat-card sl-stat-card--real" aria-labelledby="sl-stat-activity">
+        <article
+          class="sl-stat-card sl-stat-card--real"
+          aria-labelledby="sl-stat-activity"
+        >
           <header class="sl-stat-card__head">
             <Activity :size="18" class="sl-stat-card__icon" />
-            <h2 id="sl-stat-activity" class="sl-stat-card__title">Activity</h2>
+            <h2 id="sl-stat-activity" class="sl-stat-card__title">
+              {{ $t("streamloader.stats.card_activity_title") }}
+            </h2>
           </header>
           <div class="sl-stat-card__body">
             <div class="sl-stat-pair">
               <div class="sl-stat-pair__cell">
                 <div class="sl-stat-pair__value">{{ downloadsLast24h }}</div>
-                <div class="sl-stat-pair__label">downloads · 24h</div>
+                <div class="sl-stat-pair__label">
+                  {{ $t("streamloader.stats.label_downloads_24h") }}
+                </div>
               </div>
               <div class="sl-stat-pair__cell">
                 <div class="sl-stat-pair__value">{{ downloadsLast7d }}</div>
-                <div class="sl-stat-pair__label">downloads · 7d</div>
+                <div class="sl-stat-pair__label">
+                  {{ $t("streamloader.stats.label_downloads_7d") }}
+                </div>
               </div>
             </div>
           </div>
           <footer class="sl-stat-card__foot">
-            <span class="sl-stat-card__foot-label">Tracked events</span>
+            <span class="sl-stat-card__foot-label">
+              {{ $t("streamloader.stats.foot_tracked_events") }}
+            </span>
             <span class="sl-stat-card__foot-value">{{ entries.length }}</span>
           </footer>
         </article>
@@ -119,19 +161,26 @@
         >
           <header class="sl-stat-card__head">
             <HardDrive :size="18" class="sl-stat-card__icon" />
-            <h2 id="sl-stat-storage" class="sl-stat-card__title">Storage</h2>
-            <span class="sl-stat-card__pill">Coming soon</span>
+            <h2 id="sl-stat-storage" class="sl-stat-card__title">
+              {{ $t("streamloader.stats.card_storage_title") }}
+            </h2>
+            <span class="sl-stat-card__pill">
+              {{ $t("streamloader.stats.pill_coming_soon") }}
+            </span>
           </header>
           <div class="sl-stat-card__body">
             <div class="sl-stat-card__big sl-stat-card__big--muted">—</div>
             <div class="sl-stat-card__sub">
-              On-disk cache size will appear here once the streamloader
-              backend exposes a cache-stats endpoint.
+              {{ $t("streamloader.stats.storage_placeholder_body") }}
             </div>
           </div>
           <footer class="sl-stat-card__foot">
-            <span class="sl-stat-card__foot-label">Status</span>
-            <span class="sl-stat-card__foot-value">Pending backend support</span>
+            <span class="sl-stat-card__foot-label">
+              {{ $t("streamloader.stats.foot_status") }}
+            </span>
+            <span class="sl-stat-card__foot-value">
+              {{ $t("streamloader.stats.foot_status_pending") }}
+            </span>
           </footer>
         </article>
       </div>
@@ -149,6 +198,9 @@ import api from "@/plugins/api";
 import { store } from "@/plugins/store";
 import { Activity, BarChart3, HardDrive, Library } from "lucide-vue-next";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const STREAMLOADER_DOMAIN = "streamloader";
 
@@ -175,10 +227,14 @@ const libraryFormatted = computed(() => ({
 }));
 
 const libraryFullTitle = computed(() => {
-  const t = (store.libraryTracksCount ?? 0).toLocaleString();
-  const a = (store.libraryArtistsCount ?? 0).toLocaleString();
-  const al = (store.libraryAlbumsCount ?? 0).toLocaleString();
-  return `${t} tracks · ${a} artists · ${al} albums`;
+  const tracks = (store.libraryTracksCount ?? 0).toLocaleString();
+  const artists = (store.libraryArtistsCount ?? 0).toLocaleString();
+  const albums = (store.libraryAlbumsCount ?? 0).toLocaleString();
+  return t("streamloader.stats.library_full_title", {
+    tracks,
+    artists,
+    albums,
+  });
 });
 
 // --- Provider status (same logic as StreamloaderHealthDot) ---------------
@@ -193,13 +249,18 @@ const streamloaderProvider = computed(() => {
 
 const providerStatusLabel = computed(() => {
   const p = streamloaderProvider.value;
-  if (!api.providers || Object.keys(api.providers).length === 0) return "Connecting…";
-  if (!p) return "Not configured";
-  return p.available ? "Online" : "Degraded";
+  if (!api.providers || Object.keys(api.providers).length === 0)
+    return t("streamloader.stats.provider_status_connecting");
+  if (!p) return t("streamloader.stats.provider_status_not_configured");
+  return p.available
+    ? t("streamloader.stats.provider_status_online")
+    : t("streamloader.stats.provider_status_degraded");
 });
 
 const providerName = computed(
-  () => streamloaderProvider.value?.name ?? "No streamloader provider",
+  () =>
+    streamloaderProvider.value?.name ??
+    t("streamloader.stats.provider_name_none"),
 );
 
 // --- Activity log --------------------------------------------------------
@@ -237,19 +298,25 @@ const downloadsLast7d = computed(() => {
 
 const lastActivityLabel = computed(() => {
   const latest = entries.value[0];
-  if (!latest) return "No recorded activity yet";
+  if (!latest) return t("streamloader.stats.last_activity_none");
   const diff = Math.max(0, now.value - latest.timestamp);
-  if (diff < 60_000) return "just now";
+  if (diff < 60_000) return t("streamloader.stats.last_activity_just_now");
   if (diff < HOUR_MS) {
     const m = Math.floor(diff / 60_000);
-    return `${m} min${m === 1 ? "" : "s"} ago`;
+    return m === 1
+      ? t("streamloader.stats.last_activity_min_one", { count: m })
+      : t("streamloader.stats.last_activity_min_other", { count: m });
   }
   if (diff < DAY_MS) {
     const h = Math.floor(diff / HOUR_MS);
-    return `${h} hour${h === 1 ? "" : "s"} ago`;
+    return h === 1
+      ? t("streamloader.stats.last_activity_hour_one", { count: h })
+      : t("streamloader.stats.last_activity_hour_other", { count: h });
   }
   const d = Math.floor(diff / DAY_MS);
-  return `${d} day${d === 1 ? "" : "s"} ago`;
+  return d === 1
+    ? t("streamloader.stats.last_activity_day_one", { count: d })
+    : t("streamloader.stats.last_activity_day_other", { count: d });
 });
 </script>
 
@@ -327,7 +394,8 @@ const lastActivityLabel = computed(() => {
 
 .sl-stat-card--real:hover {
   border-color: rgba(45, 212, 191, 0.4);
-  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.18),
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.18),
     0 6px 18px rgba(45, 212, 191, 0.12);
   transform: translateY(-1px);
 }

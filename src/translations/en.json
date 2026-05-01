@@ -1831,6 +1831,17 @@
             "chip_all": "All time",
             "chip_tooltip": "Filters approximate by recency count"
         },
+        "discover": {
+            "menu_label": "Discover Picks",
+            "page_title": "Discover",
+            "subtitle": "Curated picks from your streamloader library.",
+            "loading_label": "Loading discover picks",
+            "empty_title": "Nothing to discover yet",
+            "empty_message": "Add some music to your library and we'll curate picks here.",
+            "section_recently_added": "Recently Added",
+            "section_random_picks": "Random Picks",
+            "section_recently_active_artists": "Recently Active Artists"
+        },
         "settings": {
             "header_title": "streamloader",
             "header_description": "Customize how Streamloader looks and feels.",
@@ -1875,6 +1886,44 @@
             "status_ready_label": "Ready",
             "status_ready_title": "Streamloader ({name}) is reachable and authenticated",
             "status_aria_label": "Streamloader status: {label}"
+        },
+        "spinner": {
+            "default_label": "Loading"
+        },
+        "stats": {
+            "toolbar_title": "Streamloader Stats",
+            "page_title": "Streamloader Stats",
+            "subtitle": "A quick read on your library, provider, and recent activity.",
+            "card_library_title": "Library",
+            "card_provider_title": "Provider",
+            "card_activity_title": "Activity",
+            "card_storage_title": "Storage",
+            "label_tracks": "tracks",
+            "label_artists": "artists",
+            "label_albums": "albums",
+            "label_downloads_24h": "downloads · 24h",
+            "label_downloads_7d": "downloads · 7d",
+            "loading_library_label": "Loading library counts",
+            "library_full_title": "{tracks} tracks · {artists} artists · {albums} albums",
+            "foot_last_activity": "Last activity",
+            "foot_tracked_events": "Tracked events",
+            "foot_status": "Status",
+            "foot_status_pending": "Pending backend support",
+            "pill_coming_soon": "Coming soon",
+            "storage_placeholder_body": "On-disk cache size will appear here once the streamloader backend exposes a cache-stats endpoint.",
+            "provider_status_connecting": "Connecting…",
+            "provider_status_not_configured": "Not configured",
+            "provider_status_online": "Online",
+            "provider_status_degraded": "Degraded",
+            "provider_name_none": "No streamloader provider",
+            "last_activity_none": "No recorded activity yet",
+            "last_activity_just_now": "just now",
+            "last_activity_min_one": "{count} min ago",
+            "last_activity_min_other": "{count} mins ago",
+            "last_activity_hour_one": "{count} hour ago",
+            "last_activity_hour_other": "{count} hours ago",
+            "last_activity_day_one": "{count} day ago",
+            "last_activity_day_other": "{count} days ago"
         }
     }
 }

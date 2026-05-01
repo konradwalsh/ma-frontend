@@ -18,7 +18,9 @@
   <div
     v-if="enabled && !collapsed && (hasCounts || showLoading)"
     class="sl-lib-stats"
-    :title="hasCounts ? fullTitle : t('streamloader.library_stats.loading_title')"
+    :title="
+      hasCounts ? fullTitle : t('streamloader.library_stats.loading_title')
+    "
   >
     <span class="sl-lib-stats__label">{{
       t("streamloader.library_stats.label")
@@ -131,7 +133,11 @@ const fullTitle = computed(() => {
   const tracks = (store.libraryTracksCount ?? 0).toLocaleString();
   const artists = (store.libraryArtistsCount ?? 0).toLocaleString();
   const albums = (store.libraryAlbumsCount ?? 0).toLocaleString();
-  return t("streamloader.library_stats.full_title", { tracks, artists, albums });
+  return t("streamloader.library_stats.full_title", {
+    tracks,
+    artists,
+    albums,
+  });
 });
 </script>
 

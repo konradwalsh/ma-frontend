@@ -68,7 +68,9 @@
           <div
             class="sl-tour-card__dots"
             role="tablist"
-            :aria-label="t('streamloader.welcome_tour.tour_progress_aria_label')"
+            :aria-label="
+              t('streamloader.welcome_tour.tour_progress_aria_label')
+            "
           >
             <button
               v-for="(_, i) in steps"

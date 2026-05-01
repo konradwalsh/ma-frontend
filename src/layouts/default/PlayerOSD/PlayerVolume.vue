@@ -77,7 +77,11 @@
       @touchcancel.passive="onTouchCancel"
     >
       <!-- Mute button with dynamic volume icon -->
-      <div class="volume-prepend" @touchstart.stop.passive @touchend.stop.passive>
+      <div
+        class="volume-prepend"
+        @touchstart.stop.passive
+        @touchend.stop.passive
+      >
         <button
           class="volume-icon-btn"
           :class="{ 'is-muted': isMuted }"

@@ -31,7 +31,9 @@
     class="sl-health-pill"
     :class="`sl-health-pill--${state.tone}`"
     :title="state.title"
-    :aria-label="t('streamloader.health_pill.aria_label', { label: state.label })"
+    :aria-label="
+      t('streamloader.health_pill.aria_label', { label: state.label })
+    "
     href="/#/settings/providers"
   >
     <span class="sl-health-pill__dot"></span>

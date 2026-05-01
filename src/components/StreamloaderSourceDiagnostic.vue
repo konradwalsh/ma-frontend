@@ -38,7 +38,9 @@
           <div
             v-if="diagnostic.providerNames.length"
             class="sl-src-diag__chips"
-            :aria-label="t('streamloader.source_diagnostic.providers_aria_label')"
+            :aria-label="
+              t('streamloader.source_diagnostic.providers_aria_label')
+            "
           >
             <span
               v-for="name in diagnostic.providerNames"

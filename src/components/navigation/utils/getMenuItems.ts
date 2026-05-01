@@ -68,6 +68,18 @@ export const getMenuItems = function () {
         isLibraryNode: false,
       });
     }
+    if (enabledMenuItemStr === "streamloaderdiscover") {
+      // Streamloader-fork addition: curated picks page (recently added,
+      // random picks, recently active artists). Compass icon shared with
+      // the upstream /discover entry — same family of "go find something"
+      // affordances; the label disambiguates them.
+      items.push({
+        label: "streamloader.discover.menu_label",
+        icon: Compass,
+        path: "/streamloader-discover",
+        isLibraryNode: false,
+      });
+    }
     if (enabledMenuItemStr === "search") {
       items.push({
         label: "search",

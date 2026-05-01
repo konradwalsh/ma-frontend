@@ -36,7 +36,9 @@
       <div class="sl-eb__icon-halo" aria-hidden="true">
         <img :src="markUrl" alt="" class="sl-eb__mark" draggable="false" />
       </div>
-      <div class="sl-eb__title">{{ t("streamloader.error_boundary.title") }}</div>
+      <div class="sl-eb__title">
+        {{ t("streamloader.error_boundary.title") }}
+      </div>
       <div class="sl-eb__message">
         {{ t("streamloader.error_boundary.message") }}
       </div>
@@ -61,9 +63,9 @@
         </v-btn>
       </div>
       <details v-if="isDev" class="sl-eb__details">
-        <summary class="sl-eb__details-summary">{{
-          t("streamloader.error_boundary.details_summary")
-        }}</summary>
+        <summary class="sl-eb__details-summary">
+          {{ t("streamloader.error_boundary.details_summary") }}
+        </summary>
         <div class="sl-eb__details-body">
           <div class="sl-eb__details-msg">
             {{ capturedError.message || String(capturedError) }}

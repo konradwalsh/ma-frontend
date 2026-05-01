@@ -35,7 +35,9 @@
         :class="{ 'sl-activity-log__bell--collapsed': collapsed }"
         :aria-label="
           hasUnread
-            ? t('streamloader.activity_log.bell_label_unread', { count: unreadCount })
+            ? t('streamloader.activity_log.bell_label_unread', {
+                count: unreadCount,
+              })
             : t('streamloader.activity_log.bell_label')
         "
       >
@@ -142,7 +144,10 @@ type FilterValue = "all" | "downloads" | "scans" | "errors";
 
 const FILTER_CHIPS = computed<{ value: FilterValue; label: string }[]>(() => [
   { value: "all", label: t("streamloader.activity_log.filter_all") },
-  { value: "downloads", label: t("streamloader.activity_log.filter_downloads") },
+  {
+    value: "downloads",
+    label: t("streamloader.activity_log.filter_downloads"),
+  },
   { value: "scans", label: t("streamloader.activity_log.filter_scans") },
   { value: "errors", label: t("streamloader.activity_log.filter_errors") },
 ]);

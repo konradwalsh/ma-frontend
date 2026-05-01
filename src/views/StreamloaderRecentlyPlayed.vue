@@ -131,7 +131,11 @@ interface Chip {
   limit: number;
 }
 const chips = computed<Chip[]>(() => [
-  { id: "today", label: t("streamloader.recently_played.chip_today"), limit: 10 },
+  {
+    id: "today",
+    label: t("streamloader.recently_played.chip_today"),
+    limit: 10,
+  },
   { id: "week", label: t("streamloader.recently_played.chip_week"), limit: 25 },
   {
     id: "month",

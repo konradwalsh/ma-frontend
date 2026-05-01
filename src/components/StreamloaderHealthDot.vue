@@ -27,7 +27,9 @@
     :class="`sl-health-dot--${state.tone}`"
     :title="state.title"
     role="img"
-    :aria-label="t('streamloader.health_dot.aria_label', { label: state.label })"
+    :aria-label="
+      t('streamloader.health_dot.aria_label', { label: state.label })
+    "
   ></span>
 </template>
 
