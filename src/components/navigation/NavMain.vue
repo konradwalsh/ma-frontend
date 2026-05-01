@@ -129,6 +129,20 @@ const handleClick = (item: NavItem, event: Event) => {
     border-color 150ms ease;
 }
 
+/* a11y batch #2: collapsed/icon rail variant. The shadcn cva applies
+   `group-data-[collapsible=icon]:size-8!` (32x32) to nav buttons when the
+   sidebar collapses to its icon-only rail — that lands below the WCAG 2.5.5
+   touch-target minimum. Override both width and height to 44px so the rail
+   icons remain a comfortable tap target. The visual icon size is unchanged
+   (set elsewhere via the inner svg rules); only the hit-area grows. */
+:deep([data-collapsible="icon"] .nav-main-button),
+:deep([data-state="collapsed"] .nav-main-button) {
+  min-width: 44px !important;
+  width: 44px !important;
+  min-height: 44px !important;
+  height: 44px !important;
+}
+
 :deep(.nav-main-button:hover:not([data-disabled])) {
   background-color: rgba(15, 118, 110, 0.08) !important;
 }

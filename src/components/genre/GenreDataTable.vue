@@ -578,4 +578,13 @@ const table = useVueTable({
   color: hsl(var(--primary));
   background-color: hsl(var(--primary) / 0.08);
 }
+
+/* a11y/WCAG 2.5.5 (touch-target sweep #2): pagination buttons render at
+   size-8 (32x32) which is below the WCAG touch-target minimum on mobile.
+   Bump to 40x40 — the chevron icons remain centered (no `size-N` on them
+   here, so the inner svg keeps its default). */
+.genre-data-table__page-btn {
+  min-height: 40px !important;
+  min-width: 40px !important;
+}
 </style>

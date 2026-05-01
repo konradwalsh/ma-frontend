@@ -202,8 +202,13 @@ import { getSourceName } from "@/plugins/api/helpers";
 import { PlaybackState, PlayerType } from "@/plugins/api/interfaces";
 import { getBreakpointValue } from "@/plugins/breakpoint";
 import { store } from "@/plugins/store";
-import { computed, ref, watch } from "vue";
-import PlayerFullscreen from "./PlayerFullscreen.vue";
+import { computed, defineAsyncComponent, ref, watch } from "vue";
+// Lazy-loaded — fullscreen player is only rendered when the user opts in via
+// store.showFullscreenPlayer. Splitting it out keeps the 1.9k-line component
+// out of the initial bundle (Streamloader bundle-split, batch BBB3).
+const PlayerFullscreen = defineAsyncComponent(
+  () => import("./PlayerFullscreen.vue"),
+);
 
 const marqueeSync = new MarqueeTextSync();
 

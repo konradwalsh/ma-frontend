@@ -45,6 +45,16 @@ const emit = defineEmits<{ navigate: []; exclude: [] }>();
 </script>
 
 <style scoped>
+/* a11y/WCAG 2.5.5 (touch-target sweep #2): the row-actions 3-dot trigger
+   defaults to size-8 (32x32) per the shadcn primitive. That falls below
+   the 24x24 AA minimum once table-row spacing tightens around it. Bump
+   to a 40x40 hit area while keeping the visual icon (size-4) unchanged;
+   shadcn's `size-8` is overridden via min-width/min-height. */
+.genre-row-actions__trigger {
+  min-height: 40px !important;
+  min-width: 40px !important;
+}
+
 /* Teal-tinted hover state on the trigger button */
 .genre-row-actions__trigger:hover {
   color: hsl(var(--primary));

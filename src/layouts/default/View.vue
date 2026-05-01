@@ -40,14 +40,9 @@ import AppSidebar from "@/components/navigation/AppSidebar.vue";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { store } from "@/plugins/store";
 import PlayerSelect from "./PlayerSelect.vue";
-import DeleteGenreDialog from "@/components/genre/DeleteGenreDialog.vue";
-import LinkGenreDialog from "@/components/genre/LinkGenreDialog.vue";
-import MergeGenreDialog from "@/components/genre/MergeGenreDialog.vue";
-import AddToPlaylistDialog from "./AddToPlaylistDialog.vue";
-import CreatePlaylistDialog from "./CreatePlaylistDialog.vue";
-import ImportPlaylistDialog from "./ImportPlaylistDialog.vue";
-import ItemContextMenu from "./ItemContextMenu.vue";
-import AddManualLink from "@/components/AddManualLink.vue";
+// Dialogs are lazy-loaded — they only render when their v-model toggles open,
+// so the bundler can defer the chunk until first use. This keeps the initial
+// app payload smaller (Streamloader bundle-split, batch BBB3).
 import {
   MediaType,
   type Playlist,
@@ -55,7 +50,32 @@ import {
   type Track,
 } from "@/plugins/api/interfaces";
 import { eventbus } from "@/plugins/eventbus";
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { defineAsyncComponent, onBeforeUnmount, onMounted, ref } from "vue";
+
+const DeleteGenreDialog = defineAsyncComponent(
+  () => import("@/components/genre/DeleteGenreDialog.vue"),
+);
+const LinkGenreDialog = defineAsyncComponent(
+  () => import("@/components/genre/LinkGenreDialog.vue"),
+);
+const MergeGenreDialog = defineAsyncComponent(
+  () => import("@/components/genre/MergeGenreDialog.vue"),
+);
+const AddToPlaylistDialog = defineAsyncComponent(
+  () => import("./AddToPlaylistDialog.vue"),
+);
+const CreatePlaylistDialog = defineAsyncComponent(
+  () => import("./CreatePlaylistDialog.vue"),
+);
+const ImportPlaylistDialog = defineAsyncComponent(
+  () => import("./ImportPlaylistDialog.vue"),
+);
+const ItemContextMenu = defineAsyncComponent(
+  () => import("./ItemContextMenu.vue"),
+);
+const AddManualLink = defineAsyncComponent(
+  () => import("@/components/AddManualLink.vue"),
+);
 
 const showEditItemDialog = ref(false);
 const editItem = ref<Radio | Track | Playlist | undefined>(undefined);

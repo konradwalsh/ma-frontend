@@ -40,7 +40,14 @@ import authManager from "@/plugins/auth";
 import { i18n } from "@/plugins/i18n";
 import { store } from "@/plugins/store";
 import { useColorMode } from "@vueuse/core";
-import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+} from "vue";
 import { useRouter } from "vue-router";
 import "vue-sonner/style.css";
 import { useTheme } from "vuetify";
@@ -61,14 +68,21 @@ import {
   webPlayer,
   WebPlayerMode,
 } from "./plugins/web_player";
-import Login from "./views/Login.vue";
+// Lazy-loaded — Login.vue is the largest single view (~2.2k lines) and only
+// renders when the user is unauthenticated. Splitting it keeps the auth-screen
+// code out of the main app bundle (Streamloader bundle-split, batch BBB3).
+// NOTE: avoid even a `import type` from Login.vue — Rollup follows the SFC
+// reference and pulls the full module into the main chunk. We type the ref
+// loosely with the methods we actually call instead.
+const Login = defineAsyncComponent(() => import("./views/Login.vue"));
+type LoginInstance = { handleAuthenticationError: (error: unknown) => void };
 
 const theme = useTheme();
 const router = useRouter();
 const mode = useColorMode();
 
 const isConnected = ref(false);
-const loginComponent = ref<InstanceType<typeof Login> | null>(null);
+const loginComponent = ref<LoginInstance | null>(null);
 const showLogin = computed(
   () => api.state.value !== ConnectionState.INITIALIZED,
 );

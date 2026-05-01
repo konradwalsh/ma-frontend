@@ -5,7 +5,7 @@
       <Button
         variant="outline"
         size="icon"
-        class="size-8"
+        class="size-8 min-h-10 min-w-10"
         :disabled="page <= 1"
         @click="emit('prev')"
       >
@@ -17,7 +17,7 @@
       <Button
         variant="outline"
         size="icon"
-        class="size-8"
+        class="size-8 min-h-10 min-w-10"
         :disabled="!hasNextPage"
         @click="emit('next')"
       >

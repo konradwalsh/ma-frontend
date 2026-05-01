@@ -89,9 +89,26 @@ export default defineConfig({
   },
   build: {
     outDir: "./music_assistant_frontend",
+    // Bumped: with vendor + dialog/route splits the largest remaining chunk
+    // is comfortably under 1 MB. Keep the warning at 1000 so a future
+    // regression past 1 MB still trips the build output (Streamloader
+    // bundle-split, batch BBB3).
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // Translations: the @intlify unplugin's `messages` virtual module
+          // bundles ALL locale JSON files (~2.2 MB raw) eagerly. Vite tags it
+          // as a `virtual:` ID. Splitting it into its own chunk pulls 2 MB+
+          // of translation strings OUT of the main app bundle (Streamloader
+          // bundle-split BBB3, the dominant single-file payload reduction).
+          if (
+            id.includes("@intlify/unplugin-vue-i18n/messages") ||
+            id.includes("intlify_unplugin-vue-i18n_messages") ||
+            id.includes("/src/translations/") ||
+            id.includes("\\src\\translations\\")
+          )
+            return "translations";
           if (id.includes("node_modules")) {
             if (id.includes("vuetify")) return "vuetify";
             if (id.includes("vue-i18n") || id.includes("@intlify"))
@@ -107,6 +124,24 @@ export default defineConfig({
               return "mdi";
             if (id.includes("marked")) return "marked";
             if (id.includes("qrcode")) return "qrcode";
+            // Audio-decoder family — large WASM-backed deps used only by the
+            // optional in-browser web player. Keep them out of the main vendor
+            // bundle so users who never trigger web playback don't pay the
+            // download cost on first load (Streamloader bundle-split BBB3).
+            if (
+              id.includes("libopus-decoder") ||
+              id.includes("opus-decoder") ||
+              id.includes("vue-audio-better")
+            )
+              return "audio";
+            // QR scanner uses a barcode-detection polyfill that's heavy and
+            // only used on the device-pairing flow. Same rationale as audio.
+            if (id.includes("vue-qrcode-reader") || id.includes("barcode"))
+              return "qrcode-reader";
+            // Tanstack table/form ship as standalone medium-size chunks —
+            // splitting keeps the table-using settings views from bloating
+            // the main bundle.
+            if (id.includes("@tanstack")) return "tanstack";
           }
         },
       },

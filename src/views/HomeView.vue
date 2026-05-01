@@ -45,6 +45,9 @@
     <Container variant="comfortable" class="!pr-0 home-container">
       <Suspense>
         <div class="home-widget-stack">
+          <!-- Streamloader-only: surfaces THIS user's most recent cached
+               tracks at the top of the feed, above the upstream rails. -->
+          <StreamloaderRecentlyDownloadedRow />
           <HomeWidgetRows :edit-mode="editMode" />
         </div>
         <template #fallback>
@@ -66,6 +69,7 @@
 <script setup lang="ts">
 import Container from "@/components/Container.vue";
 import HomeWidgetRows from "@/components/HomeWidgetRows.vue";
+import StreamloaderRecentlyDownloadedRow from "@/components/StreamloaderRecentlyDownloadedRow.vue";
 import Toolbar from "@/components/Toolbar.vue";
 import { api } from "@/plugins/api";
 import { authManager } from "@/plugins/auth";

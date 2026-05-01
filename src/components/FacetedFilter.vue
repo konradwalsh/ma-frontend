@@ -311,6 +311,19 @@ const clear = () => {
   transition:
     opacity 180ms cubic-bezier(0.34, 1.36, 0.64, 1),
     transform 180ms cubic-bezier(0.34, 1.36, 0.64, 1);
+  /* a11y/WCAG 2.5.5 (touch-target sweep #2): the inline 10px X glyph alone
+     is far below the WCAG minimum. Keep the visual icon tiny (chip-sized)
+     but expand the actual hit-area via a transparent ::before overlay
+     centered on the button. The chip's overall 24x24 footprint stays the
+     same; only the click region grows. */
+  position: relative;
+}
+
+.ff-pill-clear::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  /* No visual change — overlay is transparent and not a hover target. */
 }
 
 @media (hover: hover) {

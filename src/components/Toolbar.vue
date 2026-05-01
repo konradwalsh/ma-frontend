@@ -73,14 +73,14 @@
           <template #activator="{ props }">
             <v-btn
               variant="plain"
-              style="width: 15px; margin-left: -10px"
+              aria-label="More options"
+              class="toolbar-overflow-trigger"
               v-bind="props"
             >
               <v-icon
                 icon="mdi-dots-vertical"
                 :color="$vuetify.theme.current.dark ? '#fff' : '#000'"
                 size="22"
-                style="margin-right: -5px; width: 15px"
               />
             </v-btn>
           </template>
@@ -302,5 +302,16 @@ export interface ToolBarMenuItem extends ContextMenuItem {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* a11y/WCAG 2.5.5 (touch-target sweep #2): the toolbar overflow (kebab)
+   menu activator was previously hard-coded to width: 15px with negative
+   margins — unusable on touch and far below WCAG. Restore it to a proper
+   44x44 hit target while keeping the icon visually 22px. */
+.header.v-toolbar :deep(.toolbar-overflow-trigger) {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  width: 44px !important;
+  padding: 0 !important;
 }
 </style>

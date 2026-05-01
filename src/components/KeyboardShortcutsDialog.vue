@@ -19,7 +19,7 @@
     <v-card class="ksd-card">
       <v-card-title class="ksd-title">
         Keyboard Shortcuts
-        <div class="ksd-title-rule" />
+        <div class="ksd-title-rule"></div>
       </v-card-title>
       <v-card-text class="ksd-body">
         <div
