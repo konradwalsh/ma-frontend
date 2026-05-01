@@ -339,10 +339,15 @@ onMounted(async () => {
     window.matchMedia("(display-mode: standalone)").matches ||
     window.matchMedia("(display-mode: fullscreen)").matches;
 
-  // Cache language settings
+  // Cache language settings.
+  // i18n.ts already kicks off the lazy chunk for the stored / browser
+  // locale at module-init time; this just makes sure the active locale
+  // tracks the explicit "frontend.settings.language" preference (and
+  // ensures the messages are loaded before flipping the active locale).
   const langPref = localStorage.getItem("frontend.settings.language") || "auto";
   if (langPref !== "auto") {
-    i18n.global.locale.value = langPref;
+    const { setLocale } = await import("@/plugins/i18n");
+    void setLocale(langPref);
   }
   store.forceMobileLayout =
     localStorage.getItem("frontend.settings.force_mobile_layout") == "true";

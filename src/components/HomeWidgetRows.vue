@@ -35,37 +35,19 @@
   </div>
 
   <!-- Empty state: no recommendations and not loading -->
-  <div
+  <StreamloaderEmptyState
     v-if="!loading && !visibleWidgetRows.length && !editMode"
-    class="home-empty-state"
-  >
-    <v-icon
-      size="64"
-      color="primary"
-      icon="mdi-music-circle-outline"
-      class="home-empty-icon"
-    />
-    <h3 class="home-empty-title">
-      {{ $t("settings.no_providers", "No music providers yet") }}
-    </h3>
-    <p class="home-empty-subtitle">
-      {{
-        $t(
-          "home.empty_hint",
-          "Connect a music provider to start building your library and get personalized recommendations.",
-        )
-      }}
-    </p>
-    <v-btn
-      color="primary"
-      variant="tonal"
-      class="home-empty-cta"
-      href="/#/settings/providers"
-      prepend-icon="mdi-plus-circle-outline"
-    >
-      {{ $t("settings.add_provider", "Add a new provider") }}
-    </v-btn>
-  </div>
+    :icon="'mdi-music-circle-outline'"
+    :title="$t('settings.no_providers', 'Your library is just getting started')"
+    :message="
+      $t(
+        'home.empty_hint',
+        'Try playing something to begin — once you connect a provider, recommendations and recently-played rails fill in here.',
+      )
+    "
+    :cta-label="$t('settings.add_provider', 'Add a provider')"
+    :cta-action="goToProviders"
+  />
 </template>
 
 <script setup lang="ts">
@@ -73,6 +55,7 @@ import HomeWidgetRow, {
   WidgetRow,
   WidgetRowSettings,
 } from "@/components/WidgetRow.vue";
+import StreamloaderEmptyState from "@/components/StreamloaderEmptyState.vue";
 import { useUserPreferences } from "@/composables/userPreferences";
 import api from "@/plugins/api";
 import { EventMessage, EventType } from "@/plugins/api/interfaces";
@@ -80,6 +63,13 @@ import { $t } from "@/plugins/i18n";
 import { store } from "@/plugins/store";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import PlayersWidgetRow from "./PlayersWidgetRow.vue";
+
+// Drop-in replacement for the previous href="/#/settings/providers" anchor —
+// the new empty-state component fires a function instead of navigating via
+// an <a>, which keeps things SPA-friendly.
+const goToProviders = () => {
+  window.location.hash = "#/settings/providers";
+};
 
 const widgetRows = ref<WidgetRow[]>([]);
 const widgetRowSettings = ref<Record<string, WidgetRowSettings>>({});

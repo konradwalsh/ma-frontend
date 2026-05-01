@@ -50,17 +50,26 @@
       />
 
       <!-- empty state when no search term yet -->
-      <div
+      <StreamloaderEmptyState
         v-if="!store.globalSearchTerm && !loading"
-        class="streamloader-search-empty"
-      >
-        <v-icon size="48" class="streamloader-search-empty-icon">
-          mdi-magnify
-        </v-icon>
-        <div class="streamloader-search-empty-text">
-          {{ $t("type_to_search") }}
-        </div>
-      </div>
+        :icon="'mdi-magnify'"
+        :title="$t('type_to_search')"
+        message="Search across every connected provider — Spotify, Tidal, Plex, your local library and more."
+      />
+
+      <!-- no-results state: search ran, returned nothing -->
+      <StreamloaderEmptyState
+        v-else-if="
+          !loading &&
+          store.globalSearchTerm &&
+          searchResult &&
+          !store.globalSearchType &&
+          searchResultIsEmpty
+        "
+        :icon="'mdi-magnify-close'"
+        :title="`No results for &quot;${store.globalSearchTerm}&quot;`"
+        message="Try a different spelling, drop a word, or browse the providers in settings to make sure they're connected."
+      />
 
       <!-- compact all-media-types searchresult -->
       <div v-if="!store.globalSearchType">
@@ -167,6 +176,7 @@
 import Container from "@/components/Container.vue";
 import GenreIcon from "@/components/icons/GenreIcon.vue";
 import ItemsListing from "@/components/ItemsListing.vue";
+import StreamloaderEmptyState from "@/components/StreamloaderEmptyState.vue";
 import WidgetRow from "@/components/WidgetRow.vue";
 import { useUserPreferences } from "@/composables/userPreferences";
 import { api } from "@/plugins/api";
@@ -175,6 +185,23 @@ import { store } from "@/plugins/store";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 const SEARCH_TYPE_ALL = "all";
+
+// True when the all-types search returned but every result bucket is empty.
+// Used to swap the WidgetRow stack out for a friendly no-results panel.
+const searchResultIsEmpty = computed(() => {
+  const r = searchResult.value;
+  if (!r) return false;
+  return (
+    !r.tracks?.length &&
+    !r.artists?.length &&
+    !r.albums?.length &&
+    !r.playlists?.length &&
+    !r.podcasts?.length &&
+    !r.audiobooks?.length &&
+    !r.radio?.length &&
+    !r.genres?.length
+  );
+});
 
 // computed to bridge between chip-group (needs a real value) and store (uses undefined for "all")
 const selectedSearchType = computed({

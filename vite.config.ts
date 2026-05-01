@@ -97,18 +97,22 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Translations: the @intlify unplugin's `messages` virtual module
-          // bundles ALL locale JSON files (~2.2 MB raw) eagerly. Vite tags it
-          // as a `virtual:` ID. Splitting it into its own chunk pulls 2 MB+
-          // of translation strings OUT of the main app bundle (Streamloader
-          // bundle-split BBB3, the dominant single-file payload reduction).
+          // Translations: i18n.ts now uses import.meta.glob to lazy-load
+          // each locale on demand (Streamloader bundle-split, batch ZZZ3).
+          // We deliberately do NOT force-merge them into a single chunk
+          // anymore — Vite's per-import code-splitting yields one tiny
+          // async chunk per locale (~50-100 KB raw each) that is fetched
+          // only when the user picks that language. The English baseline
+          // is statically imported by i18n.ts so it lands in the entry
+          // chunk graph and is always available for the fallback chain.
+          // Keep the @intlify unplugin's lingering `messages` virtual
+          // module isolated in its own chunk just in case anything still
+          // touches it transitively, so it can be tree-shaken away.
           if (
             id.includes("@intlify/unplugin-vue-i18n/messages") ||
-            id.includes("intlify_unplugin-vue-i18n_messages") ||
-            id.includes("/src/translations/") ||
-            id.includes("\\src\\translations\\")
+            id.includes("intlify_unplugin-vue-i18n_messages")
           )
-            return "translations";
+            return "translations-virtual";
           if (id.includes("node_modules")) {
             if (id.includes("vuetify")) return "vuetify";
             if (id.includes("vue-i18n") || id.includes("@intlify"))

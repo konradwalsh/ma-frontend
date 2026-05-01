@@ -156,33 +156,29 @@
         </v-virtual-scroll>
       </v-infinite-scroll>
 
-      <!-- show alert if no item found -->
-      <div v-if="!loading && pagedItems.length == 0" class="empty-state">
-        <div
-          v-if="params.search || params.favoritesOnly"
-          class="empty-state__inner"
-        >
-          <v-icon class="empty-state__icon" size="48">
-            {{ params.search ? "mdi-magnify-close" : "mdi-heart-off-outline" }}
-          </v-icon>
-          <div class="empty-state__title">{{ $t("no_content_filter") }}</div>
-          <v-btn
-            v-if="params.search"
-            color="primary"
-            variant="tonal"
-            class="empty-state__action"
-            @click="redirectSearch"
-          >
-            {{ $t("try_global_search") }}
-          </v-btn>
-        </div>
-        <div v-else class="empty-state__inner">
-          <v-icon class="empty-state__icon" size="48">
-            mdi-music-note-off
-          </v-icon>
-          <div class="empty-state__title">{{ $t("no_content") }}</div>
-        </div>
-      </div>
+      <!-- show streamloader-branded empty state if no items found -->
+      <template v-if="!loading && pagedItems.length == 0">
+        <StreamloaderEmptyState
+          v-if="params.search"
+          :icon="'mdi-magnify-close'"
+          :title="$t('no_content_filter')"
+          :message="emptyStateSearchHint"
+          :cta-label="$t('try_global_search')"
+          :cta-action="redirectSearch"
+        />
+        <StreamloaderEmptyState
+          v-else-if="params.favoritesOnly"
+          :icon="'mdi-heart-off-outline'"
+          :title="$t('no_content_filter')"
+          message="Mark something as a favorite and it'll show up here."
+        />
+        <StreamloaderEmptyState
+          v-else
+          :icon="emptyStateIcon"
+          :title="emptyStateTitle"
+          :message="emptyStateMessage"
+        />
+      </template>
 
       <!-- box shown when item(s) selected -->
       <v-snackbar
@@ -224,6 +220,7 @@ import GenreIcon from "@/components/icons/GenreIcon.vue";
 import { Eye, EyeClosed, Layers } from "lucide-vue-next";
 import ListViewSkeleton from "@/components/skeletons/ListViewSkeleton.vue";
 import PanelViewSkeleton from "@/components/skeletons/PanelViewSkeleton.vue";
+import StreamloaderEmptyState from "@/components/StreamloaderEmptyState.vue";
 import Toolbar, { ToolBarMenuItem } from "@/components/Toolbar.vue";
 import { useUserPreferences } from "@/composables/userPreferences";
 import {
@@ -690,6 +687,79 @@ const changeProviderFilter = function (providerId: string) {
   );
   loadData(true, undefined, true);
 };
+
+// Streamloader: per-itemtype copy for the empty-state surface. Keeps the
+// generic "no_content" string as a safe fallback for any unrecognised type
+// (custom views, future media types) so we never regress to a blank screen.
+const emptyStateCopy: Record<
+  string,
+  { icon: string; title: string; message: string }
+> = {
+  albums: {
+    icon: "mdi-album",
+    title: "No albums yet",
+    message:
+      "Play something to start building your library — anything you favorite or play will land here.",
+  },
+  artists: {
+    icon: "mdi-account-music-outline",
+    title: "No artists yet",
+    message:
+      "Discover an artist via search and they'll show up here once you favorite or play their music.",
+  },
+  tracks: {
+    icon: "mdi-music-note-outline",
+    title: "No tracks yet",
+    message:
+      "Hit play on a song from any provider — your tracks library fills up as you listen.",
+  },
+  playlists: {
+    icon: "mdi-playlist-music-outline",
+    title: "No playlists yet",
+    message:
+      "Create a playlist or follow one from a connected provider to see it here.",
+  },
+  podcasts: {
+    icon: "mdi-podcast",
+    title: "No podcasts yet",
+    message: "Subscribe to a show via search to start a podcast library.",
+  },
+  audiobooks: {
+    icon: "mdi-book-play-outline",
+    title: "No audiobooks yet",
+    message:
+      "Add an audiobook from a connected provider and it'll show up here.",
+  },
+  radios: {
+    icon: "mdi-radio",
+    title: "No radio stations yet",
+    message: "Browse providers to find a station you'd like to add.",
+  },
+  genres: {
+    icon: "mdi-tag-multiple-outline",
+    title: "No genres yet",
+    message:
+      "Genres appear as you build out your library — start playing music to populate them.",
+  },
+};
+
+const emptyStateIcon = computed<string>(
+  () => emptyStateCopy[props.itemtype]?.icon || "mdi-music-note-off",
+);
+const emptyStateTitle = computed<string>(
+  () => emptyStateCopy[props.itemtype]?.title || t("no_content"),
+);
+const emptyStateMessage = computed<string>(
+  () =>
+    emptyStateCopy[props.itemtype]?.message ||
+    "Nothing to show here yet — try playing or favoriting something.",
+);
+const emptyStateSearchHint = computed<string>(() => {
+  const q = params.value.search;
+  return q
+    ? `No matches for "${q}" in your library. Try the global search across providers.`
+    : "Try a different search term, or jump to global search across providers.";
+});
 
 const redirectSearch = function () {
   store.globalSearchTerm = params.value.search;

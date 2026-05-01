@@ -58,7 +58,7 @@ import {
 } from "@/plugins/api/interfaces";
 import { companionMode } from "@/plugins/companion";
 import { store } from "@/plugins/store";
-import { $t, i18n } from "@/plugins/i18n";
+import { $t, availableLocales } from "@/plugins/i18n";
 import EditConfig from "./EditConfig.vue";
 
 // global refs
@@ -100,7 +100,11 @@ onMounted(() => {
       required: false,
       options: [
         { title: "auto", value: "auto" },
-        ...i18n.global.availableLocales.map((x) => {
+        // availableLocales comes from i18n.ts now (derived at module init
+        // from import.meta.glob keys) — listing every locale here without
+        // having to actually load any of their messages (Streamloader
+        // bundle-split, batch ZZZ3).
+        ...availableLocales.map((x) => {
           return { title: x, value: x };
         }),
       ],

@@ -7,6 +7,7 @@
          (no extra HTTP) and renders nothing until the track loads. -->
     <div v-if="itemDetails" class="sl-source-badge-row">
       <StreamloaderSourceBadge :item="itemDetails" />
+      <StreamloaderSourceDiagnostic :item="itemDetails" />
     </div>
     <ItemsListing
       v-if="itemDetails"
@@ -63,6 +64,7 @@ import { api } from "@/plugins/api";
 import { watch } from "vue";
 import ProviderDetails from "@/components/ProviderDetails.vue";
 import StreamloaderSourceBadge from "@/components/StreamloaderSourceBadge.vue";
+import StreamloaderSourceDiagnostic from "@/components/StreamloaderSourceDiagnostic.vue";
 
 export interface Props {
   itemId: string;
@@ -146,6 +148,7 @@ section {
    compete with the leading text of the first listing's heading. */
 .sl-source-badge-row {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   padding: 8px 16px 0;
 }
