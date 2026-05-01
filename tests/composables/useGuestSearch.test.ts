@@ -46,7 +46,7 @@ describe("useGuestSearch", () => {
   });
 
   it("performs search with correct media types for 'all' filter", async () => {
-    mockSearch.mockResolvedValueOnce({
+    mockSearch.mockResolvedValue({
       tracks: [{ type: "track", id: "t1" }],
       artists: [{ type: "artist", id: "a1" }],
     });
@@ -74,7 +74,7 @@ describe("useGuestSearch", () => {
   });
 
   it("performs search with track-only filter", async () => {
-    mockSearch.mockResolvedValueOnce({
+    mockSearch.mockResolvedValue({
       tracks: [{ type: "track", id: "t1" }],
       artists: [{ type: "artist", id: "a1" }],
     });
@@ -113,7 +113,7 @@ describe("useGuestSearch", () => {
   });
 
   it("clears search state correctly", async () => {
-    mockSearch.mockResolvedValueOnce({
+    mockSearch.mockResolvedValue({
       tracks: [{ type: "track", id: "t1" }],
       artists: [],
     });
@@ -192,7 +192,7 @@ describe("useGuestSearch", () => {
   });
 
   it("loads more results when scrolling near the bottom", async () => {
-    mockSearch.mockResolvedValueOnce({
+    mockSearch.mockResolvedValue({
       tracks: Array.from({ length: 30 }, (_, i) => ({
         type: "track",
         id: `t${i}`,

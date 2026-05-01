@@ -41,8 +41,21 @@ const route = useRoute();
 const router = useRouter();
 const { isMobile, setOpenMobile } = useSidebar();
 
-const isActive = (url: string) =>
-  route.path === url || route.path.startsWith(url + "/");
+// Active iff this item's url matches the current route AND no sibling item
+// has a more-specific (longer) prefix that also matches. Without this, clicking
+// /settings/streamloader would highlight BOTH the "streamloader" item and the
+// parent "/settings" item (both pass the prefix test). Longest-prefix-wins
+// keeps only the most-specific item active.
+const isActive = (url: string) => {
+  if (route.path !== url && !route.path.startsWith(url + "/")) return false;
+  return !props.items.some(
+    (other) =>
+      other.url !== url &&
+      other.url.length > url.length &&
+      (other.url === route.path ||
+        route.path.startsWith(other.url + "/")),
+  );
+};
 
 const handleClick = (item: NavItem, event: Event) => {
   if (item.openInNewTab) {

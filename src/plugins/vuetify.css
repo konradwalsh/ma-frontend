@@ -124,6 +124,27 @@
     transform 200ms ease;
 }
 
+/* 5b. Suppress mouse-click focus outlines on Vuetify cards & list items.
+   Vuetify's v-card / v-list-item set tabindex on activatable elements,
+   so the browser's default white :focus outline fires after a mouse click
+   (e.g. on a panel-item track card or a queue row). That ugly white border
+   should only appear during keyboard navigation. We keep :focus-visible
+   styling fully intact (per-component focus rings already use it), and only
+   strip the outline when focus came from a non-keyboard source. */
+.v-card:focus:not(:focus-visible),
+.v-list-item:focus:not(:focus-visible),
+.v-list-item--link:focus:not(:focus-visible),
+.v-btn:focus:not(:focus-visible) {
+  outline: none !important;
+}
+
+/* Vuetify's v-list-item also paints a focus tint via .v-list-item__overlay
+   when the activatable element receives focus. Mouse-clicks should not
+   leave that tint behind — only keyboard nav should. */
+.v-list-item:focus:not(:focus-visible) > .v-list-item__overlay {
+  opacity: 0 !important;
+}
+
 /* 6. Primary button glow.
    The primary action button is the user's most-clicked surface — give
    it a subtle teal glow halo so it reads as "this is THE button to

@@ -23,10 +23,23 @@
       @submit="performSearch"
     />
 
-    <!-- Search Loading State -->
+    <!-- Search Loading State
+         Streamloader fork: prominent brand spinner + staged hints + cancel
+         button so guests don't think the app froze during slow backend
+         provider searches (often ~minutes on a cold cache). -->
     <div v-if="searching && !selectedArtist" class="loading-state">
-      <Spinner class="size-12 text-primary" />
-      <p>{{ $t("providers.party.guest_page.searching") }}</p>
+      <StreamloaderSpinner :size="48" />
+      <p class="loading-text">
+        {{ stageMessage }}
+      </p>
+      <Button
+        variant="outline"
+        size="sm"
+        class="cancel-btn"
+        @click="cancelSearch"
+      >
+        {{ $t("cancel") }}
+      </Button>
     </div>
 
     <!-- Artist Tracks View (when drilling into an artist) -->
@@ -67,7 +80,7 @@
       </div>
       <!-- Loading state -->
       <div v-if="loadingArtistTracks" class="loading-state">
-        <Spinner class="size-12 text-primary" />
+        <StreamloaderSpinner :size="48" />
         <p>{{ $t("providers.party.guest_page.loading_tracks") }}</p>
       </div>
       <!-- Artist tracks list -->
@@ -94,10 +107,11 @@
         />
       </div>
       <!-- Empty state for no tracks -->
-      <div v-else class="empty-state">
-        <Music :size="64" class="text-muted-foreground" />
-        <p>{{ $t("providers.party.guest_page.no_tracks_for_artist") }}</p>
-      </div>
+      <StreamloaderEmptyState
+        v-else
+        :icon="Music"
+        :title="$t('providers.party.guest_page.no_tracks_for_artist')"
+      />
     </div>
 
     <!-- Search Results -->
@@ -134,6 +148,23 @@
           />
         </div>
       </div>
+      <!-- Cached-results indicator. Lets the guest know these are stale and
+           gives them a one-tap escape hatch to force a live search. -->
+      <div v-if="fromCache" class="cached-banner">
+        <Zap :size="14" class="cached-icon" />
+        <span class="cached-text">
+          {{ $t("providers.party.guest_page.showing_cached") }}
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          class="refresh-btn"
+          @click="refreshSearch"
+        >
+          <RefreshCw :size="14" />
+          {{ $t("providers.party.guest_page.refresh") }}
+        </Button>
+      </div>
       <div ref="resultsListRef" class="results-list" @scroll="handleScroll">
         <PartyResultItem
           v-for="item in displayedResults"
@@ -159,24 +190,19 @@
       </div>
     </div>
 
-    <!-- Empty State -->
-    <div
+    <!-- Empty State — branded StreamloaderEmptyState so a "no results"
+         page still feels like part of the streamloader app. -->
+    <StreamloaderEmptyState
       v-else-if="
         !searching &&
         hasSearched &&
         searchResults.length === 0 &&
         !selectedArtist
       "
-      class="empty-state"
-    >
-      <Search :size="64" class="text-muted-foreground" />
-      <p>
-        {{ $t("providers.party.guest_page.no_results_for", [searchQuery]) }}
-      </p>
-      <p class="empty-hint">
-        {{ $t("providers.party.guest_page.try_different_search") }}
-      </p>
-    </div>
+      :icon="Search"
+      :title="$t('providers.party.guest_page.no_results_for', [searchQuery])"
+      :message="$t('providers.party.guest_page.try_different_search')"
+    />
 
     <!-- Current Queue Section -->
     <PartyQueueSection
@@ -213,8 +239,9 @@ import PartyQueueSection from "@/components/party/PartyQueueSection.vue";
 import PartyResultItem from "@/components/party/PartyResultItem.vue";
 import PartySearchBar from "@/components/party/PartySearchBar.vue";
 import PartyTokensBadge from "@/components/party/PartyTokensBadge.vue";
+import StreamloaderEmptyState from "@/components/StreamloaderEmptyState.vue";
+import StreamloaderSpinner from "@/components/StreamloaderSpinner.vue";
 import { Button } from "@/components/ui/button";
-import Spinner from "@/components/ui/spinner/Spinner.vue";
 import { useGuestQueue } from "@/composables/useGuestQueue";
 import { useGuestSearch } from "@/composables/useGuestSearch";
 import { usePartyConfig } from "@/composables/usePartyConfig";
@@ -230,7 +257,7 @@ import {
 } from "@/plugins/api/interfaces";
 import { $t } from "@/plugins/i18n";
 import { store } from "@/plugins/store";
-import { ArrowLeft, Music, Search } from "lucide-vue-next";
+import { ArrowLeft, Music, RefreshCw, Search, Zap } from "lucide-vue-next";
 import {
   computed,
   nextTick,
@@ -295,17 +322,33 @@ const {
   searching,
   hasSearched,
   searchFilter,
+  fromCache,
+  searchStage,
   selectedArtist,
   artistTracks,
   loadingArtistTracks,
   displayedResults,
   resultsListRef,
   performSearch,
+  cancelSearch,
+  refreshSearch,
   clearSearch,
   selectArtist,
   clearArtistSelection,
   handleScroll,
 } = search;
+
+// Maps the composable's stage flag to the user-visible message.
+// Initial copy hints that long waits are normal so users don't bail.
+const stageMessage = computed(() => {
+  if (searchStage.value === "longer") {
+    return $t("providers.party.guest_page.searching_longer");
+  }
+  if (searchStage.value === "still") {
+    return $t("providers.party.guest_page.searching_still");
+  }
+  return $t("providers.party.guest_page.searching_initial");
+});
 
 const queuedUris = computed(() => {
   const uris = new Set<string>();
@@ -737,7 +780,56 @@ onBeforeUnmount(() => {
   justify-content: center;
   padding: 3rem;
   gap: 1rem;
-  opacity: 0.7;
+  opacity: 0.85;
+}
+
+/* Loading text — slightly larger so the stage hint reads from a phone
+   sitting on a coffee table at party-mode distance. */
+.loading-text {
+  font-size: 0.95rem;
+  text-align: center;
+  max-width: 320px;
+  line-height: 1.4;
+  margin: 0;
+  color: rgba(var(--v-theme-on-surface), 0.78);
+}
+
+.cancel-btn {
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+}
+
+/* Cached-results banner — soft teal pill so it reads as informational,
+   not as an error. The Refresh button gives an explicit escape hatch. */
+.cached-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  margin-bottom: 0.75rem;
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.1);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  font-size: 0.8rem;
+  color: rgba(var(--v-theme-on-surface), 0.85);
+  flex-shrink: 0;
+}
+
+.cached-icon {
+  color: rgb(var(--v-theme-primary));
+  flex-shrink: 0;
+}
+
+.cached-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.refresh-btn {
+  font-size: 0.75rem;
+  height: 1.75rem;
+  padding: 0 0.6rem;
+  color: rgb(var(--v-theme-primary));
 }
 
 .empty-state {
