@@ -22,6 +22,16 @@
   Routing: mounted at /settings/streamloader (route name `streamloadersettings`).
   Sidebar: AppSidebar's "streamloader" item points here.
 -->
+<!--
+  NOTE on visual deviation from the other 3 streamloader views
+  (RecentlyPlayed / Stats / Discover):
+    Those views use a Toolbar + brand-teal-underlined <h1> page header.
+    This view intentionally keeps the shadcn Card-based layout used
+    throughout /settings (Players, Providers, FrontendConfig, etc.) so
+    the streamloader settings landing reads as a peer of the other
+    settings pages instead of a sidebar destination. The teal-underline
+    header pattern is reserved for the content/discover surfaces.
+-->
 <template>
   <Container class="max-w-4xl mx-auto px-4 py-6 space-y-6">
     <!-- Header card: Streamloader mark + tagline -->

@@ -10,7 +10,18 @@
       contain
       :lazy-src="theme.current.value.dark ? imgCoverDark : imgCoverLight"
       @error="onOverrideImgError"
-    />
+    >
+      <!-- Streamloader-fork addition: subtle teal-tinted shimmer placeholder
+           while the cover art is loading. Beats the upstream blank gap on
+           library grids, search results, and carousels. The shimmer is the
+           ONLY motion here — `prefers-reduced-motion` users get a static
+           teal wash via the media query at the bottom of the style block. -->
+      <template #placeholder>
+        <div class="sl-thumb-shimmer" aria-hidden="true">
+          <div class="sl-thumb-shimmer__sweep"></div>
+        </div>
+      </template>
+    </v-img>
     <!-- In Library badge (hoisted from wrappers so it appears everywhere
          a cover is rendered: grid, list, carousels, search, etc.) -->
     <div
@@ -214,6 +225,50 @@ export const getAvatarImage = function (
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   pointer-events: none;
   z-index: 2;
+}
+
+/* Teal-tinted shimmer placeholder shown by v-img's #placeholder slot
+   while the cover art is loading. Replaces the blank gap upstream
+   v-img leaves between `lazy-src` swap and the real `src` resolving.
+   Animation is paused for `prefers-reduced-motion` users — the static
+   teal wash still reads as "loading" without the swept gradient. */
+.sl-thumb-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(45, 212, 191, 0.06),
+    rgba(15, 118, 110, 0.1)
+  );
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.sl-thumb-shimmer__sweep {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(45, 212, 191, 0) 30%,
+    rgba(45, 212, 191, 0.18) 50%,
+    rgba(45, 212, 191, 0) 70%
+  );
+  transform: translateX(-100%);
+  animation: sl-thumb-sweep 1.6s ease-in-out infinite;
+}
+
+@keyframes sl-thumb-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-thumb-shimmer__sweep {
+    animation: none;
+    background: rgba(45, 212, 191, 0.08);
+    transform: none;
+  }
 }
 
 /* Source-badge overlay: bottom-LEFT corner so it doesn't collide with the

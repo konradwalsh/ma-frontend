@@ -331,7 +331,9 @@ const lastActivityLabel = computed(() => {
   padding-top: 8px;
 }
 
-/* Header — same teal underline language as RecentlyPlayed. */
+/* Header — same teal underline language as the other streamloader views.
+   Canonical pattern: width: fit-content + 100% underline so the gradient
+   tracks the title text width across translations. */
 .sl-stats-header {
   display: flex;
   flex-direction: column;
@@ -345,15 +347,16 @@ const lastActivityLabel = computed(() => {
   letter-spacing: -0.01em;
   margin: 0;
   padding-bottom: 4px;
+  display: inline-block;
+  width: fit-content;
   background-image: linear-gradient(
     to right,
     rgba(45, 212, 191, 0.85),
     rgba(45, 212, 191, 0.15)
   );
   background-repeat: no-repeat;
-  background-size: 200px 2px;
+  background-size: 100% 2px;
   background-position: 0 100%;
-  align-self: flex-start;
 }
 
 :global(.v-theme--light) .sl-stats-title {
@@ -365,8 +368,11 @@ const lastActivityLabel = computed(() => {
 }
 
 .sl-stats-subtitle {
-  font-size: 0.85rem;
-  color: rgba(var(--v-theme-on-background), 0.62);
+  font-size: 0.88rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  opacity: 0.65;
+  color: rgb(var(--v-theme-on-background));
 }
 
 /* Card grid */

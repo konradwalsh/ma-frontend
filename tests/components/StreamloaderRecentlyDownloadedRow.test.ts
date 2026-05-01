@@ -158,6 +158,37 @@ describe("StreamloaderRecentlyDownloadedRow.vue", () => {
     expect(wrapper.text()).toContain("Track a");
   });
 
+  it("renders the i18n-translated header title (not a hardcoded string)", async () => {
+    // Identity translator returns the key verbatim, so the rendered
+    // header text must equal the translation key. If the component ever
+    // regresses to a hardcoded "Recently Downloaded by Streamloader"
+    // string this assertion will fail loudly — proving the title goes
+    // through the i18n pipeline.
+    apiMock.getLibraryTracks.mockResolvedValue([makeTrack("a")]);
+    const wrapper = mountRow();
+    await flushPromises();
+    expect(wrapper.find(".sl-recent-row__title").text()).toBe(
+      "streamloader.recently_downloaded.title",
+    );
+    // The chip label is also wired through the translator.
+    expect(wrapper.find(".sl-recent-row__chip").text()).toBe(
+      "streamloader.recently_downloaded.chip",
+    );
+  });
+
+  it("unsubscribes from MEDIA_ITEM_ADDED when the component is unmounted", async () => {
+    // Confirms onBeforeUnmount wiring — without it the rail would keep
+    // firing loadData() forever after navigation away.
+    apiMock.getLibraryTracks.mockResolvedValue([makeTrack("a")]);
+    const unsubSpy = vi.fn();
+    apiMock.subscribe.mockReturnValue(unsubSpy);
+    const wrapper = mountRow();
+    await flushPromises();
+    expect(unsubSpy).not.toHaveBeenCalled();
+    wrapper.unmount();
+    expect(unsubSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("re-fetches when MEDIA_ITEM_ADDED fires on the api subscription", async () => {
     apiMock.getLibraryTracks.mockResolvedValue([makeTrack("a")]);
     let captured: ((evt: unknown) => void) | undefined;

@@ -8,8 +8,21 @@
       max-height="500px"
       min-height="340px"
     >
-      <!-- loading animation -->
-      <v-progress-linear v-if="!item" indeterminate />
+      <!-- Loading state: branded spinner centered over the header card while
+           the underlying media item is being fetched. Replaces the upstream
+           v-progress-linear for visual consistency with other streamloader
+           loading surfaces (HomeView fallback, search inline spinner, etc.). -->
+      <div
+        v-if="!item"
+        class="sl-info-header-loading"
+        role="status"
+        aria-live="polite"
+      >
+        <StreamloaderSpinner
+          :size="48"
+          :label="$t('streamloader.info_header.loading_label')"
+        />
+      </div>
       <!-- Streamloader-fork addition: heavy-blur fanart wash sitting
            BEHIND the existing solid-gradient background image. Adds
            atmosphere without competing with foreground content. The
@@ -30,6 +43,11 @@
         :transition="false"
         eager
       />
+      <!-- Streamloader-fork addition (batch polish): subtle teal vignette
+           in the corners. Sits above the fanart wash but below all hero
+           content so it focuses attention on the cover + title without
+           competing with text contrast. Pure CSS radial gradients. -->
+      <div class="sl-hero-vignette" aria-hidden="true"></div>
       <Toolbar
         :icon="ArrowLeft"
         style="position: absolute; z-index: 999999"
@@ -165,7 +183,7 @@
             height="80"
             style="padding-left: 10px"
           />
-          <v-card-title v-else tag="h1">
+          <v-card-title v-else tag="h1" class="sl-title-card">
             <div class="sl-title-row">
               <!-- Streamloader-fork addition: pulsing teal LIVE indicator
                    for radio streams. Pure presentation dot — no data
@@ -181,8 +199,14 @@
                 <span class="sl-live-label" aria-hidden="true">LIVE</span>
               </span>
               <MarqueeText :sync="marqueeSync">
-                <div class="selectable">
+                <!-- Streamloader-fork addition (batch polish): tightened
+                     letter-spacing on hero title plus a small teal
+                     underline bar that grows in on page enter. Pure
+                     presentation — does not affect MarqueeText sizing
+                     because the bar is absolutely positioned. -->
+                <div class="selectable sl-hero-title">
                   {{ headerTitle }}
+                  <span class="sl-hero-title-underline" aria-hidden="true"></span>
                 </div>
               </MarqueeText>
               <!-- Streamloader-fork addition: subtle teal PLAYLIST badge
@@ -479,71 +503,74 @@
               {{ item.favorite ? $t("subscribed") : $t("subscribe") }}
             </v-btn>
 
-            <div class="flex items-center gap-2">
+            <!-- Streamloader-fork addition (batch polish): action-button
+                 cluster. Subtle bordered card groups the icon affordances
+                 (favorite / provider / merge / delete / replace-artwork
+                 / rescan) so they read as a single unit instead of free-
+                 floating glyphs. Each child is wrapped in a uniform
+                 .sl-action-btn (44×44 hit target, teal hover tint, teal
+                 focus-visible ring). The provider icon stays
+                 informational only — no hover state. -->
+            <div
+              class="sl-action-cluster"
+              role="group"
+              :aria-label="$t('streamloader.info_header.actions_aria_label')"
+            >
               <!-- favorite (heart) icon -->
-              <IconHeartFilled
-                v-if="item.favorite"
-                :size="24"
-                class="cursor-pointer"
-                :title="$t('tooltip.favorite')"
+              <span
+                class="sl-action-btn"
                 role="button"
                 tabindex="0"
-                aria-pressed="true"
+                :aria-pressed="item.favorite ? 'true' : 'false'"
+                :title="$t('tooltip.favorite')"
                 :aria-label="$t('tooltip.favorite')"
                 @click="api.toggleFavorite(item)"
                 @keydown.enter.prevent="api.toggleFavorite(item)"
                 @keydown.space.prevent="api.toggleFavorite(item)"
-              />
-              <IconHeart
-                v-else
-                :stroke-width="2"
-                :size="24"
-                class="cursor-pointer"
-                :title="$t('tooltip.favorite')"
-                role="button"
-                tabindex="0"
-                aria-pressed="false"
-                :aria-label="$t('tooltip.favorite')"
-                @click="api.toggleFavorite(item)"
-                @keydown.enter.prevent="api.toggleFavorite(item)"
-                @keydown.space.prevent="api.toggleFavorite(item)"
-              />
-              <!-- provider icon -->
-              <provider-icon :domain="item.provider" :size="25" />
+              >
+                <IconHeartFilled v-if="item.favorite" :size="22" />
+                <IconHeart v-else :stroke-width="2" :size="22" />
+              </span>
+              <!-- provider icon (informational, not interactive) -->
+              <span class="sl-action-btn sl-action-btn--static">
+                <provider-icon :domain="item.provider" :size="22" />
+              </span>
               <!-- merge genre button (admin only) -->
-              <Merge
+              <span
                 v-if="
                   item.media_type === MediaType.GENRE &&
                   item.provider === 'library' &&
                   isAdmin
                 "
-                :size="22"
-                class="cursor-pointer -ml-1"
-                :title="$t('merge_into')"
+                class="sl-action-btn"
                 role="button"
                 tabindex="0"
+                :title="$t('merge_into')"
                 :aria-label="$t('merge_into')"
                 @click="mergeGenre"
                 @keydown.enter.prevent="mergeGenre"
                 @keydown.space.prevent="mergeGenre"
-              />
+              >
+                <Merge :size="22" />
+              </span>
               <!-- delete genre button (admin only) -->
-              <Trash2
+              <span
                 v-if="
                   item.media_type === MediaType.GENRE &&
                   item.provider === 'library' &&
                   isAdmin
                 "
-                :size="22"
-                class="cursor-pointer ml-2"
-                :title="$t('delete_genre')"
+                class="sl-action-btn"
                 role="button"
                 tabindex="0"
+                :title="$t('delete_genre')"
                 :aria-label="$t('delete_genre')"
                 @click="deleteGenre"
                 @keydown.enter.prevent="deleteGenre"
                 @keydown.space.prevent="deleteGenre"
-              />
+              >
+                <Trash2 :size="22" />
+              </span>
               <!-- Streamloader-fork addition: replace-artwork affordance.
                    Shown on track / album / podcast / audiobook detail
                    pages where the auto-detected cover can be wrong (the
@@ -552,18 +579,19 @@
                    genres / playlists / radio (cover is user-curated or
                    intrinsic to the source). Stub UI — persists the
                    user's input to localStorage; backend endpoint pending. -->
-              <ImagePlus
+              <span
                 v-if="canEditArtwork"
-                :size="22"
-                class="cursor-pointer ml-2"
-                title="Replace artwork"
+                class="sl-action-btn"
                 role="button"
                 tabindex="0"
-                aria-label="Replace artwork"
+                :title="$t('streamloader.info_header.replace_artwork')"
+                :aria-label="$t('streamloader.info_header.replace_artwork')"
                 @click="openEditArtwork"
                 @keydown.enter.prevent="openEditArtwork"
                 @keydown.space.prevent="openEditArtwork"
-              />
+              >
+                <ImagePlus :size="22" />
+              </span>
               <!-- Streamloader-fork addition: re-trigger upstream metadata
                    extraction. The frontend prettifier (batch 34) only
                    masks filename-bleeding bugs at display time — the real
@@ -577,14 +605,14 @@
                 <template #activator="{ props: tooltipProps }">
                   <span
                     v-bind="tooltipProps"
-                    class="sl-rescan-btn cursor-pointer ml-2"
+                    class="sl-action-btn sl-rescan-btn"
                     :class="{
-                      'sl-rescan-btn--disabled':
+                      'sl-action-btn--disabled':
                         rescanInFlight || rescanCooldownActive,
                     }"
                     role="button"
                     tabindex="0"
-                    aria-label="Rescan metadata"
+                    :aria-label="$t('streamloader.info_header.rescan_metadata')"
                     @click="triggerRescanMetadata"
                     @keydown.enter.prevent="triggerRescanMetadata"
                     @keydown.space.prevent="triggerRescanMetadata"
@@ -595,7 +623,9 @@
                     />
                   </span>
                 </template>
-                <span>Rescan metadata</span>
+                <span>{{
+                  $t("streamloader.info_header.rescan_metadata")
+                }}</span>
               </v-tooltip>
             </div>
           </div>
@@ -735,6 +765,7 @@ import ProviderIcon from "./ProviderIcon.vue";
 import StreamloaderEditArtworkDialog from "./StreamloaderEditArtworkDialog.vue";
 import StreamloaderErrorBoundary from "./StreamloaderErrorBoundary.vue";
 import StreamloaderFanart from "./StreamloaderFanart.vue";
+import StreamloaderSpinner from "./StreamloaderSpinner.vue";
 
 // properties
 export interface Props {
@@ -1143,13 +1174,18 @@ const triggerRescanMetadata = async () => {
   if (rescanInFlight.value || rescanCooldownActive.value) return;
 
   const target = compProps.item;
-  const displayName = headerTitle.value || target.name || "this item";
+  const fallbackName = te("streamloader.info_header.rescan_fallback_name")
+    ? t("streamloader.info_header.rescan_fallback_name")
+    : "this item";
+  const displayName = headerTitle.value || target.name || fallbackName;
   rescanInFlight.value = true;
   rescanCooldownActive.value = true;
   rescanPendingUri = target.uri;
   queueRescanItemId(target.item_id);
 
-  toast.info(`Rescanning metadata for ${displayName}… this may take a moment.`);
+  toast.info(
+    t("streamloader.info_header.rescan_in_progress", { name: displayName }),
+  );
 
   try {
     const updated = await api.refreshItem(target);
@@ -1164,7 +1200,9 @@ const triggerRescanMetadata = async () => {
       });
     }
   } catch (err) {
-    toast.error(`Rescan failed for ${displayName}.`);
+    toast.error(
+      t("streamloader.info_header.rescan_failed", { name: displayName }),
+    );
     // eslint-disable-next-line no-console
     console.warn("[streamloader] rescan_metadata error", err);
     rescanPendingUri = null;
@@ -1189,8 +1227,13 @@ onMounted(() => {
       const updated = evt.data as MediaItemType | undefined;
       if (!updated) return;
       if (updated.uri !== rescanPendingUri) return;
-      const displayName = updated.name || "item";
-      toast.success(`Metadata rescan complete for ${displayName}.`);
+      const fallbackName = te("streamloader.info_header.rescan_fallback_name")
+        ? t("streamloader.info_header.rescan_fallback_name")
+        : "this item";
+      const displayName = updated.name || fallbackName;
+      toast.success(
+        t("streamloader.info_header.rescan_complete", { name: displayName }),
+      );
       rescanPendingUri = null;
     },
   );
@@ -1219,6 +1262,18 @@ const deleteGenre = () => {
 </script>
 
 <style scoped>
+/* Branded loading state for the InfoHeader card. Centered over the
+   gradient background while the underlying media item is fetched. */
+.sl-info-header-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  pointer-events: none;
+}
+
 .selectable {
   -webkit-user-select: text;
   /* Safari */
@@ -1666,6 +1721,234 @@ const deleteGenre = () => {
 @media (prefers-reduced-motion: reduce) {
   .sl-rescan-spin {
     animation: none;
+  }
+}
+
+/* ─── Streamloader-fork addition (batch polish): hero vignette.
+       Subtle teal radial gradients in the four corners of the hero
+       card focus attention on cover + title. Sits above the fanart
+       wash but below the toolbar/content. */
+.sl-hero-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(
+      circle at 0% 0%,
+      rgba(45, 212, 191, 0.18) 0%,
+      rgba(45, 212, 191, 0) 28%
+    ),
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(45, 212, 191, 0.14) 0%,
+      rgba(45, 212, 191, 0) 28%
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(45, 212, 191, 0.14) 0%,
+      rgba(45, 212, 191, 0) 30%
+    ),
+    radial-gradient(
+      circle at 100% 100%,
+      rgba(45, 212, 191, 0.18) 0%,
+      rgba(45, 212, 191, 0) 30%
+    );
+  mix-blend-mode: screen;
+}
+
+:global(.v-theme--light) .sl-hero-vignette {
+  background:
+    radial-gradient(
+      circle at 0% 0%,
+      rgba(15, 118, 110, 0.12) 0%,
+      rgba(15, 118, 110, 0) 28%
+    ),
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(15, 118, 110, 0.09) 0%,
+      rgba(15, 118, 110, 0) 28%
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(15, 118, 110, 0.09) 0%,
+      rgba(15, 118, 110, 0) 30%
+    ),
+    radial-gradient(
+      circle at 100% 100%,
+      rgba(15, 118, 110, 0.12) 0%,
+      rgba(15, 118, 110, 0) 30%
+    );
+  mix-blend-mode: multiply;
+}
+
+/* ─── Streamloader-fork addition (batch polish): hero title typography.
+       Tighter letter-spacing for a more confident feel; wrapper hosts
+       the animated teal underline that grows in on page enter. */
+.sl-title-card {
+  padding-bottom: 4px;
+}
+
+.sl-hero-title {
+  position: relative;
+  letter-spacing: -0.015em;
+  font-feature-settings: "kern" 1, "liga" 1;
+  padding-bottom: 4px;
+}
+
+.sl-hero-title-underline {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 0;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    #2dd4bf 0%,
+    rgba(45, 212, 191, 0) 100%
+  );
+  animation: sl-hero-underline-grow 720ms cubic-bezier(0.22, 1, 0.36, 1)
+    180ms forwards;
+}
+
+:global(.v-theme--light) .sl-hero-title-underline {
+  background: linear-gradient(
+    90deg,
+    #0f766e 0%,
+    rgba(15, 118, 110, 0) 100%
+  );
+}
+
+@keyframes sl-hero-underline-grow {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 56px;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-hero-title-underline {
+    animation: none;
+    width: 56px;
+    opacity: 1;
+  }
+}
+
+/* ─── Streamloader-fork addition (batch polish): action button cluster.
+       Groups favorite / provider / merge / delete / replace-artwork /
+       rescan into a subtly bordered card so they read as a unit. Each
+       button is a uniform 44×44 hit target with teal hover tint and
+       teal focus-visible ring. Provider icon is non-interactive
+       (sl-action-btn--static) so it doesn't get the hover affordance. */
+.sl-action-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(45, 212, 191, 0.04);
+  border: 1px solid rgba(45, 212, 191, 0.16);
+  backdrop-filter: blur(2px);
+}
+
+:global(.v-theme--light) .sl-action-cluster {
+  background: rgba(15, 118, 110, 0.05);
+  border-color: rgba(15, 118, 110, 0.18);
+}
+
+.sl-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: inherit;
+  line-height: 0;
+  transition:
+    background-color 160ms ease-out,
+    transform 160ms ease-out;
+  user-select: none;
+}
+
+.sl-action-btn:hover {
+  background: rgba(45, 212, 191, 0.18);
+}
+
+.sl-action-btn:active {
+  transform: scale(0.94);
+}
+
+.sl-action-btn:focus-visible {
+  outline: 2px solid #2dd4bf;
+  outline-offset: 2px;
+}
+
+:global(.v-theme--light) .sl-action-btn:hover {
+  background: rgba(15, 118, 110, 0.14);
+}
+
+:global(.v-theme--light) .sl-action-btn:focus-visible {
+  outline-color: #0f766e;
+}
+
+.sl-action-btn--static {
+  cursor: default;
+}
+
+.sl-action-btn--static:hover {
+  background: transparent;
+}
+
+.sl-action-btn--disabled {
+  opacity: 0.5;
+  cursor: progress;
+  pointer-events: none;
+}
+
+/* Mobile: keep 44×44 for touch but tighten cluster spacing. */
+@media (max-width: 600px) {
+  .sl-action-cluster {
+    gap: 2px;
+    padding: 3px;
+  }
+}
+
+/* ─── Streamloader-fork addition (batch polish): cover hover lift.
+       Subtle translateY with a tiny overshoot — only on non-touch and
+       non-reduced-motion. Album cover gets it via .sl-vinyl-cover; the
+       wrapper itself doesn't lift (its hover transform is the rotate-
+       and-scale tilt — see .sl-vinyl-wrapper.vinyl-mode--hover). */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .sl-vinyl-cover {
+    transition: transform 320ms cubic-bezier(0.34, 1.36, 0.64, 1);
+  }
+  .sl-vinyl-wrapper:hover .sl-vinyl-cover {
+    transform: translateY(-2px);
+  }
+}
+
+/* ─── Streamloader-fork addition (batch polish): vinyl mobile orbit.
+       At very narrow viewports the disc's 40% protrude can clip the
+       page edge or push the title column off-screen. Drop the protrude
+       to 22% on mobile so the spin-in-place still reads but doesn't
+       break layout. Preserves the spin-axis fix (translate is on the
+       protrude wrapper, rotate is on the inner spin wrapper — see
+       batch MMM4 comments above). */
+@media (max-width: 600px) {
+  .sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-disc-protrude,
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning
+    .sl-vinyl-disc-protrude {
+    transform: translate(22%, -50%);
+  }
+  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc-protrude {
+    transform: translate(22%, -50%);
   }
 }
 </style>

@@ -221,12 +221,14 @@ onMounted(() => {
 
 /* Header: lowercase brand title with the same teal underline gradient
    used by the home rail. Keeps the page visually connected to the rest
-   of the streamloader fork. */
+   of the streamloader fork. Pattern canonicalised to match
+   StreamloaderDiscover (width: fit-content so the underline hugs the
+   title text rather than extending past it). */
 .sl-rp-header {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin: 4px 4px 14px;
+  margin: 4px 4px 18px;
 }
 
 .sl-rp-title {
@@ -235,6 +237,8 @@ onMounted(() => {
   letter-spacing: -0.01em;
   margin: 0;
   padding-bottom: 4px;
+  display: inline-block;
+  width: fit-content;
   /* Teal underline gradient — matches StreamloaderRecentlyDownloadedRow */
   background-image: linear-gradient(
     to right,
@@ -242,9 +246,8 @@ onMounted(() => {
     rgba(45, 212, 191, 0.15)
   );
   background-repeat: no-repeat;
-  background-size: 200px 2px;
+  background-size: 100% 2px;
   background-position: 0 100%;
-  align-self: flex-start;
 }
 
 :global(.v-theme--light) .sl-rp-title {
@@ -256,8 +259,11 @@ onMounted(() => {
 }
 
 .sl-rp-subtitle {
-  font-size: 0.85rem;
-  color: rgba(var(--v-theme-on-background), 0.62);
+  font-size: 0.88rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  opacity: 0.65;
+  color: rgb(var(--v-theme-on-background));
 }
 
 /* Brand pill chips */

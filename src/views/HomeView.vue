@@ -51,14 +51,14 @@
           <HomeWidgetRows :edit-mode="editMode" />
         </div>
         <template #fallback>
-          <div class="home-loading">
-            <v-progress-circular
-              indeterminate
-              color="primary"
-              size="42"
-              width="3"
+          <div class="home-loading" role="status" aria-live="polite">
+            <StreamloaderSpinner
+              :size="48"
+              :label="$t('streamloader.home.loading_label')"
             />
-            <div class="home-loading-text">loading your library...</div>
+            <div class="home-loading-text">
+              {{ $t("streamloader.home.loading_text") }}
+            </div>
           </div>
         </template>
       </Suspense>
@@ -70,6 +70,7 @@
 import Container from "@/components/Container.vue";
 import HomeWidgetRows from "@/components/HomeWidgetRows.vue";
 import StreamloaderRecentlyDownloadedRow from "@/components/StreamloaderRecentlyDownloadedRow.vue";
+import StreamloaderSpinner from "@/components/StreamloaderSpinner.vue";
 import Toolbar from "@/components/Toolbar.vue";
 import { api } from "@/plugins/api";
 import { authManager } from "@/plugins/auth";
@@ -240,16 +241,6 @@ onUnmounted(() => {
   text-transform: lowercase;
   opacity: 0.6;
   color: rgb(var(--v-theme-on-background));
-}
-
-.home-loading :deep(.v-progress-circular__overlay),
-.home-loading :deep(.v-progress-circular__underlay) {
-  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.35));
-}
-
-.v-progress-circular {
-  display: block;
-  margin-inline: auto;
 }
 
 .editButton {

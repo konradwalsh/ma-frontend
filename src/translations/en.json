@@ -1890,6 +1890,20 @@
         "spinner": {
             "default_label": "Loading"
         },
+        "home": {
+            "loading_label": "Loading your library",
+            "loading_text": "loading your library…"
+        },
+        "info_header": {
+            "loading_label": "Loading details",
+            "actions_aria_label": "Item actions",
+            "replace_artwork": "Replace artwork",
+            "rescan_metadata": "Rescan metadata",
+            "rescan_in_progress": "Rescanning metadata for {name}… this may take a moment.",
+            "rescan_failed": "Rescan failed for {name}.",
+            "rescan_complete": "Metadata rescan complete for {name}.",
+            "rescan_fallback_name": "this item"
+        },
         "stats": {
             "toolbar_title": "Streamloader Stats",
             "page_title": "Streamloader Stats",
