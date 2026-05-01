@@ -8,22 +8,32 @@ import {
   TriangleAlertIcon,
   XIcon,
 } from "lucide-vue-next";
+import { computed } from "vue";
 import type { ToasterProps } from "vue-sonner";
 import { Toaster as Sonner } from "vue-sonner";
 
 const props = defineProps<ToasterProps>();
+
+// Streamloader brand defaults: top-center keeps toasts away from the right-edge
+// stack (HealthPill / ActivityPulse / ShortcutsHint). Callers can still
+// override via props.
+const mergedProps = computed<ToasterProps>(() => ({
+  ...props,
+  position: props.position ?? "top-center",
+  offset: props.offset ?? 16,
+}));
 </script>
 
 <template>
   <Sonner
-    :class="cn('toaster group', props.class)"
+    :class="cn('toaster group sl-toaster', props.class)"
     :style="{
       '--normal-bg': 'var(--popover)',
       '--normal-text': 'var(--popover-foreground)',
       '--normal-border': 'var(--border)',
       '--border-radius': 'var(--radius)',
     }"
-    v-bind="props"
+    v-bind="mergedProps"
   >
     <template #success-icon>
       <CircleCheckIcon class="size-4" />

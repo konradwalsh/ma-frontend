@@ -69,7 +69,23 @@
   >
     <div class="mediacontrols-bg" :data-floating="useFloatingPlayer"></div>
     <div class="mediacontrols" :data-mobile="true">
-      <div class="mediacontrols-left">
+      <!-- Streamloader-fork addition (batch 39 / GGG5): on mobile, the
+           ENTIRE left strip is a tap target that expands to the fullscreen
+           player. PlayerTrackDetails already wires click on its thumb +
+           subtitle, but there are dead zones in between (and the parent
+           gap area) that previously did nothing on tap. Treating the
+           wrapper as a button keeps the mini-player feel of "tap anywhere
+           on the now-playing strip to expand" — Spotify/Apple Music style.
+           The play/pause button to the right keeps its own click target. -->
+      <div
+        class="mediacontrols-left"
+        role="button"
+        tabindex="0"
+        aria-label="Open fullscreen player"
+        @click="onMiniStripClick"
+        @keydown.enter.prevent="onMiniStripClick"
+        @keydown.space.prevent="onMiniStripClick"
+      >
         <PlayerTrackDetails
           :show-quality-details-btn="false"
           :show-only-artist="true"
@@ -176,6 +192,16 @@ const backgroundColor = computed(() => {
 const themeColor = computed(() =>
   vuetify.theme.current.value.dark ? "#fff" : "#000",
 );
+
+// Streamloader-fork addition (batch 39 / GGG5): mobile mini-player tap
+// target. Tapping anywhere on the left strip (thumb, title, subtitle, or
+// the dead gap between them) expands to the fullscreen player. The
+// PlayerTrackDetails sub-elements already toggle showFullscreenPlayer on
+// click and stop event propagation isn't an issue here — both bubble to
+// the same outcome (open fullscreen) so the duplicate is harmless.
+const onMiniStripClick = () => {
+  store.showFullscreenPlayer = true;
+};
 
 const playIconStyle = computed(() => ({
   "--play-icon-color": vuetify.theme.current.value.dark ? "#212121" : "#fff",
@@ -296,6 +322,24 @@ $sl-teal-track: rgba(45, 212, 191, 0.28);
     min-width: 48px;
     min-height: 48px;
     padding: 2px;
+  }
+
+  // streamloader (batch 39 / GGG5): mobile mini-player tap target. The
+  // entire .mediacontrols-left strip is now a button (role="button") so
+  // tapping the dead gap between thumb/title/subtitle expands fullscreen.
+  // Give it a tap-friendly cursor + a subtle focus ring for keyboard
+  // a11y. min-height: 56px guarantees the strip alone meets WCAG 2.5.5
+  // even before the inner thumb's own 60px size kicks in.
+  .mediacontrols[data-mobile="true"] .mediacontrols-left[role="button"] {
+    cursor: pointer;
+    min-height: 56px;
+    border-radius: 8px;
+    -webkit-tap-highlight-color: rgba(45, 212, 191, 0.15);
+  }
+  .mediacontrols[data-mobile="true"]
+    .mediacontrols-left[role="button"]:focus-visible {
+    outline: 2px solid $sl-teal;
+    outline-offset: 2px;
   }
 }
 

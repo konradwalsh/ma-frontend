@@ -253,6 +253,14 @@
           <v-icon icon="mdi-play-circle-outline" size="18" />
           <span>Show welcome tour again</span>
         </button>
+        <!-- Force-open the "What's new" dialog regardless of whether the
+             current WHATS_NEW_VERSION has already been acknowledged. The
+             dialog component lives in Default.vue and listens for the
+             `sl-whats-new:show` eventbus event. -->
+        <button type="button" class="sl-replay-tour-btn" @click="showWhatsNew">
+          <v-icon icon="mdi-sparkles" size="18" />
+          <span>Show what's new</span>
+        </button>
       </CardContent>
     </Card>
   </Container>
@@ -292,6 +300,14 @@ const replayWelcomeTour = () => {
     // best-effort
   }
   eventbus.emit("sl-welcome-tour:show");
+};
+
+// "What's new" re-trigger. The dialog component (mounted in Default.vue)
+// owns its own localStorage flag via useWhatsNewVersion(); the eventbus
+// handler over there clears that flag and force-opens the dialog so the
+// user can re-read the changelog any time.
+const showWhatsNew = () => {
+  eventbus.emit("sl-whats-new:show");
 };
 
 const STREAMLOADER_DOMAIN = "streamloader";

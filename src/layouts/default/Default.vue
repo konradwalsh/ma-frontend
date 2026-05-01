@@ -54,6 +54,17 @@
          it shows exactly once per browser unless re-triggered from the
          Streamloader Settings → About card. -->
     <StreamloaderWelcomeTour v-if="!store.frameless" />
+    <!-- Streamloader-fork: "What's new" overlay. Each addon-restart pulls a
+         new build, so we surface a brief changelog whenever the user is
+         running a newer WHATS_NEW_VERSION than they last saw. We also
+         require a small interaction gate (first pointer/keypress) so the
+         dialog never surprises a user on cold-boot before they've even
+         touched the page. Same frameless guard as the other overlays. -->
+    <StreamloaderWhatsNewDialog
+      v-if="!store.frameless && showWhatsNew"
+      v-model="showWhatsNew"
+      @acknowledged="markWhatsNewSeen"
+    />
     <!-- a11y: screen-reader-only live region announcing queue mutations
          (items added/cleared/length changes) on the active player. Pairs
          with PlayerTrackDetails' current-track aria-live (batch 27).
@@ -82,6 +93,7 @@ import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
 import StreamloaderInstallPrompt from "@/components/StreamloaderInstallPrompt.vue";
 import StreamloaderShortcutsHint from "@/components/StreamloaderShortcutsHint.vue";
 import StreamloaderWelcomeTour from "@/components/StreamloaderWelcomeTour.vue";
+import StreamloaderWhatsNewDialog from "@/components/StreamloaderWhatsNewDialog.vue";
 import { store } from "@/plugins/store";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import api from "@/plugins/api";
@@ -89,6 +101,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import { eventbus, type QueueItemsAddedEvent } from "@/plugins/eventbus";
 import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
+import { useWhatsNewVersion } from "@/composables/useWhatsNewVersion";
 
 // Streamloader settings page → "Announce queue actions to screen reader".
 // When off we skip the live-region render AND short-circuit the speak()
@@ -104,6 +117,50 @@ const showFloatingHealthPill = useStreamloaderPref("showFloatingHealthPill");
 // Streamloader-fork addition: register global music-player keyboard shortcuts
 // (Space/arrows/M/F/Esc). Composable handles input-bail + cleanup.
 useKeyboardShortcuts();
+
+// Streamloader-fork: "What's new" version-aware overlay. The composable
+// returns shouldShow=true whenever the persisted "seen" version differs
+// from the current build. We additionally gate visibility on a one-shot
+// "user has interacted" flag so the dialog never pops on first paint
+// before the user has touched the page (pointerdown / keydown both count).
+// The eventbus listener lets the Settings → About link force-open it
+// even when the current version has already been acknowledged.
+const {
+  shouldShow: whatsNewShouldShow,
+  markSeen: markWhatsNewSeenInternal,
+  reset: resetWhatsNew,
+} = useWhatsNewVersion();
+const userHasInteracted = ref(false);
+const showWhatsNew = computed({
+  get: () => whatsNewShouldShow.value && userHasInteracted.value,
+  set: (v: boolean) => {
+    if (!v) markWhatsNewSeenInternal();
+  },
+});
+const markWhatsNewSeen = () => markWhatsNewSeenInternal();
+const onFirstInteraction = () => {
+  if (userHasInteracted.value) return;
+  userHasInteracted.value = true;
+  window.removeEventListener("pointerdown", onFirstInteraction);
+  window.removeEventListener("keydown", onFirstInteraction);
+};
+const onWhatsNewRetrigger = () => {
+  // Force-open path from Settings: prime the interaction gate so the
+  // dialog actually renders even if the user clicked the link before
+  // any other pointer event reached the window listener.
+  userHasInteracted.value = true;
+  resetWhatsNew();
+};
+onMounted(() => {
+  window.addEventListener("pointerdown", onFirstInteraction, { once: false });
+  window.addEventListener("keydown", onFirstInteraction, { once: false });
+  eventbus.on("sl-whats-new:show", onWhatsNewRetrigger);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener("pointerdown", onFirstInteraction);
+  window.removeEventListener("keydown", onFirstInteraction);
+  eventbus.off("sl-whats-new:show", onWhatsNewRetrigger);
+});
 
 // a11y: queue-change live-region state. We track the active player's queue
 // item count and shuffle flag; when either changes we debounce-publish a

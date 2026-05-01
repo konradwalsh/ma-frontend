@@ -77,6 +77,11 @@ export type Events = {
   // (StreamloaderWelcomeTour.vue, mounted in Default.vue) listens for
   // this and re-opens itself, also clearing its localStorage flag.
   "sl-welcome-tour:show": void;
+  // Streamloader-fork addition: re-trigger the "What's new" dialog from
+  // the Streamloader Settings → About card even when the user has already
+  // dismissed the current version. StreamloaderWhatsNewDialog.vue (mounted
+  // in Default.vue) listens for this and force-opens itself.
+  "sl-whats-new:show": void;
 };
 
 export const eventbus: Emitter<Events> = mitt<Events>();

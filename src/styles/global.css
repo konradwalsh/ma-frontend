@@ -243,3 +243,220 @@ html {
 .v-main__wrap {
   -webkit-overflow-scrolling: touch;
 }
+
+/* ==========================================================================
+   StreamLoader vue-sonner brand theming
+   - Top-center position, 16px offset (avoids HealthPill / ActivityPulse /
+     ShortcutsHint on the right edge).
+   - Dark teal-tinted glass with backdrop-filter blur+saturate, matching the
+     ActivityPulse / HealthPill aesthetic.
+   - Per-variant teal-leaning gradients (success / info / warning / error).
+   - Uses vue-sonner data attributes for variant + lifecycle state targeting.
+   ========================================================================== */
+
+.sl-toaster [data-sonner-toast] {
+  background: linear-gradient(
+    135deg,
+    rgba(13, 31, 36, 0.92) 0%,
+    rgba(15, 42, 47, 0.88) 100%
+  );
+  color: #f0fdfa;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  border-radius: 12px;
+  letter-spacing: 0.01em;
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.08),
+    0 6px 18px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(45, 212, 191, 0.18);
+}
+
+/* Light theme override — softer teal glass */
+@media (prefers-color-scheme: light) {
+  .sl-toaster [data-sonner-toast] {
+    background: linear-gradient(
+      135deg,
+      rgba(240, 253, 250, 0.94) 0%,
+      rgba(204, 251, 241, 0.90) 100%
+    );
+    color: #0f3a3a;
+    border: 1px solid rgba(15, 118, 110, 0.4);
+    box-shadow:
+      0 0 0 1px rgba(15, 118, 110, 0.08),
+      0 6px 18px rgba(15, 42, 47, 0.18),
+      0 0 24px rgba(15, 118, 110, 0.12);
+  }
+}
+
+/* Vuetify dark theme override (manual switch — overrides system pref) */
+.v-theme--dark .sl-toaster [data-sonner-toast],
+html.dark .sl-toaster [data-sonner-toast] {
+  background: linear-gradient(
+    135deg,
+    rgba(13, 31, 36, 0.92) 0%,
+    rgba(15, 42, 47, 0.88) 100%
+  );
+  color: #f0fdfa;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.08),
+    0 6px 18px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(45, 212, 191, 0.18);
+}
+
+.v-theme--light .sl-toaster [data-sonner-toast] {
+  background: linear-gradient(
+    135deg,
+    rgba(240, 253, 250, 0.94) 0%,
+    rgba(204, 251, 241, 0.90) 100%
+  );
+  color: #0f3a3a;
+  border: 1px solid rgba(15, 118, 110, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(15, 118, 110, 0.08),
+    0 6px 18px rgba(15, 42, 47, 0.18),
+    0 0 24px rgba(15, 118, 110, 0.12);
+}
+
+/* Per-variant tinted gradients (teal-leaning, no raw colors) */
+.sl-toaster [data-sonner-toast][data-type="success"] {
+  background: linear-gradient(
+    135deg,
+    rgba(13, 38, 36, 0.93) 0%,
+    rgba(16, 64, 50, 0.9) 100%
+  );
+  border-color: rgba(52, 211, 153, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(52, 211, 153, 0.1),
+    0 6px 18px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(52, 211, 153, 0.22);
+}
+
+.sl-toaster [data-sonner-toast][data-type="info"] {
+  background: linear-gradient(
+    135deg,
+    rgba(13, 31, 36, 0.92) 0%,
+    rgba(13, 50, 60, 0.88) 100%
+  );
+  border-color: rgba(45, 212, 191, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.1),
+    0 6px 18px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(45, 212, 191, 0.2);
+}
+
+.sl-toaster [data-sonner-toast][data-type="warning"] {
+  background: linear-gradient(
+    135deg,
+    rgba(38, 30, 14, 0.92) 0%,
+    rgba(58, 48, 16, 0.9) 100%
+  );
+  border-color: rgba(217, 184, 86, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(217, 184, 86, 0.1),
+    0 6px 18px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(217, 184, 86, 0.2);
+}
+
+.sl-toaster [data-sonner-toast][data-type="error"] {
+  background: linear-gradient(
+    135deg,
+    rgba(38, 16, 22, 0.93) 0%,
+    rgba(58, 22, 32, 0.9) 100%
+  );
+  border-color: rgba(232, 110, 110, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(232, 110, 110, 0.1),
+    0 6px 18px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(232, 110, 110, 0.22);
+}
+
+/* Title + description spacing */
+.sl-toaster [data-sonner-toast] [data-title] {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.sl-toaster [data-sonner-toast] [data-description] {
+  opacity: 0.85;
+  letter-spacing: 0.01em;
+}
+
+/* Action button — brand-teal pill with hover glow */
+.sl-toaster [data-sonner-toast] [data-button]:not([data-cancel]) {
+  background: linear-gradient(
+    135deg,
+    rgba(45, 212, 191, 0.95) 0%,
+    rgba(20, 184, 166, 0.95) 100%
+  );
+  color: #06222a;
+  border: 1px solid rgba(45, 212, 191, 0.6);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition:
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.sl-toaster [data-sonner-toast] [data-button]:not([data-cancel]):hover {
+  box-shadow:
+    0 0 0 1px rgba(45, 212, 191, 0.4),
+    0 0 16px rgba(45, 212, 191, 0.55);
+  transform: translateY(-1px);
+}
+
+/* Cancel / dismiss — outlined ghost */
+.sl-toaster [data-sonner-toast] [data-button][data-cancel] {
+  background: transparent;
+  color: rgba(240, 253, 250, 0.85);
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-weight: 500;
+  transition:
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.sl-toaster [data-sonner-toast] [data-button][data-cancel]:hover {
+  background: rgba(45, 212, 191, 0.12);
+  color: #f0fdfa;
+}
+
+/* Slide-in from top with overshoot easing.
+   Scoped to mounted-not-removed so it doesn't fight sonner's swipe-out. */
+.sl-toaster
+  [data-sonner-toast][data-mounted="true"]:not([data-removed="true"]) {
+  animation: sl-toast-slide-in 360ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+@keyframes sl-toast-slide-in {
+  from {
+    transform: translateY(-22px) scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Reduced-motion: collapse to short opacity-only fade */
+@media (prefers-reduced-motion: reduce) {
+  .sl-toaster
+    [data-sonner-toast][data-mounted="true"]:not([data-removed="true"]) {
+    animation: sl-toast-fade-in 120ms ease both;
+  }
+
+  @keyframes sl-toast-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}

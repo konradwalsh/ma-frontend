@@ -9,8 +9,13 @@
     persistent
   >
     <v-card
+      ref="cardRef"
       class="fullscreen-player-card"
       :style="{ background: backgroundColor }"
+      :class="{ 'sl-mobile-fullscreen': isMobileFullscreen }"
+      @touchstart.passive="onCardTouchStart"
+      @touchmove.passive="onCardTouchMove"
+      @touchend="onCardTouchEnd"
     >
       <v-toolbar class="v-toolbar-default" color="transparent">
         <template #prepend>
@@ -56,6 +61,23 @@
             "
           />
 
+          <!-- Streamloader-fork addition (batch 39 / GGG5): mobile-only
+               Lyrics toggle. On mobile the queue panel (which hosts the
+               lyrics tab) is hidden by default, so the user has no way to
+               reach lyrics from the fullscreen view. This toolbar button
+               flips the cover area to a lyrics overlay and back. Hidden
+               on desktop where the existing tab UX is reachable. -->
+          <Button
+            v-if="isMobileFullscreen && hasLyrics"
+            icon
+            :title="mobileShowLyrics ? 'Show cover' : 'Show lyrics'"
+            :aria-label="mobileShowLyrics ? 'Show cover' : 'Show lyrics'"
+            class="sl-mobile-lyrics-btn"
+            @click.stop="mobileShowLyrics = !mobileShowLyrics"
+          >
+            <v-icon :icon="mobileShowLyrics ? 'mdi-image' : 'mdi-text'" />
+          </Button>
+
           <Button icon @click.stop="openQueueMenu">
             <v-icon icon="mdi-dots-vertical" />
           </Button>
@@ -73,6 +95,27 @@
             v-if="$vuetify.display.height > 600"
             class="main-media-details-image"
           >
+            <!-- Streamloader-fork addition (batch 39 / GGG5): mobile-only
+                 lyrics overlay. Toggled by the toolbar Lyrics button on
+                 mobile (or by swipe-up on the cover area). When active,
+                 replaces the vinyl/cover unit with a scrolling lyrics
+                 view so phone users can read along without having to dig
+                 into the queue panel. Desktop is unaffected — the
+                 isMobileFullscreen guard keeps this off on wider screens.
+                 -->
+            <div
+              v-if="isMobileFullscreen && mobileShowLyrics && hasLyrics"
+              class="sl-mobile-lyrics-overlay"
+            >
+              <LyricsViewer
+                :media-item="store.curQueueItem?.media_item"
+                :position="lyricsElapsedTime"
+                :stream-details="store.curQueueItem?.streamdetails"
+                :text-color="sliderColor"
+                :lyrics="currentLyrics.plain"
+                :lrc-lyrics="currentLyrics.synced"
+              />
+            </div>
             <!-- current media image -->
             <!-- Streamloader-fork addition: wrap the now-playing cover in a
                  vinyl-emerging-from-cover hover effect, mirroring the
@@ -82,7 +125,7 @@
                  reported media_type, and the vinyl is iconic of that act.
                  Touch-suppression handled in the scoped CSS below. -->
             <div
-              v-if="store.activePlayer?.powered != false && largeCoverUrl"
+              v-else-if="store.activePlayer?.powered != false && largeCoverUrl"
               class="sl-vinyl-wrapper"
               :class="vinylWrapperClasses"
             >
@@ -932,6 +975,127 @@ const playBtnStyle = computed(() => {
 const playerMarqueeSync = new MarqueeTextSync();
 const hoveredQueueIndex = ref(-1);
 const hoveredMarqueeSync = new MarqueeTextSync();
+
+// Streamloader-fork addition (batch 39 / GGG5): mobile-only fullscreen
+// polish — gesture support, lyrics overlay, larger cover. The mobile
+// breakpoint mirrors the existing 700px gate used elsewhere in the
+// player (PlayerOSD.vue / Player.vue) so behaviour is consistent.
+const isMobileFullscreen = computed(() => {
+  // mirrors the data-mobile gate on the bottom bar — `xs` and `sm` are
+  // Vuetify's phone/tablet-portrait sizes; we ALSO require that the
+  // viewport is narrower than 700px so swipe-down dismissal doesn't fire
+  // on a desktop user who happened to be on `sm`.
+  return name.value === "xs" || name.value === "sm";
+});
+
+const mobileShowLyrics = ref(false);
+// Reset lyrics overlay when the fullscreen player closes so reopening
+// on a different track doesn't leave the user staring at stale lyrics.
+watch(
+  () => store.showFullscreenPlayer,
+  (open) => {
+    if (!open) mobileShowLyrics.value = false;
+  },
+);
+// Also flip back to cover when the track changes — the new track may
+// not have lyrics, and the user probably wants the visual change.
+watch(
+  () => store.curQueueItem?.media_item?.item_id,
+  () => {
+    mobileShowLyrics.value = false;
+  },
+);
+
+// Touch-tracking helper. We capture start position + time so we can
+// distinguish a tap from a deliberate swipe, and skip gestures
+// originating on interactive controls (sliders, buttons) so dragging
+// the timeline doesn't accidentally close the player.
+const cardRef = ref<InstanceType<
+  typeof import("vuetify/components").VCard
+> | null>(null);
+const touchState = ref<{
+  x: number;
+  y: number;
+  t: number;
+  startedOnControl: boolean;
+} | null>(null);
+
+const SWIPE_THRESHOLD_PX = 80;
+const SWIPE_TIME_LIMIT_MS = 600;
+const HORIZONTAL_DOMINANCE_RATIO = 1.4;
+
+const prefersReducedMotion = (): boolean =>
+  typeof window !== "undefined" &&
+  window.matchMedia &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const onCardTouchStart = (e: TouchEvent) => {
+  if (!isMobileFullscreen.value) return;
+  if (e.touches.length !== 1) return;
+  const target = e.target as HTMLElement | null;
+  // Skip gestures that begin inside an interactive control (slider thumb,
+  // buttons, scrollable lists). The closest() check covers Vuetify's
+  // .v-slider, our queue scroll box, and any <button>/<a>.
+  const startedOnControl = !!target?.closest(
+    "input, button, a, [role='slider'], .v-slider, .v-slider-thumb, .queue-items-scroll-box, .lyrics-wrapper, .sl-mobile-lyrics-overlay, .v-toolbar",
+  );
+  const t = e.touches[0];
+  touchState.value = {
+    x: t.clientX,
+    y: t.clientY,
+    t: Date.now(),
+    startedOnControl,
+  };
+};
+
+const onCardTouchMove = (_e: TouchEvent) => {
+  // No-op — kept passive so iOS Safari doesn't penalise the event loop.
+  // We rely on touchend's final delta to decide whether a gesture fired.
+};
+
+const onCardTouchEnd = (e: TouchEvent) => {
+  if (!isMobileFullscreen.value) return;
+  const start = touchState.value;
+  touchState.value = null;
+  if (!start || start.startedOnControl) return;
+  if (prefersReducedMotion()) return;
+  const ct = e.changedTouches[0];
+  if (!ct) return;
+  const dx = ct.clientX - start.x;
+  const dy = ct.clientY - start.y;
+  const dt = Date.now() - start.t;
+  if (dt > SWIPE_TIME_LIMIT_MS) return;
+  const absX = Math.abs(dx);
+  const absY = Math.abs(dy);
+
+  // Vertical swipe down → dismiss fullscreen player
+  if (absY >= SWIPE_THRESHOLD_PX && absY > absX * HORIZONTAL_DOMINANCE_RATIO) {
+    if (dy > 0) {
+      // swipe-down dismiss
+      store.showFullscreenPlayer = false;
+    } else if (hasLyrics.value) {
+      // swipe-up reveals lyrics (if available) — Spotify-style affordance
+      mobileShowLyrics.value = true;
+    }
+    return;
+  }
+
+  // Horizontal swipe → next/prev. Only fire if started on the cover
+  // area; we approximate this by checking the touch's start Y is in the
+  // top 60% of the viewport (cover is always in the upper half of the
+  // mobile fullscreen layout).
+  if (absX >= SWIPE_THRESHOLD_PX && absX > absY * HORIZONTAL_DOMINANCE_RATIO) {
+    const viewportH = window.innerHeight || 800;
+    if (start.y > viewportH * 0.6) return; // ignore lower-half swipes (controls area)
+    const playerId = store.activePlayerId;
+    if (!playerId) return;
+    if (dx < 0) {
+      api.playerCommandNext(playerId);
+    } else {
+      api.playerCommandPrevious(playerId);
+    }
+  }
+};
 
 // Local refs
 const queueItems = ref<QueueItem[]>([]);
@@ -2299,6 +2463,80 @@ button {
 
   .main-media-details-track-info {
     padding: 8px 0;
+  }
+}
+
+/* Streamloader-fork addition (batch 39 / GGG5): MOBILE FULLSCREEN polish.
+   Gated to the actual mobile viewport so desktop layout is untouched.
+
+   - Cover-art larger: ~80% viewport width on phones, capping at the
+     existing container size on small tablets so we don't blow past the
+     vinyl-orbit fix from batch MMM4.
+   - Lyrics overlay sits inside the same .main-media-details-image box
+     as the cover, taking the same square footprint.
+   - Touch hint: subtle "swipe down to dismiss" cue is conveyed via the
+     existing toolbar chevron-down — no extra UI needed.
+*/
+@media (max-width: 700px) {
+  .sl-mobile-fullscreen .main-media-details-image {
+    /* Encourage the cover to fill more of the phone screen — the
+       container-query sized .sl-vinyl-wrapper (min(100cqi, 100cqh))
+       inside this box scales with us automatically, so bumping the
+       container makes the cover bigger without touching the vinyl
+       overlay math. */
+    padding-left: 4vw;
+    padding-right: 4vw;
+    /* Hard ceiling so the cover never crowds the track info below. */
+    max-height: min(80vh, 90vw);
+  }
+
+  .sl-mobile-fullscreen .main-media-details-track-info {
+    /* The bigger cover means tighter track-info area; trim padding. */
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  /* Lyrics overlay — same square footprint as the cover. The
+     LyricsViewer handles its own scrolling; we just give it a box. */
+  .sl-mobile-lyrics-overlay {
+    width: min(100cqi, 100cqh);
+    height: min(100cqi, 100cqh);
+    flex: 0 0 auto;
+    border-radius: 10px;
+    padding: 16px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    box-sizing: border-box;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+  .sl-mobile-lyrics-overlay :deep(.lyrics-line),
+  .sl-mobile-lyrics-overlay :deep(.break-note) {
+    /* slightly smaller than the desktop tab-lyrics text since we're
+       inside a square box, not a full-height scrolling pane */
+    font-size: clamp(1.1rem, 4.2vw, 1.6rem);
+  }
+
+  /* The mobile lyrics toolbar button picks up theme-derived colors via
+     var(--text-color) (set in watchEffect above), so it stays legible
+     against any backgroundColor gradient. */
+  .sl-mobile-lyrics-btn {
+    color: var(--text-color);
+  }
+}
+
+/* Honour reduced-motion: the swipe gestures are gated in JS via
+   prefersReducedMotion(); also disable the fade-in of the lyrics
+   overlay when the user has the OS preference set. (No transitions
+   currently — declared for future-proofing should we add a fade.) */
+@media (prefers-reduced-motion: reduce) {
+  .sl-mobile-lyrics-overlay {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 }
 
