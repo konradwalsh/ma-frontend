@@ -300,6 +300,7 @@ const compProps = withDefaults(defineProps<Props>(), {
   isDisabled: false,
   isAvailable: true,
   parentItem: undefined,
+  sortBy: undefined,
   hideSourceBadge: false,
 });
 

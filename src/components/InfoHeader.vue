@@ -72,15 +72,23 @@
           <div
             v-else-if="item.media_type === MediaType.ALBUM"
             class="sl-vinyl-wrapper"
+            :class="vinylWrapperClasses"
           >
             <!-- Streamloader-fork addition: ALACarte-style vinyl-emerging-
                  from-cover hero, scoped to ALBUM only (other media types
-                 keep MA's original cover-only render below). On hover the
-                 vinyl slides out to the right with a slight tilt; on touch
-                 devices the effect is suppressed entirely so finger-drag
-                 doesn't trigger it. Vinyl SVG self-contained, lifted from
-                 the streamloader web UI's /static/vinyl.svg. -->
-            <img :src="vinylSvg" alt="" class="sl-vinyl-disc" />
+                 keep MA's original cover-only render below). Display mode
+                 is user-configurable via the "vinyl_display_mode" frontend
+                 setting (hover / always-visible / always-visible-spinning).
+                 The spin animation is gated on the active player's
+                 PlaybackState.PLAYING so a paused queue freezes the disc.
+                 Vinyl SVG self-contained, lifted from the streamloader
+                 web UI's /static/vinyl.svg. -->
+            <img
+              :src="vinylSvg"
+              alt=""
+              class="sl-vinyl-disc"
+              :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
+            />
             <div class="sl-vinyl-cover">
               <MediaItemThumb
                 :item="item"
@@ -479,6 +487,26 @@
                 @keydown.enter.prevent="deleteGenre"
                 @keydown.space.prevent="deleteGenre"
               />
+              <!-- Streamloader-fork addition: replace-artwork affordance.
+                   Shown on track / album / podcast / audiobook detail
+                   pages where the auto-detected cover can be wrong (the
+                   Pearl Jam "Corduroy" → Asian-2000-album bug). Hidden
+                   for artists (no single "wrong cover" issue) and for
+                   genres / playlists / radio (cover is user-curated or
+                   intrinsic to the source). Stub UI — persists the
+                   user's input to localStorage; backend endpoint pending. -->
+              <ImagePlus
+                v-if="canEditArtwork"
+                :size="22"
+                class="cursor-pointer ml-2"
+                title="Replace artwork"
+                role="button"
+                tabindex="0"
+                aria-label="Replace artwork"
+                @click="openEditArtwork"
+                @keydown.enter.prevent="openEditArtwork"
+                @keydown.space.prevent="openEditArtwork"
+              />
             </div>
           </div>
           <div
@@ -530,6 +558,13 @@
         </div>
       </v-layout>
     </v-card>
+    <!-- Streamloader-fork addition: artwork-override dialog (stub UI;
+         see StreamloaderEditArtworkDialog.vue header comment). -->
+    <StreamloaderEditArtworkDialog
+      v-if="item && canEditArtwork"
+      v-model="showEditArtwork"
+      :item-id="item.item_id"
+    />
     <v-dialog v-model="showFullInfo" max-width="975" width="auto">
       <v-card>
         <!-- eslint-disable vue/no-v-html -->
@@ -573,12 +608,12 @@ import type {
   ItemMapping,
   MediaItemType,
 } from "@/plugins/api/interfaces";
-import { ImageType, MediaType, Track } from "@/plugins/api/interfaces";
+import { ImageType, MediaType, PlaybackState, Track } from "@/plugins/api/interfaces";
 import { authManager } from "@/plugins/auth";
 import { eventbus } from "@/plugins/eventbus";
 import { store } from "@/plugins/store";
 import { IconHeart, IconHeartFilled } from "@tabler/icons-vue";
-import { ArrowLeft, Merge, Trash2 } from "lucide-vue-next";
+import { ArrowLeft, ImagePlus, Merge, Trash2 } from "lucide-vue-next";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -587,6 +622,7 @@ import MarqueeText from "./MarqueeText.vue";
 import MediaItemThumb from "./MediaItemThumb.vue";
 import MenuButton from "./MenuButton.vue";
 import ProviderIcon from "./ProviderIcon.vue";
+import StreamloaderEditArtworkDialog from "./StreamloaderEditArtworkDialog.vue";
 
 // properties
 export interface Props {
@@ -595,6 +631,9 @@ export interface Props {
 }
 const compProps = defineProps<Props>();
 const showFullInfo = ref(false);
+// Streamloader-fork addition: artwork-override dialog state. See
+// StreamloaderEditArtworkDialog.vue and the canEditArtwork computed below.
+const showEditArtwork = ref(false);
 const fanartImage = ref();
 useDisplay();
 const menuItems = ref<ContextMenuItem[]>([]);
@@ -606,6 +645,32 @@ const imgGradient = new URL("../assets/info_gradient.jpg", import.meta.url)
 // Streamloader-fork addition: vinyl asset for the ALACarte-style
 // album-cover hover reveal (sl-vinyl-* classes below).
 const vinylSvg = new URL("../assets/vinyl.svg", import.meta.url).href;
+
+// Streamloader-fork addition: user-configurable vinyl display mode.
+// Read once at component setup — FrontendConfig.vue forces a window
+// reload after saving, so a snapshot is sufficient.
+type VinylDisplayMode = "hover" | "always-visible" | "always-visible-spinning";
+const vinylDisplayMode: VinylDisplayMode =
+  (localStorage.getItem("frontend.settings.vinyl_display_mode") as
+    | VinylDisplayMode
+    | null) || "always-visible-spinning";
+
+const vinylWrapperClasses = computed(() => ({
+  "vinyl-mode--hover": vinylDisplayMode === "hover",
+  "vinyl-mode--always-visible": vinylDisplayMode === "always-visible",
+  "vinyl-mode--always-visible-spinning":
+    vinylDisplayMode === "always-visible-spinning",
+}));
+
+// Spin only in always-visible-spinning mode AND when the active player
+// is actually playing. Falls back to "spin" when no active player so
+// the album-detail preview doesn't sit frozen at first paint.
+const vinylShouldSpin = computed(() => {
+  if (vinylDisplayMode !== "always-visible-spinning") return false;
+  const ps = store.activePlayer?.playback_state;
+  if (ps === undefined) return true;
+  return ps === PlaybackState.PLAYING;
+});
 
 const marqueeSync = new MarqueeTextSync();
 const router = useRouter();
@@ -829,6 +894,28 @@ const audiobookResumeChapter = computed<string | null>(() => {
 
 const isAdmin = computed(() => authManager.isAdmin());
 
+// Streamloader-fork addition: which detail pages get the "Replace
+// artwork" affordance. Track / album / podcast / audiobook are the four
+// surfaces where the auto-detected cover can be wrong (and where users
+// most often notice — the Pearl Jam "Corduroy" → Asian-2000 bug came
+// from the album view). Artist pages don't get it because an artist
+// photo is rarely a single-source mismatch; genres / playlists / radio
+// already have curated or intrinsic art.
+const canEditArtwork = computed(() => {
+  if (!compProps.item) return false;
+  return (
+    compProps.item.media_type === MediaType.TRACK ||
+    compProps.item.media_type === MediaType.ALBUM ||
+    compProps.item.media_type === MediaType.PODCAST ||
+    compProps.item.media_type === MediaType.AUDIOBOOK
+  );
+});
+
+const openEditArtwork = () => {
+  if (!canEditArtwork.value) return;
+  showEditArtwork.value = true;
+};
+
 const mergeGenre = () => {
   if (!compProps.item) return;
   eventbus.emit("mergeGenreDialog", {
@@ -928,23 +1015,60 @@ const deleteGenre = () => {
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
 }
 
-.sl-vinyl-wrapper:hover .sl-vinyl-disc {
+/* Mode 1 (default for legacy): hover-only reveal. */
+.sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc {
   transform: translate(45%, -50%) rotate(0deg);
 }
-
-.sl-vinyl-wrapper:hover {
+.sl-vinyl-wrapper.vinyl-mode--hover:hover {
   transform: rotate(-3deg) scale(1.03);
 }
 
-/* Touch devices: disable hover effect entirely. The reveal is a
-   desktop-mouse affordance; on a phone the user's finger drag would
-   either always-trigger it (cluttering the cover) or never-trigger it
-   (depending on browser). Either way it adds nothing on touch. */
+/* Mode 2 + 3: vinyl always peeks out by ~45% of its width. The
+   protrusion is on the wrapper's resting state for the disc; spin
+   in mode 3 is layered on top via a nested rotating element below. */
+.sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-disc,
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc {
+  transform: translate(45%, -50%) rotate(0deg);
+}
+
+/* Mode 3: continuous slow spin — 8s per revolution. The transform
+   property is already used for the protrude offset, so we animate
+   rotate() via the modern individual-transform property which composes
+   with the translate() above. Pause class freezes the spin without
+   resetting the angle. */
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc {
+  animation: sl-vinyl-spin 8s linear infinite;
+}
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning
+  .sl-vinyl-disc.sl-vinyl-spinning--paused {
+  animation-play-state: paused;
+}
+
+@keyframes sl-vinyl-spin {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* Respect users who've asked the OS to reduce motion. */
+@media (prefers-reduced-motion: reduce) {
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc {
+    animation: none;
+  }
+}
+
+/* Touch devices: disable the hover-mode reveal entirely. The reveal is
+   a desktop-mouse affordance; on a phone the user's finger drag would
+   either always-trigger or never-trigger it depending on browser, and
+   neither adds anything. Always-visible modes are unaffected. */
 @media (hover: none) {
-  .sl-vinyl-wrapper:hover .sl-vinyl-disc {
+  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc {
     transform: translate(0, -50%) rotate(-40deg);
   }
-  .sl-vinyl-wrapper:hover {
+  .sl-vinyl-wrapper.vinyl-mode--hover:hover {
     transform: none;
   }
 }

@@ -123,7 +123,8 @@ const flushPerAction = () => {
     else if (type === "next") phrases.push(`Playing ${qty} next`);
     else if (type === "playlist") phrases.push(`Added ${qty} to playlist`);
     else if (type === "replace_next") phrases.push(`Up next: ${qty}`);
-    else if (type === "play" || type === "replace") phrases.push(`Playing ${qty}`);
+    else if (type === "play" || type === "replace")
+      phrases.push(`Playing ${qty}`);
   }
   if (phrases.length === 0) return;
   lastPerActionAt = Date.now();

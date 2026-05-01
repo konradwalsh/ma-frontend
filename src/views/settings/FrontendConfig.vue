@@ -196,6 +196,36 @@ onMounted(() => {
     });
   }
 
+  // Streamloader-fork addition: vinyl display behaviour for the album
+  // hero (InfoHeader) and now-playing fullscreen cover. Three modes:
+  //   - "hover": current behaviour, vinyl peeks out only on hover.
+  //   - "always-visible": vinyl always protrudes ~45%, doesn't spin.
+  //   - "always-visible-spinning": always protrudes AND spins slowly
+  //     when the active player is in PlaybackState.PLAYING.
+  // Default = "always-visible-spinning" (the dramatic look).
+  configEntries.push({
+    key: "vinyl_display_mode",
+    type: ConfigEntryType.STRING,
+    label: "Vinyl record display",
+    description:
+      "How the vinyl disc behind album cover art is shown. Spinning pauses when playback is paused or stopped.",
+    default_value: "always-visible-spinning",
+    required: false,
+    options: [
+      { title: "Hover only", value: "hover" },
+      { title: "Always visible", value: "always-visible" },
+      {
+        title: "Always visible & spinning",
+        value: "always-visible-spinning",
+      },
+    ],
+    multi_value: false,
+    category: "generic",
+    value:
+      localStorage.getItem("frontend.settings.vinyl_display_mode") ||
+      "always-visible-spinning",
+  });
+
   config.value = configEntries;
 });
 

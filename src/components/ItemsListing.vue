@@ -1824,41 +1824,4 @@ defineExpose({
   ) !important;
 }
 
-/* Streamloader: empty state */
-.empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 16px;
-}
-.empty-state__inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 12px;
-  max-width: 360px;
-}
-.empty-state__icon {
-  color: rgb(var(--v-theme-primary)) !important;
-  opacity: 0.85;
-  background: rgba(45, 212, 191, 0.08);
-  border-radius: 50%;
-  padding: 18px;
-  width: 84px;
-  height: 84px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.empty-state__title {
-  font-size: 1.05rem;
-  font-weight: 500;
-  color: rgba(var(--v-theme-on-surface), 0.85);
-  letter-spacing: 0.01em;
-}
-.empty-state__action {
-  margin-top: 6px;
-  border-radius: 999px;
-}
 </style>

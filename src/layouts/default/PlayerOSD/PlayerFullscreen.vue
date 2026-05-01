@@ -78,16 +78,37 @@
             <div
               v-if="
                 store.activePlayer?.powered != false &&
-                store.activePlayer?.current_media?.image_url
+                largeCoverUrl
               "
               class="sl-vinyl-wrapper"
+              :class="vinylWrapperClasses"
             >
-              <img :src="vinylSvg" alt="" class="sl-vinyl-disc" />
+              <img
+                :src="vinylSvg"
+                alt=""
+                class="sl-vinyl-disc"
+                :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
+              />
               <div class="sl-vinyl-cover">
-                <v-img
-                  :src="
-                    getMediaImageUrl(store.activePlayer.current_media.image_url)
-                  "
+                <!-- Streamloader-fork fix (batch JJJ3): the large vinyl-overlay
+                     cover used <v-img :src=getMediaImageUrl(image_url)>, which
+                     returned the raw provider URL as-is unless there was a
+                     http→https protocol mismatch. For some tracks that raw
+                     URL 404s while the imageproxy-resized variant (used by
+                     the queue thumb via getImageThumbForItem) succeeds — so
+                     the queue thumbnail loaded but the big cover was blank.
+                     Switched to a real <img> routed through largeCoverUrl
+                     (forces imageproxy + size hint), with an @error fallback
+                     to the streamloader mark so a single failure can't leave
+                     the hero blank, and a :key tied to the image URL so the
+                     img remounts cleanly on track change (kills any stuck
+                     error state from the previous track). -->
+                <img
+                  :key="largeCoverUrl"
+                  :src="largeCoverUrl"
+                  alt=""
+                  class="sl-vinyl-cover-img"
+                  @error="onLargeCoverError"
                 />
               </div>
             </div>
@@ -411,15 +432,26 @@
             <!-- Streamloader-fork addition: same vinyl-cover hover reveal
                  as the primary media-image position above. -->
             <div
-              v-if="store.activePlayer?.current_media?.image_url"
+              v-if="largeCoverUrl"
               class="sl-vinyl-wrapper"
+              :class="vinylWrapperClasses"
             >
-              <img :src="vinylSvg" alt="" class="sl-vinyl-disc" />
+              <img
+                :src="vinylSvg"
+                alt=""
+                class="sl-vinyl-disc"
+                :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
+              />
               <div class="sl-vinyl-cover">
-                <v-img
-                  :src="
-                    getMediaImageUrl(store.activePlayer.current_media.image_url)
-                  "
+                <!-- Streamloader-fork fix (batch JJJ3): see matching block
+                     above for the rationale. Same fix mirrored here for the
+                     short-screen alt cover position. -->
+                <img
+                  :key="largeCoverUrl"
+                  :src="largeCoverUrl"
+                  alt=""
+                  class="sl-vinyl-cover-img"
+                  @error="onLargeCoverError"
                 />
               </div>
             </div>
@@ -577,7 +609,6 @@ import { getPlayerMenuItems } from "@/helpers/player_menu_items";
 import {
   ImageColorPalette,
   formatDuration,
-  getMediaImageUrl,
   getPlayerName,
   sleep,
 } from "@/helpers/utils";
@@ -630,6 +661,66 @@ const { name } = useDisplay();
 // reveal (sl-vinyl-* classes in the template/style below). Mirrors the
 // pattern shipped on the album-detail page in InfoHeader.vue.
 const vinylSvg = new URL("@/assets/vinyl.svg", import.meta.url).href;
+
+// Streamloader-fork addition: vinyl display mode driven by the
+// "vinyl_display_mode" frontend setting (FrontendConfig.vue). Read once
+// at setup — the settings page forces a window reload after saving so a
+// snapshot is sufficient. Spin gates on the active player's
+// PlaybackState.PLAYING so a paused queue freezes the disc.
+type VinylDisplayMode = "hover" | "always-visible" | "always-visible-spinning";
+const vinylDisplayMode: VinylDisplayMode =
+  (localStorage.getItem("frontend.settings.vinyl_display_mode") as
+    | VinylDisplayMode
+    | null) || "always-visible-spinning";
+
+const vinylWrapperClasses = computed(() => ({
+  "vinyl-mode--hover": vinylDisplayMode === "hover",
+  "vinyl-mode--always-visible": vinylDisplayMode === "always-visible",
+  "vinyl-mode--always-visible-spinning":
+    vinylDisplayMode === "always-visible-spinning",
+}));
+
+const vinylShouldSpin = computed(() => {
+  if (vinylDisplayMode !== "always-visible-spinning") return false;
+  return store.activePlayer?.playback_state === PlaybackState.PLAYING;
+});
+
+// Streamloader-fork fix (batch JJJ3): brand-mark fallback shown if the
+// large vinyl-overlay cover fails to load. Keeps the hero composition
+// intact rather than collapsing to an empty box on a single 404.
+const streamloaderMark = new URL(
+  "@/assets/streamloader-mark.svg",
+  import.meta.url,
+).href;
+
+// Streamloader-fork fix (batch JJJ3): defensively route the large cover
+// through imageproxy with a size hint, matching how the queue thumbnail
+// resolves its URL via getImageThumbForItem(item, THUMB, 256). Some
+// providers return a raw image_url that 404s while the imageproxy-resized
+// variant succeeds — that asymmetry is what made the hero cover go blank
+// while the same track's queue thumb loaded fine. We deliberately do NOT
+// touch the queue thumb path; this only changes the large vinyl-overlay
+// resolution.
+const largeCoverUrl = computed(() => {
+  const raw = store.activePlayer?.current_media?.image_url;
+  if (!raw) return "";
+  if (raw.startsWith("data:image")) return raw;
+  // Force imageproxy with a generous size; the proxy handles smaller
+  // upstream images gracefully.
+  const enc = encodeURIComponent(encodeURIComponent(raw));
+  return `${api.baseUrl}/imageproxy?path=${enc}&size=600`;
+});
+
+// Swap to the streamloader brand mark on a single image error so the
+// hero never renders blank. The :key on the <img> remounts the element
+// on every URL change, so a previous track's error state can't bleed
+// into the next track.
+const onLargeCoverError = (evt: Event) => {
+  const el = evt.target as HTMLImageElement | null;
+  if (!el) return;
+  if (el.src === streamloaderMark) return; // already on fallback
+  el.src = streamloaderMark;
+};
 
 const MIN_HEIGHT_SHOW_FULL_DETAILS = 750;
 const showAlbumSubtitle = computed(
@@ -1632,7 +1723,8 @@ watchEffect(() => {
   padding-right: 20px;
   container-type: size;
 }
-.main-media-details-image .v-img {
+.main-media-details-image .v-img,
+.main-media-details-image .sl-vinyl-cover-img {
   width: min(100cqi, 100cqh);
   height: min(100cqi, 100cqh);
   flex: 0 0 auto;
@@ -1909,6 +2001,17 @@ button {
   height: 100% !important;
 }
 
+/* Streamloader-fork fix (batch JJJ3): native <img> replaces <v-img> for
+   the large hero cover so we get a real onerror callback for the
+   defensive fallback. Square it off to match the previous v-img layout. */
+.sl-vinyl-cover-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
 .sl-vinyl-disc {
   position: absolute;
   top: 50%;
@@ -1924,25 +2027,59 @@ button {
   filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5));
 }
 
-.sl-vinyl-wrapper:hover .sl-vinyl-disc {
-  /* Peek out ~40% of the vinyl's width to the right on hover, matching
+/* Mode 1: hover-only reveal (legacy). */
+.sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc {
+  /* Peek out ~45% of the vinyl's width to the right on hover, matching
      the InfoHeader.vue effect proportionally. */
   transform: translate(45%, -50%) rotate(0deg);
 }
-
-.sl-vinyl-wrapper:hover {
+.sl-vinyl-wrapper.vinyl-mode--hover:hover {
   transform: rotate(-3deg) scale(1.03);
 }
 
-/* Touch devices: disable the hover reveal entirely. The effect is a
-   desktop-mouse affordance; on touch, finger-drag would either always-
-   trigger or never-trigger it depending on browser, neither of which
-   adds anything. */
+/* Mode 2 + 3: vinyl always peeks out by ~45% of its width. */
+.sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-disc,
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc {
+  transform: translate(45%, -50%) rotate(0deg);
+}
+
+/* Mode 3: continuous slow spin — 8s per revolution. The transform
+   property is occupied by the protrude offset so we use the modern
+   individual-transform `rotate:` property which composes after
+   transform. Pause class freezes the spin without resetting the angle. */
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc {
+  animation: sl-vinyl-spin 8s linear infinite;
+}
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning
+  .sl-vinyl-disc.sl-vinyl-spinning--paused {
+  animation-play-state: paused;
+}
+
+@keyframes sl-vinyl-spin {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* Respect users who've asked the OS to reduce motion. */
+@media (prefers-reduced-motion: reduce) {
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc {
+    animation: none;
+  }
+}
+
+/* Touch devices: disable the hover-mode reveal entirely. The reveal is
+   a desktop-mouse affordance; on touch finger-drag would either always-
+   or never-trigger it depending on browser, neither of which adds
+   anything. Always-visible modes are unaffected. */
 @media (hover: none) {
-  .sl-vinyl-wrapper:hover .sl-vinyl-disc {
+  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc {
     transform: translate(0, -50%) rotate(-40deg);
   }
-  .sl-vinyl-wrapper:hover {
+  .sl-vinyl-wrapper.vinyl-mode--hover:hover {
     transform: none;
   }
 }

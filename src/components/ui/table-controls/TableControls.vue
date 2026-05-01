@@ -54,6 +54,7 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
+  filterOptions: undefined,
   pageSizeOptions: () => ["10", "25", "50"],
 });
 

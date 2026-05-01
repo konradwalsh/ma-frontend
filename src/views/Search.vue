@@ -385,24 +385,4 @@ const filteredItems = function (mediaType: MediaType) {
   opacity: 0.85;
 }
 
-/* gentle empty-state for the initial (no search term) view */
-.streamloader-search-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 64px 20px 40px;
-  text-align: center;
-  opacity: 0.55;
-}
-.streamloader-search-empty-icon {
-  color: rgb(var(--v-theme-primary));
-  opacity: 0.65;
-  margin-bottom: 12px;
-}
-.streamloader-search-empty-text {
-  font-size: 0.95rem;
-  letter-spacing: 0.02em;
-  font-weight: 500;
-}
 </style>
