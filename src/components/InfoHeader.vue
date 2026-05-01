@@ -331,7 +331,14 @@
                 <a
                   style="color: secondary"
                   @click="albumClick((item as Track)?.album)"
-                  >{{ item.album.name }}</a
+                  >{{
+                    prettifyMediaName(item.album.name, {
+                      artist:
+                        "artists" in item && item.artists?.length
+                          ? item.artists[0].name
+                          : undefined,
+                    })
+                  }}</a
                 ><span v-if="'year' in item.album && item.album.year">
                   • {{ item.album.year }}</span
                 ></MarqueeText
@@ -613,6 +620,7 @@ import {
   parseBool,
   truncateString,
 } from "@/helpers/utils";
+import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 import {
   ContextMenuItem,
   getContextMenuItems,
@@ -721,7 +729,13 @@ const headerTitle = computed(() => {
       te,
     );
   }
-  return compProps.item.name;
+  // Streamloader-fork addition: cosmetic prettifier for filename-derived
+  // names. Display-layer only — see helpers/prettifyMediaName.ts.
+  const artistName =
+    "artists" in compProps.item && compProps.item.artists?.length
+      ? compProps.item.artists[0].name
+      : undefined;
+  return prettifyMediaName(compProps.item.name, { artist: artistName });
 });
 
 watch(

@@ -133,7 +133,8 @@ const overrideItemId = computed<string | undefined>(() => {
     | (QueueItem & { media_item?: { item_id?: string } })
     | undefined;
   if (!it) return undefined;
-  if ("media_item" in it && it.media_item?.item_id) return it.media_item.item_id;
+  if ("media_item" in it && it.media_item?.item_id)
+    return it.media_item.item_id;
   if ("item_id" in it && it.item_id) return it.item_id;
   return undefined;
 });

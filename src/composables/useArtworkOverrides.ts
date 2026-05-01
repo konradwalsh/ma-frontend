@@ -77,7 +77,9 @@ function persist(): boolean {
 }
 
 export function useArtworkOverrides() {
-  const getOverride = (itemId: string | undefined): OverrideEntry | undefined => {
+  const getOverride = (
+    itemId: string | undefined,
+  ): OverrideEntry | undefined => {
     if (!itemId) return undefined;
     return overridesRef.value.get(itemId);
   };

@@ -36,6 +36,11 @@
          Same frameless guard as the health pill — when running inside
          a host shell (HA ingress), the host owns the install path. -->
     <StreamloaderInstallPrompt v-if="!store.frameless" />
+    <!-- Streamloader-fork (batch 34): first-run welcome tour. Self-gates
+         on frameless mode + connection state + a localStorage flag, so
+         it shows exactly once per browser unless re-triggered from the
+         Streamloader Settings → About card. -->
+    <StreamloaderWelcomeTour v-if="!store.frameless" />
     <!-- a11y: screen-reader-only live region announcing queue mutations
          (items added/cleared/length changes) on the active player. Pairs
          with PlayerTrackDetails' current-track aria-live (batch 27).
@@ -62,6 +67,7 @@ import StreamloaderHealthPill from "@/components/StreamloaderHealthPill.vue";
 import StreamloaderActivityPulse from "@/components/StreamloaderActivityPulse.vue";
 import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
 import StreamloaderInstallPrompt from "@/components/StreamloaderInstallPrompt.vue";
+import StreamloaderWelcomeTour from "@/components/StreamloaderWelcomeTour.vue";
 import { store } from "@/plugins/store";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import api from "@/plugins/api";

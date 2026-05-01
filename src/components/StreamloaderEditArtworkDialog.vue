@@ -37,6 +37,40 @@
       </v-card-title>
 
       <v-card-text class="sl-eaw-body">
+        <!-- ── EXISTING-OVERRIDE BANNER ─────────────────────────────────
+             Surfaces the fact that an override is already active for this
+             item and gives the user a one-click escape hatch. Without this
+             a user who pasted a wrong URL has no in-app way to roll back.
+        -->
+        <div
+          v-if="existingOverride"
+          class="sl-eaw-banner"
+          role="status"
+          aria-live="polite"
+        >
+          <img
+            :src="existingOverride.value"
+            alt="Current override preview"
+            class="sl-eaw-banner-thumb"
+          />
+          <div class="sl-eaw-banner-text">
+            <div class="sl-eaw-banner-title">Currently overridden</div>
+            <div class="sl-eaw-banner-sub">
+              An override is currently set for this item.
+            </div>
+          </div>
+          <v-btn
+            ref="resetBtnRef"
+            class="sl-eaw-reset"
+            variant="outlined"
+            size="small"
+            aria-label="Reset to default artwork"
+            @click="resetOverride"
+          >
+            Reset to default artwork
+          </v-btn>
+        </div>
+
         <v-tabs
           v-model="activeTab"
           color="primary"
@@ -58,6 +92,7 @@
               >
               <input
                 id="sl-eaw-url"
+                ref="urlInputRef"
                 v-model.trim="urlInput"
                 type="url"
                 inputmode="url"
@@ -139,10 +174,10 @@
         <v-btn
           class="sl-eaw-apply"
           :disabled="!canApply"
-          aria-label="Apply artwork override"
+          :aria-label="applyLabel === 'Apply' ? 'Apply artwork override' : 'Replace existing artwork override'"
           @click="apply"
         >
-          Apply
+          {{ applyLabel }}
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -150,9 +185,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, nextTick, ref, watch } from "vue";
 import { toast } from "vue-sonner";
-import { useArtworkOverrides } from "@/composables/useArtworkOverrides";
+import {
+  useArtworkOverrides,
+  type OverrideEntry,
+} from "@/composables/useArtworkOverrides";
 
 interface Props {
   modelValue: boolean;
@@ -168,7 +206,7 @@ const emit = defineEmits<{
 // localStorage key from batch 32, but now wrapped in a reactive Map so the
 // renderer sites (PlayerFullscreen, MediaItemThumb, InfoHeader) re-render
 // the moment Apply is clicked. Previously written overrides remain valid.
-const { setOverride } = useArtworkOverrides();
+const { getOverride, setOverride, removeOverride } = useArtworkOverrides();
 
 const activeTab = ref<"url" | "upload">("url");
 const urlInput = ref("");
@@ -176,6 +214,29 @@ const urlPreviewError = ref(false);
 const uploadPreviewSrc = ref<string | null>(null);
 const isDragging = ref(false);
 const fileInputRef = ref<HTMLInputElement | null>(null);
+const urlInputRef = ref<HTMLInputElement | null>(null);
+// Vuetify v-btn refs are component instances; we only need .focus() so the
+// loose ComponentPublicInstance shape is enough.
+const resetBtnRef = ref<{ $el?: HTMLElement; focus?: () => void } | null>(
+  null,
+);
+
+// Reactive snapshot of any override that already exists for this item.
+// Recomputes whenever the dialog opens for a new item OR when the user resets.
+// Note: getOverride reads the reactive Map from the composable, so this stays
+// live without a manual subscription.
+const existingOverride = computed<OverrideEntry | undefined>(() =>
+  getOverride(props.itemId),
+);
+
+// When an override is already in place AND the user is typing a new URL,
+// re-label Apply → "Replace override" so the destructive intent is obvious.
+// Falls back to "Apply" when there's no existing override or the user is on
+// the upload tab without a fresh selection.
+const applyLabel = computed(() => {
+  if (!existingOverride.value) return "Apply";
+  return canApply.value ? "Replace override" : "Apply";
+});
 
 // Reset state every time the dialog opens. Avoids leaking stale input from
 // a previous item across the same dialog instance.
@@ -189,6 +250,24 @@ watch(
       uploadPreviewSrc.value = null;
       isDragging.value = false;
       if (fileInputRef.value) fileInputRef.value.value = "";
+      // A11y: if the override-reset banner is present, send focus to the
+      // Reset button so keyboard users land on the most-likely action.
+      // Otherwise focus the URL input. Wait a tick for the v-dialog content
+      // (lazy-mounted) to render before querying refs.
+      void nextTick(() => {
+        if (existingOverride.value) {
+          // Vuetify v-btn exposes the underlying button via $el; fall back
+          // to focus() in case the API surface ever shifts.
+          const el = resetBtnRef.value?.$el as HTMLElement | undefined;
+          if (el && typeof el.focus === "function") {
+            el.focus();
+          } else {
+            resetBtnRef.value?.focus?.();
+          }
+        } else {
+          urlInputRef.value?.focus();
+        }
+      });
     }
   },
 );
@@ -269,6 +348,20 @@ const apply = () => {
 const close = () => {
   emit("update:modelValue", false);
 };
+
+// Wipes the stored override for this item so render sites fall back to the
+// auto-detected artwork. Closes the dialog because there's nothing else to
+// do here once the override is gone — the dialog's purpose is to set/replace
+// an override, not to admire the absence of one.
+const resetOverride = () => {
+  const ok = removeOverride(props.itemId);
+  if (!ok) {
+    toast.error("Could not reset artwork override.");
+    return;
+  }
+  toast.success("Default artwork restored.");
+  close();
+};
 </script>
 
 <style scoped>
@@ -302,6 +395,71 @@ const close = () => {
 
 .sl-eaw-body {
   padding: 8px 24px 4px;
+}
+
+/* Existing-override banner — teal-tinted, mirrors the dialog's brand
+   gradient family. Sits above the tabs so it's the first thing the user
+   sees when there's already an override to manage. */
+.sl-eaw-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 14px;
+  padding: 10px 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(15, 118, 110, 0.12) 0%,
+    rgba(45, 212, 191, 0.1) 100%
+  );
+  border: 1px solid rgba(45, 212, 191, 0.32);
+  border-radius: 8px;
+}
+
+.sl-eaw-banner-thumb {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 6px;
+  background: rgba(var(--v-theme-on-surface), 0.06);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+}
+
+.sl-eaw-banner-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.sl-eaw-banner-title {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: rgb(var(--v-theme-on-surface));
+  letter-spacing: -0.005em;
+}
+
+.sl-eaw-banner-sub {
+  margin-top: 2px;
+  font-size: 0.74rem;
+  color: rgba(var(--v-theme-on-surface), 0.62);
+}
+
+/* Reset button — outlined teal so it reads as a secondary destructive
+   action distinct from the gradient-filled primary Apply button. */
+.sl-eaw-reset {
+  flex-shrink: 0;
+  border-color: #2dd4bf !important;
+  color: #2dd4bf !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+:global(.v-theme--light) .sl-eaw-reset {
+  border-color: #0f766e !important;
+  color: #0f766e !important;
+}
+
+.sl-eaw-reset:hover {
+  background: rgba(45, 212, 191, 0.08) !important;
 }
 
 .sl-eaw-tabs {

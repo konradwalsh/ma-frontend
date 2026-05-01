@@ -11,7 +11,7 @@
     :class="{ 'is-playing': isPlaying, 'checkbox-label': showCheckboxes }"
     class="v-list-item-title"
   >
-    {{ displayName }}
+    {{ prettyDisplayName }}
     <span v-if="'version' in item && item.version"> ({{ item.version }}) </span>
     <span
       v-if="item.media_type == MediaType.TRACK && item.metadata?.release_date"
@@ -42,11 +42,13 @@
 
 <script setup lang="ts">
 import { getBrowseFolderName, parseBool } from "@/helpers/utils";
+import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 import {
   MediaType,
   type BrowseFolder,
   type MediaItemType,
 } from "@/plugins/api/interfaces";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import {
@@ -66,10 +68,22 @@ export interface Props {
 // global refs
 const { t } = useI18n();
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   displayName: "",
   showCheckboxes: false,
   isPlaying: false,
+});
+
+// Streamloader-fork addition: cosmetic prettifier for filename-derived
+// names. Display-layer only — does NOT mutate the underlying item, so
+// any backend metadata fix flows through cleanly. See
+// `helpers/prettifyMediaName.ts` for the heuristic list.
+const prettyDisplayName = computed(() => {
+  const artistName =
+    "artists" in props.item && props.item.artists?.length
+      ? props.item.artists[0].name
+      : undefined;
+  return prettifyMediaName(props.displayName, { artist: artistName });
 });
 </script>
 

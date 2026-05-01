@@ -55,7 +55,14 @@
             {{ getArtistsString(item.artists, 2) }}
           </v-item>
           <v-item v-if="showAlbum && 'album' in item && item.album">
-            • {{ item.album.name
+            •
+            {{
+              prettifyMediaName(item.album.name, {
+                artist:
+                  "artists" in item && item.artists?.length
+                    ? item.artists[0].name
+                    : undefined,
+              })
             }}<span v-if="'year' in item.album && item.album.year">
               • {{ item.album.year }}</span
             >
@@ -229,6 +236,7 @@ import {
   handlePlayBtnClick,
   truncateString,
 } from "@/helpers/utils";
+import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 import {
   AlbumType,
   ContentType,

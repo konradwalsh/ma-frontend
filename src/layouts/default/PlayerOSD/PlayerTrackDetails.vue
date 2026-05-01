@@ -118,7 +118,7 @@
         <template v-else-if="store.activePlayer?.current_media?.title">
           <div class="ma-line-clamp-1 track-title">
             <MarqueeText :sync="marqueeSync">
-              {{ store.activePlayer.current_media.title }}
+              {{ prettyTrackTitle }}
             </MarqueeText>
           </div>
           <div class="ma-line-clamp-1 track-artist">
@@ -133,9 +133,7 @@
               >
                 {{ store.activePlayer?.current_media?.artist }}
                 <span class="track-sep">•</span>
-                <span class="track-album">{{
-                  store.activePlayer?.current_media?.album
-                }}</span>
+                <span class="track-album">{{ prettyTrackAlbum }}</span>
               </span>
               <!-- artists(s) only -->
               <span v-else-if="store.activePlayer?.current_media?.artist">
@@ -143,9 +141,7 @@
               </span>
               <!-- album only -->
               <span v-else-if="store.activePlayer?.current_media?.album">
-                <span class="track-album">{{
-                  store.activePlayer?.current_media?.album
-                }}</span>
+                <span class="track-album">{{ prettyTrackAlbum }}</span>
               </span>
             </MarqueeText>
           </div>
@@ -198,6 +194,7 @@ import {
   getMediaImageUrl,
   getPlayerName,
 } from "@/helpers/utils";
+import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 import { getSourceName } from "@/plugins/api/helpers";
 import { PlaybackState, PlayerType } from "@/plugins/api/interfaces";
 import { getBreakpointValue } from "@/plugins/breakpoint";
@@ -229,6 +226,17 @@ const props = withDefaults(defineProps<Props>(), {
 // computed properties
 const streamDetails = computed(() => {
   return store.activePlayerQueue?.current_item?.streamdetails;
+});
+
+// Streamloader-fork addition: cosmetic prettifier for filename-derived
+// names. Display-layer only — see helpers/prettifyMediaName.ts.
+const prettyTrackTitle = computed(() => {
+  const media = store.activePlayer?.current_media;
+  return prettifyMediaName(media?.title, { artist: media?.artist });
+});
+const prettyTrackAlbum = computed(() => {
+  const media = store.activePlayer?.current_media;
+  return prettifyMediaName(media?.album, { artist: media?.artist });
 });
 
 // a11y: announce current track changes to screen readers via aria-live region.

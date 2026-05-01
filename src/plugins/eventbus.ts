@@ -72,6 +72,11 @@ export type Events = {
   "homescreen-edit-toggle": void;
   "mobile-sidebar-open": void;
   "queue:items-added": QueueItemsAddedEvent;
+  // Streamloader-fork addition: re-trigger the first-run welcome tour
+  // from the Streamloader Settings → About card. The tour component
+  // (StreamloaderWelcomeTour.vue, mounted in Default.vue) listens for
+  // this and re-opens itself, also clearing its localStorage flag.
+  "sl-welcome-tour:show": void;
 };
 
 export const eventbus: Emitter<Events> = mitt<Events>();

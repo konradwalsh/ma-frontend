@@ -40,6 +40,23 @@ import { store } from "@/plugins/store";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
 
+// Forward-looking placeholder prop. As of this commit the streamloader
+// websocket api does NOT expose cache size / disk usage on its
+// ProviderInstance (see src/plugins/api/interfaces.ts — no cache_size,
+// cache_bytes, disk_usage, or quota fields). When the backend plugin
+// gains a `get_cache_stats` (or equivalent) endpoint that returns the
+// on-disk size of the streamloader cache in bytes, wire it through here
+// and render alongside the count line as e.g. "12.4 GB cached". Until
+// then this prop stays undefined and renders nothing — we deliberately
+// do NOT fabricate a fake value.
+//
+// Expected from future backend endpoint:
+//   - `cacheBytes`: total on-disk size of the streamloader cache (bytes)
+//   - (optional) future `cacheQuotaBytes` for a percentage-full meter
+defineProps<{
+  cacheBytes?: number;
+}>();
+
 const { state } = useSidebar();
 const collapsed = computed(() => state.value === "collapsed");
 // Streamloader settings page can hide this widget without removing the

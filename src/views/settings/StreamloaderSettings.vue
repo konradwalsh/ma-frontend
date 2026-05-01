@@ -211,14 +211,16 @@
           </div>
           <div class="sl-link-row__body">
             <div class="sl-link-row__title">Streamloader frontend fork</div>
-            <div class="sl-link-row__sub">github.com/konradwalsh/ma-frontend</div>
+            <div class="sl-link-row__sub">
+              github.com/konradwalsh/ma-frontend
+            </div>
           </div>
           <v-icon icon="mdi-open-in-new" size="18" class="sl-link-row__chev" />
         </a>
         <p class="sl-about-note">
-          Streamloader is a fork of Music Assistant's frontend with extra
-          UI for the streamloader plugin. It depends on the upstream
-          server runtime — visit
+          Streamloader is a fork of Music Assistant's frontend with extra UI for
+          the streamloader plugin. It depends on the upstream server runtime —
+          visit
           <a
             href="https://music-assistant.io"
             target="_blank"
@@ -228,6 +230,17 @@
           >
           for the underlying project.
         </p>
+        <!-- Re-trigger the first-run welcome tour. Clears the localStorage
+             flag and emits an eventbus event picked up by
+             StreamloaderWelcomeTour.vue (mounted in Default.vue). -->
+        <button
+          type="button"
+          class="sl-replay-tour-btn"
+          @click="replayWelcomeTour"
+        >
+          <v-icon icon="mdi-play-circle-outline" size="18" />
+          <span>Show welcome tour again</span>
+        </button>
       </CardContent>
     </Card>
   </Container>
@@ -253,7 +266,21 @@ import {
   type StreamloaderPrefDefaults,
 } from "@/composables/streamloaderPrefs";
 import api from "@/plugins/api";
+import { eventbus } from "@/plugins/eventbus";
 import SLToggleRow from "@/views/settings/streamloader/SLToggleRow.vue";
+
+// Welcome-tour re-trigger handler. The tour component owns its own
+// localStorage flag, but we clear it here too so a hard reload after
+// clicking this button still re-shows the tour (eventbus is in-memory).
+const WELCOME_TOUR_STORAGE_KEY = "sl-welcome-tour-seen";
+const replayWelcomeTour = () => {
+  try {
+    localStorage.removeItem(WELCOME_TOUR_STORAGE_KEY);
+  } catch {
+    // best-effort
+  }
+  eventbus.emit("sl-welcome-tour:show");
+};
 
 const STREAMLOADER_DOMAIN = "streamloader";
 const VINYL_STORAGE_KEY = "frontend.settings.vinyl_display_mode";
@@ -291,9 +318,8 @@ const showActivityPulse = useStreamloaderPref("showActivityPulse");
 const showRecentlyDownloaded = useStreamloaderPref("showRecentlyDownloaded");
 const announceQueueChanges = useStreamloaderPref("announceQueueChanges");
 
-const setPref =
-  (key: keyof StreamloaderPrefDefaults) => (next: boolean) =>
-    setStreamloaderPref(key, next);
+const setPref = (key: keyof StreamloaderPrefDefaults) => (next: boolean) =>
+  setStreamloaderPref(key, next);
 
 // Provider lookup mirrors StreamloaderHealthPill so both surfaces
 // classify "ready / warn / error" identically.
@@ -535,6 +561,46 @@ const providerState = computed<{ tone: Tone; label: string; title: string }>(
 
 :global(.dark) .sl-about-inline-link {
   color: #2dd4bf;
+}
+
+.sl-replay-tour-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 8px 14px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1px solid rgba(45, 212, 191, 0.45);
+  border-radius: 8px;
+  background: rgba(45, 212, 191, 0.08);
+  color: #0f766e;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+:global(.dark) .sl-replay-tour-btn {
+  color: #2dd4bf;
+}
+
+@media (hover: hover) {
+  .sl-replay-tour-btn:hover {
+    background: rgba(45, 212, 191, 0.16);
+    border-color: rgba(45, 212, 191, 0.7);
+  }
+}
+
+.sl-replay-tour-btn:focus-visible {
+  outline: 2px solid #2dd4bf;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-replay-tour-btn {
+    transition: none;
+  }
 }
 
 @media (max-width: 640px) {
