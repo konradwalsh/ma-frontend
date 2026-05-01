@@ -27,6 +27,15 @@
          Triggered by "?" (Shift+/) — see useKeyboardShortcuts.ts.
          Mounted at v-app root so it's reachable from every route. -->
     <KeyboardShortcutsDialog v-model="store.showKeyboardShortcuts" />
+    <!-- Streamloader-fork (batch 33): tasteful in-app install prompt
+         that triggers only after the user has played at least one
+         track. Replaces the browser-native infobar with a brand-styled
+         toast. Renders nothing on browsers that don't support
+         `beforeinstallprompt` (Safari/Firefox), and silently no-ops
+         once the user has accepted or dismissed (localStorage flag).
+         Same frameless guard as the health pill — when running inside
+         a host shell (HA ingress), the host owns the install path. -->
+    <StreamloaderInstallPrompt v-if="!store.frameless" />
     <!-- a11y: screen-reader-only live region announcing queue mutations
          (items added/cleared/length changes) on the active player. Pairs
          with PlayerTrackDetails' current-track aria-live (batch 27).
@@ -34,7 +43,7 @@
          announcements; debounce also rolls together rapid back-to-back
          changes into one summary message. -->
     <div
-      v-if="!store.frameless"
+      v-if="!store.frameless && announceQueueChanges"
       aria-live="polite"
       aria-atomic="true"
       class="sl-queue-live-region"
@@ -52,12 +61,19 @@ import ReloadPrompt from "./ReloadPrompt.vue";
 import StreamloaderHealthPill from "@/components/StreamloaderHealthPill.vue";
 import StreamloaderActivityPulse from "@/components/StreamloaderActivityPulse.vue";
 import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
+import StreamloaderInstallPrompt from "@/components/StreamloaderInstallPrompt.vue";
 import { store } from "@/plugins/store";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import api from "@/plugins/api";
 import { useRoute } from "vue-router";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import { eventbus, type QueueItemsAddedEvent } from "@/plugins/eventbus";
+import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
+
+// Streamloader settings page → "Announce queue actions to screen reader".
+// When off we skip the live-region render AND short-circuit the speak()
+// path so we don't churn aria-live state for users who opted out.
+const announceQueueChanges = useStreamloaderPref("announceQueueChanges");
 
 // Streamloader-fork addition: register global music-player keyboard shortcuts
 // (Space/arrows/M/F/Esc). Composable handles input-bail + cleanup.
@@ -95,6 +111,10 @@ let perActionDebounce: ReturnType<typeof setTimeout> | undefined;
 let pendingPerAction: QueueItemsAddedEvent[] = [];
 
 const speak = (msg: string) => {
+  // Honor the global "Announce queue actions" toggle (Streamloader
+  // settings → Activity & Notifications). Bail before mutating state so
+  // we don't accidentally leave a stale message hanging in the ref.
+  if (!announceQueueChanges.value) return;
   // Toggle to empty first so SR re-announces even if string is identical
   // to the previous announcement (some SRs suppress duplicates).
   queueAnnouncement.value = "";

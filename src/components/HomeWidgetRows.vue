@@ -264,5 +264,4 @@ const onUpdateSettings = function (uri: string, settings: WidgetRowSettings) {
     height: 110px;
   }
 }
-
 </style>

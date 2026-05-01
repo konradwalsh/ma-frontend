@@ -19,28 +19,23 @@ import {
 } from "lucide-vue-next";
 import { Component } from "vue";
 
-const STREAMLOADER_DOMAIN = "streamloader";
-
 /**
  * Resolve the deep-link target for the sidebar "streamloader" item.
  *
- * If a streamloader provider is configured, jump straight to its
- * edit page (`/settings/editprovider/{instanceId}` — see plugins/router.ts).
- * Otherwise fall back to the generic providers list so users can add one.
- * We read `api.providers` (a reactive map) so the URL recomputes whenever
- * the provider set changes — getMenuItems() is invoked inside a `computed`
- * in AppSidebar.vue, which establishes the reactive dependency.
+ * Now points at the consolidated /settings/streamloader landing page so
+ * users land on a coherent dashboard (display toggles + provider status
+ * + deep link to the provider editor) instead of being dropped straight
+ * into the raw provider config form. The landing page itself routes
+ * onward to /settings/editprovider/{instanceId} via its "Open Provider
+ * Settings" button when the user wants the underlying form, and shows
+ * an "Add Streamloader Provider" CTA when none is registered.
+ *
+ * Hidden-on-cold-boot logic (in the menu-item entry below) is unchanged
+ * so we don't surface a settings page before the provider list has even
+ * loaded.
  */
 const getStreamloaderUrl = (): string => {
-  if (api.providers && Object.keys(api.providers).length > 0) {
-    const streamloader = Object.values(api.providers).find(
-      (provider) => provider.domain === STREAMLOADER_DOMAIN,
-    );
-    if (streamloader) {
-      return `/settings/editprovider/${streamloader.instance_id}`;
-    }
-  }
-  return "/settings/providers";
+  return "/settings/streamloader";
 };
 
 export interface MenuItem {

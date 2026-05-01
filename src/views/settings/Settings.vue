@@ -534,6 +534,18 @@ const allSettingsSections = [
     adminOnly: false,
   },
   {
+    // Streamloader-fork addition: consolidated landing page for
+    // streamloader-only UX knobs. Sits next to "frontend" since both are
+    // user-facing display preferences (admin-free).
+    name: "streamloader",
+    label: "settings.streamloader",
+    description: "settings.streamloader_description",
+    icon: "mdi-harddisk",
+    color: "teal",
+    route: { name: "streamloadersettings" },
+    adminOnly: false,
+  },
+  {
     name: "users",
     label: "auth.user_management",
     description: "settings.users_description",
@@ -663,6 +675,9 @@ const activeTab = computed(() => {
   if (name.includes("frontend")) {
     return "frontend";
   }
+  if (name.includes("streamloader")) {
+    return "streamloader";
+  }
   if (name.includes("remoteaccess")) {
     return "remote_access";
   }
@@ -772,6 +787,12 @@ const breadcrumbItems = computed(() => {
         title: t("settings.frontend"),
         disabled: name === "frontendsettings",
         to: { name: "frontendsettings" },
+      });
+    } else if (currentTab === "streamloader") {
+      items.push({
+        title: t("settings.streamloader"),
+        disabled: name === "streamloadersettings",
+        to: { name: "streamloadersettings" },
       });
     } else if (currentTab === "users") {
       items.push({

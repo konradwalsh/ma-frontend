@@ -370,6 +370,20 @@ const routes: RouteRecordRaw[] = [
             props: true,
           },
           {
+            // Streamloader-fork addition: consolidated landing page for
+            // streamloader-only UX knobs (vinyl display, source badge,
+            // library stats, activity pulse, recently-downloaded rail,
+            // queue aria-live). Keeps users from hunting across
+            // FrontendConfig + sidebar + provider editor.
+            path: "streamloader",
+            name: "streamloadersettings",
+            component: () =>
+              import(
+                /* webpackChunkName: "streamloadersettings" */ "@/views/settings/StreamloaderSettings.vue"
+              ),
+            props: true,
+          },
+          {
             path: "users",
             name: "usersettings",
             component: () =>

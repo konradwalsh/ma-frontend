@@ -138,6 +138,7 @@
       <div
         v-if="
           !hideSourceBadge &&
+          sourceBadgeGloballyEnabled &&
           item.media_type === MediaType.TRACK &&
           'provider_mappings' in item &&
           getBreakpointValue('bp2')
@@ -241,6 +242,10 @@ import { VTooltip } from "vuetify/components";
 import MediaItemThumb from "./MediaItemThumb.vue";
 import ProviderIcon from "./ProviderIcon.vue";
 import StreamloaderSourceBadge from "./StreamloaderSourceBadge.vue";
+import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
+
+// Global "show source badge on cards" toggle from /settings/streamloader.
+const sourceBadgeGloballyEnabled = useStreamloaderPref("showSourceBadge");
 import { iconHiRes } from "./QualityDetailsBtn.vue";
 
 import { Checkbox } from "@/components/ui/checkbox";

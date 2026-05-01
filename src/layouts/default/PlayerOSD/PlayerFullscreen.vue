@@ -76,10 +76,7 @@
                  reported media_type, and the vinyl is iconic of that act.
                  Touch-suppression handled in the scoped CSS below. -->
             <div
-              v-if="
-                store.activePlayer?.powered != false &&
-                largeCoverUrl
-              "
+              v-if="store.activePlayer?.powered != false && largeCoverUrl"
               class="sl-vinyl-wrapper"
               :class="vinylWrapperClasses"
             >
@@ -89,6 +86,21 @@
                 class="sl-vinyl-disc"
                 :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
               />
+              <!-- Streamloader-fork addition (batch MMM3): cover thumb
+                   printed onto the vinyl center label; spins in lockstep
+                   with the disc. -->
+              <div
+                v-if="largeCoverUrl"
+                class="sl-vinyl-label"
+                :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
+                aria-hidden="true"
+              >
+                <img :src="largeCoverUrl" alt="" @error="onLargeCoverError" />
+              </div>
+              <!-- Streamloader-fork addition (batch MMM3): fixed sheen
+                   highlight overlay — does NOT rotate, so it sells the
+                   "physical object catching light" look. -->
+              <div class="sl-vinyl-sheen" aria-hidden="true"></div>
               <div class="sl-vinyl-cover">
                 <!-- Streamloader-fork fix (batch JJJ3): the large vinyl-overlay
                      cover used <v-img :src=getMediaImageUrl(image_url)>, which
@@ -442,6 +454,17 @@
                 class="sl-vinyl-disc"
                 :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
               />
+              <!-- Streamloader-fork addition (batch MMM3): same label +
+                   sheen polish as the primary cover position above. -->
+              <div
+                v-if="largeCoverUrl"
+                class="sl-vinyl-label"
+                :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
+                aria-hidden="true"
+              >
+                <img :src="largeCoverUrl" alt="" @error="onLargeCoverError" />
+              </div>
+              <div class="sl-vinyl-sheen" aria-hidden="true"></div>
               <div class="sl-vinyl-cover">
                 <!-- Streamloader-fork fix (batch JJJ3): see matching block
                      above for the rationale. Same fix mirrored here for the
@@ -602,6 +625,7 @@ import NowPlayingBadge from "@/components/NowPlayingBadge.vue";
 import PartyRequestBadge from "@/components/party/PartyRequestBadge.vue";
 import QualityDetailsBtn from "@/components/QualityDetailsBtn.vue";
 import StreamloaderSourceBadge from "@/components/StreamloaderSourceBadge.vue";
+import { useArtworkOverrideUrl } from "@/composables/useArtworkOverrides";
 import { useLyricsElapsedTime } from "@/composables/useLyricsElapsedTime";
 import { usePartyConfig } from "@/composables/usePartyConfig";
 import { MarqueeTextSync } from "@/helpers/marquee_text_sync";
@@ -669,9 +693,9 @@ const vinylSvg = new URL("@/assets/vinyl.svg", import.meta.url).href;
 // PlaybackState.PLAYING so a paused queue freezes the disc.
 type VinylDisplayMode = "hover" | "always-visible" | "always-visible-spinning";
 const vinylDisplayMode: VinylDisplayMode =
-  (localStorage.getItem("frontend.settings.vinyl_display_mode") as
-    | VinylDisplayMode
-    | null) || "always-visible-spinning";
+  (localStorage.getItem(
+    "frontend.settings.vinyl_display_mode",
+  ) as VinylDisplayMode | null) || "always-visible-spinning";
 
 const vinylWrapperClasses = computed(() => ({
   "vinyl-mode--hover": vinylDisplayMode === "hover",
@@ -701,7 +725,22 @@ const streamloaderMark = new URL(
 // while the same track's queue thumb loaded fine. We deliberately do NOT
 // touch the queue thumb path; this only changes the large vinyl-overlay
 // resolution.
+// Streamloader-fork addition (batch LLL3): user-applied artwork override
+// (StreamloaderEditArtworkDialog → useArtworkOverrides). Keyed by the
+// currently-playing media item's item_id; reactive so the hero cover swaps
+// instantly the moment the user clicks Apply in the dialog.
+const overrideUrl = useArtworkOverrideUrl(
+  () => store.curQueueItem?.media_item?.item_id,
+);
+
 const largeCoverUrl = computed(() => {
+  // Override wins over the auto-detected URL when present. https URLs and
+  // data: URLs both render directly via <img src> — no imageproxy round-trip
+  // needed (uploads are local data: URLs, pasted URLs are usually already
+  // CDN-hosted artwork). If the override fails to load, onLargeCoverError
+  // already swaps to the streamloader brand-mark fallback so the hero
+  // never goes blank.
+  if (overrideUrl.value) return overrideUrl.value;
   const raw = store.activePlayer?.current_media?.image_url;
   if (!raw) return "";
   if (raw.startsWith("data:image")) return raw;
@@ -2064,9 +2103,88 @@ button {
   }
 }
 
+/* Streamloader-fork addition (batch MMM3): center-label thumbnail
+   that mirrors the disc's geometry and rotates in lockstep with it.
+   Sized at ~28% of the disc so it covers the SVG's teal label area
+   while leaving an outer teal ring visible for brand identity. */
+.sl-vinyl-label {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 26.9%;
+  aspect-ratio: 1 / 1;
+  transform: translate(33.55%, -50%) rotate(-40deg);
+  transform-origin: center center;
+  transition: transform 700ms cubic-bezier(0.34, 1.36, 0.64, 1);
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 2px #2bd9ba,
+    0 0 0 3px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.sl-vinyl-label img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-label {
+  transform: translate(176.95%, -50%) rotate(0deg);
+}
+
+.sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-label,
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-label {
+  transform: translate(176.95%, -50%) rotate(0deg);
+}
+
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-label {
+  animation: sl-vinyl-spin 8s linear infinite;
+}
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning
+  .sl-vinyl-label.sl-vinyl-spinning--paused {
+  animation-play-state: paused;
+}
+
+/* Streamloader-fork addition (batch MMM3): fixed sheen highlight
+   overlay. Sits above the disc but does NOT rotate so the highlight
+   stays anchored to the viewer (sells the "physical object" look). */
+.sl-vinyl-sheen {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 96%;
+  aspect-ratio: 1 / 1;
+  transform: translate(0, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(
+    circle at 32% 28%,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.05) 28%,
+    rgba(255, 255, 255, 0) 55%
+  );
+  mix-blend-mode: screen;
+}
+
+.sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-sheen,
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-sheen {
+  transform: translate(45%, -50%);
+}
+
+.sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-sheen {
+  transform: translate(45%, -50%);
+}
+
 /* Respect users who've asked the OS to reduce motion. */
 @media (prefers-reduced-motion: reduce) {
-  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc {
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc,
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-label {
     animation: none;
   }
 }
@@ -2078,6 +2196,12 @@ button {
 @media (hover: none) {
   .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc {
     transform: translate(0, -50%) rotate(-40deg);
+  }
+  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-label {
+    transform: translate(33.55%, -50%) rotate(-40deg);
+  }
+  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-sheen {
+    transform: translate(0, -50%);
   }
   .sl-vinyl-wrapper.vinyl-mode--hover:hover {
     transform: none;

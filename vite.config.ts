@@ -30,6 +30,15 @@ export default defineConfig({
       strategies: "injectManifest",
       srcDir: "public",
       filename: "sw.js",
+      // Streamloader-fork (batch 33): nudge the registered SW to run
+      // `update()` on every navigation + every page load so users on
+      // long-lived tabs pick up new builds without needing to hard-refresh.
+      // The actual reload UX is still gated by ReloadPrompt.vue, so this
+      // only changes *how often we check*, not how disruptive the prompt is.
+      // Coupled with the 30-min interval that ReloadPrompt now schedules
+      // (see useRegisterSW onRegistered hook in that file), this gives us
+      // belt-and-braces freshness for both active and idle tabs.
+      registerType: "prompt",
       injectManifest: {
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MiB
       },
@@ -50,6 +59,42 @@ export default defineConfig({
         // the install + splash experience matches the rest of the brand.
         theme_color: "#0f766e",
         background_color: "#0f766e",
+        // Streamloader-fork (batch 33): manifest enrichment for richer
+        // app-store-style listings on Android/Chromium. `categories` flows
+        // into Play Store-ish discovery surfaces that scrape webmanifests;
+        // `shortcuts` shows up as long-press menu items on Android home-
+        // screen icons (and as right-click jump-list entries on Windows
+        // for installed PWAs). All routes use the hash router prefix to
+        // match our `createWebHashHistory()` setup.
+        categories: ["music", "entertainment"],
+        shortcuts: [
+          {
+            name: "Search",
+            short_name: "Search",
+            description: "Search your library and streaming providers",
+            url: "/#/search",
+            icons: [
+              {
+                src: "pwa-192x192.png",
+                sizes: "192x192",
+                type: "image/png",
+              },
+            ],
+          },
+          {
+            name: "Library",
+            short_name: "Library",
+            description: "Browse your saved tracks",
+            url: "/#/library/tracks",
+            icons: [
+              {
+                src: "pwa-192x192.png",
+                sizes: "192x192",
+                type: "image/png",
+              },
+            ],
+          },
+        ],
         icons: [
           {
             src: "pwa-192x192.png",

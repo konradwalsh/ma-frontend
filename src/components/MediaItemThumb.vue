@@ -9,6 +9,7 @@
       :class="{ rounded: rounded }"
       contain
       :lazy-src="theme.current.value.dark ? imgCoverDark : imgCoverLight"
+      @error="onOverrideImgError"
     />
     <!-- In Library badge (hoisted from wrappers so it appears everywhere
          a cover is rendered: grid, list, carousels, search, etc.) -->
@@ -37,6 +38,7 @@
     <div
       v-if="
         !hideSourceBadge &&
+        sourceBadgeGloballyEnabled &&
         item &&
         'media_type' in item &&
         item.media_type === MediaType.TRACK &&
@@ -50,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import type {
   ItemMapping,
   MediaItemType,
@@ -64,7 +66,9 @@ import {
   iconFolder,
 } from "@/components/QualityDetailsBtn.vue";
 import { getImageThumbForItem } from "@/helpers/utils";
+import { useArtworkOverrideUrl } from "@/composables/useArtworkOverrides";
 import StreamloaderSourceBadge from "@/components/StreamloaderSourceBadge.vue";
+import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
 
 export interface Props {
   item?: MediaItemType | ItemMapping | QueueItem;
@@ -75,6 +79,11 @@ export interface Props {
   hideInLibraryBadge?: boolean;
   hideSourceBadge?: boolean;
 }
+
+// Global "show source badge on cards" toggle from /settings/streamloader.
+// Combines with the per-instance `hideSourceBadge` prop already exposed —
+// instance opt-out wins, then global opt-out, otherwise badge renders.
+const sourceBadgeGloballyEnabled = useStreamloaderPref("showSourceBadge");
 
 const props = withDefaults(defineProps<Props>(), {
   item: undefined,
@@ -114,12 +123,45 @@ function getFallbackImage() {
 }
 const fallbackImage = getFallbackImage();
 
-const imgData = computed(() =>
-  props.item
+// Streamloader-fork addition (batch LLL3): resolve the override item_id.
+// QueueItem wraps the underlying media item, so reach into media_item first;
+// MediaItemType / ItemMapping carry item_id directly.
+const overrideItemId = computed<string | undefined>(() => {
+  const it = props.item as
+    | (MediaItemType & { item_id?: string })
+    | (ItemMapping & { item_id?: string })
+    | (QueueItem & { media_item?: { item_id?: string } })
+    | undefined;
+  if (!it) return undefined;
+  if ("media_item" in it && it.media_item?.item_id) return it.media_item.item_id;
+  if ("item_id" in it && it.item_id) return it.item_id;
+  return undefined;
+});
+const overrideUrl = useArtworkOverrideUrl(() => overrideItemId.value);
+
+// Track whether the override URL itself failed to load. If so, fall back
+// to the auto-detected pipeline rather than leaving the user staring at a
+// broken image. The override is NOT removed from storage on a transient
+// failure (network blip on a paste-URL override) — a future "Reset to
+// default artwork" UX gives the user explicit control.
+const overrideFailed = ref(false);
+
+const imgData = computed(() => {
+  if (overrideUrl.value && !overrideFailed.value) return overrideUrl.value;
+  return props.item
     ? getImageThumbForItem(props.item, ImageType.THUMB, thumbSize) ||
-      fallbackImage
-    : fallbackImage,
-);
+        fallbackImage
+    : fallbackImage;
+});
+
+const onOverrideImgError = () => {
+  // Only flip the fallback latch if the failure was on the override URL —
+  // otherwise the auto-detected URL itself is broken and v-img will surface
+  // its own lazy/error state.
+  if (overrideUrl.value && !overrideFailed.value) {
+    overrideFailed.value = true;
+  }
+};
 </script>
 
 <script lang="ts">

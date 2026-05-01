@@ -541,6 +541,8 @@
         "providers_description": "Manage your music sources, player providers and plugins",
         "players_description": "Configure and manage your audio output devices",
         "frontend_description": "Customize the user interface theme and appearance",
+        "streamloader": "Streamloader",
+        "streamloader_description": "Customize streamloader-specific UI: vinyl display, source badge, activity widgets, and provider shortcuts",
         "provider_type": "Type",
         "onboarding_title": "Welcome to Music Assistant!",
         "profile_description": "Manage your personal account settings and preferences",

@@ -15,7 +15,11 @@
   HealthPill / ActivityPulse / SourceBadge widgets.
 -->
 <template>
-  <div v-if="!collapsed && hasCounts" class="sl-lib-stats" :title="fullTitle">
+  <div
+    v-if="enabled && !collapsed && hasCounts"
+    class="sl-lib-stats"
+    :title="fullTitle"
+  >
     <span class="sl-lib-stats__label">Library</span>
     <span class="sl-lib-stats__row">
       <span class="sl-lib-stats__value">{{ formatted.tracks }}</span>
@@ -34,9 +38,13 @@
 import { computed } from "vue";
 import { store } from "@/plugins/store";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
 
 const { state } = useSidebar();
 const collapsed = computed(() => state.value === "collapsed");
+// Streamloader settings page can hide this widget without removing the
+// sidebar slot — see /settings/streamloader → Player Display.
+const enabled = useStreamloaderPref("showLibraryStats");
 
 const hasCounts = computed(
   () =>

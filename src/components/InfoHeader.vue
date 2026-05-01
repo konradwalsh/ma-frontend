@@ -89,6 +89,24 @@
               class="sl-vinyl-disc"
               :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
             />
+            <!-- Streamloader-fork addition (batch MMM3): album-cover
+                 thumbnail printed onto the vinyl's center label.
+                 Mirrors the disc's translate+rotate so it tracks the
+                 spin perfectly; brand-teal ring keeps the streamloader
+                 identity even with arbitrary covers. -->
+            <div
+              v-if="vinylLabelImage"
+              class="sl-vinyl-label"
+              :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
+              aria-hidden="true"
+            >
+              <img :src="vinylLabelImage" alt="" />
+            </div>
+            <!-- Streamloader-fork addition (batch MMM3): fixed
+                 (non-rotating) sheen overlay sells the "physical
+                 object" look. Sits above the disc but is not part of
+                 the spinning element so the highlight stays put. -->
+            <div class="sl-vinyl-sheen" aria-hidden="true"></div>
             <div class="sl-vinyl-cover">
               <MediaItemThumb
                 :item="item"
@@ -608,7 +626,12 @@ import type {
   ItemMapping,
   MediaItemType,
 } from "@/plugins/api/interfaces";
-import { ImageType, MediaType, PlaybackState, Track } from "@/plugins/api/interfaces";
+import {
+  ImageType,
+  MediaType,
+  PlaybackState,
+  Track,
+} from "@/plugins/api/interfaces";
 import { authManager } from "@/plugins/auth";
 import { eventbus } from "@/plugins/eventbus";
 import { store } from "@/plugins/store";
@@ -651,9 +674,9 @@ const vinylSvg = new URL("../assets/vinyl.svg", import.meta.url).href;
 // reload after saving, so a snapshot is sufficient.
 type VinylDisplayMode = "hover" | "always-visible" | "always-visible-spinning";
 const vinylDisplayMode: VinylDisplayMode =
-  (localStorage.getItem("frontend.settings.vinyl_display_mode") as
-    | VinylDisplayMode
-    | null) || "always-visible-spinning";
+  (localStorage.getItem(
+    "frontend.settings.vinyl_display_mode",
+  ) as VinylDisplayMode | null) || "always-visible-spinning";
 
 const vinylWrapperClasses = computed(() => ({
   "vinyl-mode--hover": vinylDisplayMode === "hover",
@@ -661,6 +684,18 @@ const vinylWrapperClasses = computed(() => ({
   "vinyl-mode--always-visible-spinning":
     vinylDisplayMode === "always-visible-spinning",
 }));
+
+// Streamloader-fork addition (batch MMM3): URL for the small album
+// cover that gets printed onto the vinyl's center label. Reuses the
+// existing thumb URL pipeline so it inherits the imageproxy resize +
+// caching that MediaItemThumb already uses. Returns null for non-album
+// items (the vinyl wrapper is gated on ALBUM at the template level,
+// but the computed stays defensive).
+const vinylLabelImage = computed<string | null>(() => {
+  if (!compProps.item) return null;
+  if (compProps.item.media_type !== MediaType.ALBUM) return null;
+  return getImageThumbForItem(compProps.item, ImageType.THUMB) || null;
+});
 
 // Spin only in always-visible-spinning mode AND when the active player
 // is actually playing. Falls back to "spin" when no active player so
@@ -1053,9 +1088,98 @@ const deleteGenre = () => {
   }
 }
 
+/* Streamloader-fork addition (batch MMM3): center-label thumbnail.
+   Mirrors the disc's positioning/transform so the album cover prints
+   onto the label area and rotates in perfect lockstep with the disc. */
+.sl-vinyl-label {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  /* Disc is 96% of wrapper width; label is ~28% of disc → 26.9% of
+     wrapper width. Centered over the spindle. */
+  width: 26.9%;
+  aspect-ratio: 1 / 1;
+  /* Match disc resting transform: same rotate(-40deg) "tucked" pose. */
+  transform: translate(33.55%, -50%) rotate(-40deg);
+  transform-origin: center center;
+  transition: transform 700ms cubic-bezier(0.34, 1.36, 0.64, 1);
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 50%;
+  overflow: hidden;
+  /* Brand-teal ring keeps streamloader identity around any cover art. */
+  box-shadow:
+    0 0 0 2px #2bd9ba,
+    0 0 0 3px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.sl-vinyl-label img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Hover-mode: label peeks out alongside the disc on hover. */
+.sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-label {
+  /* Disc translates 45% of disc width = 43.2% of wrapper; label needs
+     same horizontal travel to track the spindle hole. */
+  transform: translate(176.95%, -50%) rotate(0deg);
+}
+
+/* Always-visible (modes 2 + 3): label rides along with the disc. */
+.sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-label,
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-label {
+  transform: translate(176.95%, -50%) rotate(0deg);
+}
+
+/* Mode 3: spin label in lockstep with the disc. Same 8s linear loop
+   so phase stays aligned for the lifetime of the page. */
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-label {
+  animation: sl-vinyl-spin 8s linear infinite;
+}
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning
+  .sl-vinyl-label.sl-vinyl-spinning--paused {
+  animation-play-state: paused;
+}
+
+/* Streamloader-fork addition (batch MMM3): fixed sheen highlight.
+   Sits above the disc + label but does NOT rotate — sells the look
+   of a physical object catching room light. Pointer-events disabled
+   so it doesn't intercept clicks on the underlying cover. */
+.sl-vinyl-sheen {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 96%;
+  aspect-ratio: 1 / 1;
+  transform: translate(0, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(
+    circle at 32% 28%,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.05) 28%,
+    rgba(255, 255, 255, 0) 55%
+  );
+  mix-blend-mode: screen;
+}
+
+.sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-sheen,
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-sheen {
+  transform: translate(45%, -50%);
+}
+
+.sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-sheen {
+  transform: translate(45%, -50%);
+}
+
 /* Respect users who've asked the OS to reduce motion. */
 @media (prefers-reduced-motion: reduce) {
-  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc {
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc,
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-label {
     animation: none;
   }
 }
@@ -1067,6 +1191,12 @@ const deleteGenre = () => {
 @media (hover: none) {
   .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc {
     transform: translate(0, -50%) rotate(-40deg);
+  }
+  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-label {
+    transform: translate(33.55%, -50%) rotate(-40deg);
+  }
+  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-sheen {
+    transform: translate(0, -50%);
   }
   .sl-vinyl-wrapper.vinyl-mode--hover:hover {
     transform: none;

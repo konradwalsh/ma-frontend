@@ -1823,5 +1823,4 @@ defineExpose({
     rgba(45, 212, 191, 0.04) 100%
   ) !important;
 }
-
 </style>

@@ -25,7 +25,7 @@
 -->
 <template>
   <div
-    v-if="visibleTasks.length > 0"
+    v-if="enabled && visibleTasks.length > 0"
     class="sl-activity-pulse"
     role="status"
     :aria-label="`Streamloader activity: ${visibleTasks.length} active task${visibleTasks.length === 1 ? '' : 's'}`"
@@ -88,10 +88,15 @@ import { computed } from "vue";
 import api from "@/plugins/api";
 import { useBackgroundTasks } from "@/composables/useBackgroundTasks";
 import { type BackgroundTask, TaskStatus } from "@/plugins/api/interfaces";
+import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
 
 // Provider domain published by the streamloader plugin. Lives here as a
 // constant (not imported) to avoid a load-bearing dep on the health pill.
 const STREAMLOADER_DOMAIN = "streamloader";
+
+// Streamloader settings page can globally suppress this widget without
+// removing the mount in Default.vue. See /settings/streamloader.
+const enabled = useStreamloaderPref("showActivityPulse");
 
 // Cap shown rows so the widget never grows taller than the viewport. The
 // header still reports the true count so users know there's more.

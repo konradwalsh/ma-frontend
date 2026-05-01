@@ -152,6 +152,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { toast } from "vue-sonner";
+import { useArtworkOverrides } from "@/composables/useArtworkOverrides";
 
 interface Props {
   modelValue: boolean;
@@ -163,17 +164,11 @@ const emit = defineEmits<{
   "update:modelValue": [value: boolean];
 }>();
 
-const STORAGE_KEY = "streamloader-artwork-overrides";
-
-type OverrideSource = "url" | "upload";
-
-interface ArtworkOverride {
-  source: OverrideSource;
-  value: string; // raw URL OR base64 data URL
-  queued_at: string; // ISO timestamp
-}
-
-type OverrideMap = Record<string, ArtworkOverride>;
+// Composable owns the storage layer — same `streamloader-artwork-overrides`
+// localStorage key from batch 32, but now wrapped in a reactive Map so the
+// renderer sites (PlayerFullscreen, MediaItemThumb, InfoHeader) re-render
+// the moment Apply is clicked. Previously written overrides remain valid.
+const { setOverride } = useArtworkOverrides();
 
 const activeTab = ref<"url" | "upload">("url");
 const urlInput = ref("");
@@ -252,29 +247,22 @@ const loadFile = (file: File) => {
 
 const apply = () => {
   if (!canApply.value) return;
-  const override: ArtworkOverride = {
-    source: activeTab.value,
-    value:
-      activeTab.value === "url"
-        ? (urlPreviewSrc.value as string)
-        : (uploadPreviewSrc.value as string),
-    queued_at: new Date().toISOString(),
-  };
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    const map: OverrideMap = raw ? (JSON.parse(raw) as OverrideMap) : {};
-    map[props.itemId] = override;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
-  } catch (err) {
-    // Quota exceeded (most likely from a very large base64 upload) is the
-    // realistic failure mode here. Tell the user; don't silently drop.
+  const value =
+    activeTab.value === "url"
+      ? (urlPreviewSrc.value as string)
+      : (uploadPreviewSrc.value as string);
+  // setOverride writes to both the reactive Map (so artwork swaps instantly
+  // across all render sites) AND localStorage (so the choice survives a
+  // reload). Returns false on quota exhaustion — most likely cause is a
+  // multi-MB base64 upload pushing total storage past the browser limit.
+  const ok = setOverride(props.itemId, activeTab.value, value);
+  if (!ok) {
     toast.error(
       "Could not save artwork override (browser storage may be full).",
     );
-    void err;
     return;
   }
-  toast.info("Artwork override saved. (Backend rollout pending.)");
+  toast.success("Artwork updated. (Saved locally — backend sync pending.)");
   close();
 };
 

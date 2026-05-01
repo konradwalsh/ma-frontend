@@ -1,7 +1,29 @@
 <script setup lang="ts">
 import { useRegisterSW } from "virtual:pwa-register/vue";
 
-const { offlineReady, needRefresh, updateServiceWorker } = useRegisterSW();
+// Streamloader-fork (batch 33): poll for SW updates every 30 minutes
+// on long-lived tabs. The `update()` call fetches the SW script and,
+// if Workbox detects a new revision, triggers `needRefresh.value = true`
+// — at which point the user sees this toast and chooses when to reload.
+// We do NOT auto-reload; the prompt is still user-controlled.
+//
+// Why 30 minutes: long enough to not hammer the server (negligible cost
+// either way — sw.js is tiny), short enough that a user who's left the
+// app open all afternoon picks up the latest build by dinner. Matches
+// the cadence used by Vite's official `periodicSyncForUpdates` recipe.
+const UPDATE_INTERVAL_MS = 30 * 60 * 1000;
+
+const { offlineReady, needRefresh, updateServiceWorker } = useRegisterSW({
+  onRegisteredSW(swUrl, registration) {
+    if (!registration) return;
+    setInterval(() => {
+      // `update()` rejects if the page is offline or the SW endpoint is
+      // unreachable — swallow so we don't pollute the console with
+      // routine network errors during sleep/wake or train-tunnel use.
+      registration.update().catch(() => undefined);
+    }, UPDATE_INTERVAL_MS);
+  },
+});
 
 const close = async () => {
   offlineReady.value = false;

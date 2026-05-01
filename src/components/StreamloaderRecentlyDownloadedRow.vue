@@ -21,7 +21,7 @@
   Mounted from HomeView.vue between the hero and the upstream HomeWidgetRows.
 -->
 <template>
-  <div v-if="visibleItems.length > 0" class="sl-recent-row">
+  <div v-if="enabled && visibleItems.length > 0" class="sl-recent-row">
     <v-toolbar
       class="sl-recent-row__header"
       color="transparent"
@@ -59,8 +59,12 @@ import {
   type Track,
 } from "@/plugins/api/interfaces";
 import { onBeforeUnmount, onMounted, ref } from "vue";
+import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
 
 const STREAMLOADER_DOMAIN = "streamloader";
+
+// Streamloader settings page → "Show Recently Downloaded rail on home".
+const enabled = useStreamloaderPref("showRecentlyDownloaded");
 const FETCH_LIMIT = 30; // pull a few extra so post-filtering still leaves ~12
 const DISPLAY_LIMIT = 12;
 

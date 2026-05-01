@@ -384,5 +384,4 @@ const filteredItems = function (mediaType: MediaType) {
   background: rgb(var(--v-theme-primary));
   opacity: 0.85;
 }
-
 </style>
