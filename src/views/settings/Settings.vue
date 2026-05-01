@@ -13,6 +13,7 @@
           :icon="settingsViewMode === 'list' ? 'mdi-view-list' : 'mdi-grid'"
           variant="text"
           :title="t('tooltip.toggle_view_mode')"
+          :aria-label="t('tooltip.toggle_view_mode')"
           @click="toggleSettingsViewMode()"
         />
         <v-btn
@@ -20,6 +21,7 @@
           :icon="playersViewMode === 'list' ? 'mdi-view-list' : 'mdi-grid'"
           variant="text"
           :title="t('tooltip.toggle_view_mode')"
+          :aria-label="t('tooltip.toggle_view_mode')"
           @click="togglePlayersViewMode()"
         />
         <v-btn
@@ -27,6 +29,7 @@
           :icon="providersViewMode === 'list' ? 'mdi-view-list' : 'mdi-grid'"
           variant="text"
           :title="t('tooltip.toggle_view_mode')"
+          :aria-label="t('tooltip.toggle_view_mode')"
           @click="toggleProvidersViewMode()"
         />
         <v-btn
@@ -34,6 +37,7 @@
           :icon="tasksViewMode === 'list' ? 'mdi-view-list' : 'mdi-grid'"
           variant="text"
           :title="t('tooltip.toggle_view_mode')"
+          :aria-label="t('tooltip.toggle_view_mode')"
           @click="toggleTasksViewMode()"
         />
         <v-btn
@@ -41,6 +45,7 @@
           :icon="systemViewMode === 'list' ? 'mdi-view-list' : 'mdi-grid'"
           variant="text"
           :title="t('tooltip.toggle_view_mode')"
+          :aria-label="t('tooltip.toggle_view_mode')"
           @click="toggleSystemViewMode()"
         />
         <v-btn
@@ -48,6 +53,7 @@
           icon="mdi-help-circle"
           variant="text"
           :title="t('settings.view_documentation')"
+          :aria-label="t('settings.view_documentation')"
           @click="openLinkInNewTab(documentationUrl)"
         />
       </template>

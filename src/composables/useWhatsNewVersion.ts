@@ -36,6 +36,16 @@ const readSeenVersion = (): string | null => {
   }
 };
 
+/**
+ * Public surface returned by `useWhatsNewVersion()`.
+ *  - `shouldShow`      — reactive flag the layout binds to v-model on the
+ *                        WhatsNewDialog. Initialized from localStorage on mount.
+ *  - `currentVersion`  — convenience re-export of `WHATS_NEW_VERSION`.
+ *  - `markSeen()`      — call from the dialog's "Got it" button to persist
+ *                        the current version and dismiss until next bump.
+ *  - `reset()`         — used by Settings → About to re-open the dialog
+ *                        even after the user has dismissed this version.
+ */
 export interface UseWhatsNewVersion {
   shouldShow: Ref<boolean>;
   currentVersion: string;
@@ -43,6 +53,16 @@ export interface UseWhatsNewVersion {
   reset: () => void;
 }
 
+/**
+ * Composable owning the "have I seen this build's changelog?" flag.
+ *
+ * Pure client-side: reads/writes a single localStorage key, no network,
+ * no dependencies beyond Vue. Each instance creates its own `shouldShow`
+ * ref but they all reflect the same persisted state — calling `markSeen()`
+ * in one consumer does NOT auto-flip `shouldShow` in others (the typical
+ * mounting pattern is a single dialog at the layout root, so this is
+ * not currently a problem).
+ */
 export const useWhatsNewVersion = (): UseWhatsNewVersion => {
   const shouldShow = ref(readSeenVersion() !== WHATS_NEW_VERSION);
 

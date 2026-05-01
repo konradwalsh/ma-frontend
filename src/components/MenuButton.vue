@@ -12,11 +12,15 @@
             margin-left: -1px;
           `"
       :disabled="loading"
+      :title="$t('streamloader.a11y.menu_button_open')"
+      :aria-label="$t('streamloader.a11y.menu_button_open')"
+      aria-haspopup="menu"
       @click="emit('menu')"
     >
       <v-icon
         icon="mdi-menu-down"
         size="xx-large"
+        aria-hidden="true"
         :style="`width: 20px; margin-left: ${width - 42}px`"
       />
     </v-btn>

@@ -58,6 +58,7 @@
     "other_versions": "Other versions",
     "party_mode": "Party",
     "perform_action": "Perform action on {0} item(s)",
+    "pick_something_to_play": "Pick something to play.",
     "play": "Play",
     "play_album_from": "Play Album from here",
     "play_next": "Play Next",
@@ -79,7 +80,7 @@
     "queue": "Queue",
     "queue_clear": "Clear queue",
     "queue_delete": "Delete item",
-    "queue_empty": "No items in the queue",
+    "queue_empty": "Queue is empty",
     "queue_move_down": "Move down",
     "queue_move_up": "Move up",
     "queue_next_items": "Next items",
@@ -1909,6 +1910,19 @@
             "rescan_failed": "Rescan failed for {name}.",
             "rescan_complete": "Metadata rescan complete for {name}.",
             "rescan_fallback_name": "this item"
+        },
+        "a11y": {
+            "fullscreen_close": "Close fullscreen player",
+            "queue_radio_info": "Show queue radio sources",
+            "show_lyrics": "Show lyrics",
+            "show_cover": "Show cover",
+            "rename_player": "Rename player",
+            "remove_dsp_preset": "Remove DSP preset",
+            "edit_provider_name": "Edit provider name",
+            "copy_remote_id": "Copy remote ID",
+            "provider_options": "Provider options",
+            "menu_button_open": "Open menu",
+            "toolbar_back": "Back"
         },
         "stats": {
             "toolbar_title": "Streamloader Stats",

@@ -31,9 +31,16 @@
         </template>
         <template #append>
           <v-menu v-if="store.activePlayerQueue?.radio_source.length" scrim>
-            <template #activator="{ props }">
-              <Button v-bind="props" icon>
-                <v-icon color="accent" icon="mdi-radio-tower" />
+            <template #activator="{ props: menuActivator, isActive: menuActive }">
+              <Button
+                v-bind="menuActivator"
+                icon
+                :title="$t('streamloader.a11y.queue_radio_info')"
+                :aria-label="$t('streamloader.a11y.queue_radio_info')"
+                aria-haspopup="menu"
+                :aria-expanded="!!menuActive"
+              >
+                <v-icon color="accent" icon="mdi-radio-tower" aria-hidden="true" />
               </Button>
             </template>
 
@@ -70,16 +77,34 @@
           <Button
             v-if="isMobileFullscreen && hasLyrics"
             icon
-            :title="mobileShowLyrics ? 'Show cover' : 'Show lyrics'"
-            :aria-label="mobileShowLyrics ? 'Show cover' : 'Show lyrics'"
+            :title="
+              mobileShowLyrics
+                ? $t('streamloader.a11y.show_cover')
+                : $t('streamloader.a11y.show_lyrics')
+            "
+            :aria-label="
+              mobileShowLyrics
+                ? $t('streamloader.a11y.show_cover')
+                : $t('streamloader.a11y.show_lyrics')
+            "
+            :aria-pressed="!!mobileShowLyrics"
             class="sl-mobile-lyrics-btn"
             @click.stop="mobileShowLyrics = !mobileShowLyrics"
           >
-            <v-icon :icon="mobileShowLyrics ? 'mdi-image' : 'mdi-text'" />
+            <v-icon
+              :icon="mobileShowLyrics ? 'mdi-image' : 'mdi-text'"
+              aria-hidden="true"
+            />
           </Button>
 
-          <Button icon @click.stop="openQueueMenu">
-            <v-icon icon="mdi-dots-vertical" />
+          <Button
+            icon
+            :title="$t('queue_options')"
+            :aria-label="$t('queue_options')"
+            aria-haspopup="menu"
+            @click.stop="openQueueMenu"
+          >
+            <v-icon icon="mdi-dots-vertical" aria-hidden="true" />
           </Button>
         </template>
       </v-toolbar>
@@ -395,11 +420,16 @@
                       dragOverIndex === index &&
                       dropPosition === 'below',
                     'queue-row-dragging': dragSourceIndex === index,
+                    'queue-row-current':
+                      item.queue_item_id === store.curQueueItem?.queue_item_id,
                   }"
                   @click.stop="(e: Event) => openQueueItemMenu(e, item)"
                   @menu.stop="(e: Event) => openQueueItemMenu(e, item)"
                   @mouseenter="hoveredQueueIndex = index"
                   @mouseleave="hoveredQueueIndex = -1"
+                  @keydown.delete.stop.prevent="
+                    activeQueuePanel == 0 ? onRemoveQueueItem(item) : null
+                  "
                   @dragover.prevent="
                     (e: DragEvent) => onQueueRowDragOver(e, index)
                   "
@@ -2338,11 +2368,13 @@ watchEffect(() => {
 .queue-row-drag-handle.is-visible {
   opacity: 1;
 }
-/* Touch devices don't get hover states — keep handle visible at low
-   opacity so the affordance is still discoverable on tap-and-hold. */
+/* Touch devices: HTML5 drag-and-drop isn't natively supported, so the
+   handle is purely decorative there. Hide it entirely to reclaim space
+   for the title and remove a confusing affordance. The context-menu
+   move actions remain the touch-friendly path. */
 @media (hover: none) {
   .queue-row-drag-handle {
-    opacity: 0.55;
+    display: none;
   }
 }
 
@@ -2396,6 +2428,43 @@ watchEffect(() => {
   .queue-row-remove-btn {
     opacity: 0.6;
   }
+}
+
+/* Streamloader-fork addition (queue UX polish): currently-playing row
+   gets a 3px teal left-border (painted via inset box-shadow to preserve
+   v-virtual-scroll's fixed item-height) and a faint teal-tinted bg.
+   Stronger than the existing NowPlayingBadge alone so the eye lands on
+   the active row immediately when scanning the queue. */
+.queue-row-current {
+  background-color: rgba(45, 212, 191, 0.08) !important;
+  box-shadow: inset 3px 0 0 0 rgb(45, 212, 191) !important;
+}
+.queue-row-current :deep(.v-list-item-title) {
+  color: rgb(45, 212, 191);
+  font-weight: 600;
+}
+/* Drop-indicators take precedence over the current-row tint when
+   actively dragging so the drop target remains visually unambiguous. */
+.queue-row-current.queue-row-drop-above {
+  box-shadow:
+    inset 3px 0 0 0 rgb(45, 212, 191),
+    inset 0 2px 0 0 rgb(45, 212, 191) !important;
+}
+.queue-row-current.queue-row-drop-below {
+  box-shadow:
+    inset 3px 0 0 0 rgb(45, 212, 191),
+    inset 0 -2px 0 0 rgb(45, 212, 191) !important;
+}
+
+/* Tighten ellipsis on long titles inside MarqueeText. min-width:0 lets
+   the flex child shrink below its content's intrinsic width so the
+   queue row never forces a horizontal scrollbar on narrow panels. */
+.queue-items-scroll-box .title-row {
+  min-width: 0;
+  overflow: hidden;
+}
+.queue-items-scroll-box :deep(.v-list-item__content) {
+  min-width: 0;
 }
 
 .v-infinite-scroll--vertical {

@@ -124,6 +124,16 @@ function buildMessage(task: BackgroundTask, status: TaskStatus): string {
   return label;
 }
 
+/**
+ * Imperative entry-point for inserting a synthetic activity row.
+ *
+ * Useful for fork-internal code paths that already know an event happened
+ * but that don't surface as a `BackgroundTask` (e.g. an artwork override
+ * applied client-side, a manual ReplayGain trigger from settings).
+ * Generates a unique `id` and stamps `timestamp` with `Date.now()` if the
+ * caller did not supply one. Trims the in-memory list to `MAX_ENTRIES` and
+ * mirrors the persisted slice (latest `PERSIST_ENTRIES`) to localStorage.
+ */
 export function appendActivity(
   entry: Omit<ActivityEntry, "id" | "timestamp"> & { timestamp?: number },
 ) {
@@ -157,6 +167,22 @@ function ingest(tasks: BackgroundTask[]) {
   }
 }
 
+/**
+ * Composable consumed by StreamloaderActivityLog.vue (the bell button +
+ * popover) and any future "recent activity" surface.
+ *
+ * On first call it wires a deep watcher onto the shared
+ * `useBackgroundTasks().tasks` ref so subsequent mounts are free —
+ * `initialized` guards against re-subscribing.
+ *
+ * Returns:
+ *   - `entries`        — reactive array, newest-first, capped at MAX_ENTRIES
+ *   - `unreadCount`    — entries with `timestamp > lastViewedAt`
+ *   - `hasUnread`      — convenience boolean for the bell badge
+ *   - `markAllRead`    — bumps `lastViewedAt` to now (clears the badge)
+ *   - `clearAll`       — wipes entries + persisted slice + marks read
+ *   - `appendActivity` — re-export of the module-level inserter
+ */
 export function useStreamloaderActivityLog() {
   const { tasks } = useBackgroundTasks();
 

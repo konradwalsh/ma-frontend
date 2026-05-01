@@ -5,10 +5,17 @@
         :icon="typeof icon === 'string' ? icon : undefined"
         size="small"
         :disabled="iconAction == null"
+        :title="$t('streamloader.a11y.toolbar_back')"
+        :aria-label="$t('streamloader.a11y.toolbar_back')"
         style="opacity: 0.8"
         @click="iconAction?.()"
       >
-        <component :is="icon" v-if="typeof icon !== 'string'" class="w-6 h-6" />
+        <component
+          :is="icon"
+          v-if="typeof icon !== 'string'"
+          class="w-6 h-6"
+          aria-hidden="true"
+        />
       </v-btn>
     </template>
 
@@ -36,6 +43,9 @@
         variant="text"
         style="width: 40px"
         :title="$t(menuItem.label, menuItem.labelArgs || [])"
+        :aria-label="$t(menuItem.label, menuItem.labelArgs || [])"
+        :aria-haspopup="menuItem.subItems?.length ? 'menu' : undefined"
+        :aria-pressed="menuItem.active === true ? true : undefined"
         :disabled="menuItem.disabled == true"
         @click="(e: MouseEvent) => onMenuItemClick(e, menuItem)"
       >
@@ -73,12 +83,16 @@
           <template #activator="{ props }">
             <v-btn
               variant="plain"
-              aria-label="More options"
+              :aria-label="$t('more_options')"
+              :title="$t('more_options')"
+              aria-haspopup="menu"
+              :aria-expanded="overflowMenuOpen"
               class="toolbar-overflow-trigger"
               v-bind="props"
             >
               <v-icon
                 icon="mdi-dots-vertical"
+                aria-hidden="true"
                 :color="$vuetify.theme.current.dark ? '#fff' : '#000'"
                 size="22"
               />

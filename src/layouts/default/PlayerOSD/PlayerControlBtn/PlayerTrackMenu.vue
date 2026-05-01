@@ -1,14 +1,17 @@
 <template>
-  <DropdownMenu v-if="currentItem">
+  <DropdownMenu v-if="currentItem" v-model:open="menuOpen">
     <DropdownMenuTrigger as-child>
       <Button
         variant="icon"
         :ripple="false"
         icon
         :title="$t('more_options')"
+        :aria-label="$t('more_options')"
+        aria-haspopup="menu"
+        :aria-expanded="menuOpen"
         class="track-menu-trigger"
       >
-        <EllipsisIcon />
+        <EllipsisIcon aria-hidden="true" />
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent
@@ -67,7 +70,9 @@ import {
   PlusCircle,
   RadioTower,
 } from "lucide-vue-next";
-import { computed } from "vue";
+import { computed, ref } from "vue";
+
+const menuOpen = ref(false);
 
 const currentTrack = computed(() => {
   const item = store.curQueueItem?.media_item;

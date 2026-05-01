@@ -7,7 +7,8 @@
     :title="$t('players')"
     :aria-label="$t('players')"
     :aria-pressed="isActive"
-    :aria-haspopup="true"
+    aria-haspopup="menu"
+    :aria-expanded="isActive"
     @click="openPlayersMenu"
   >
     <v-icon

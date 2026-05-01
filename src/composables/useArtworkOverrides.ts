@@ -76,6 +76,24 @@ function persist(): boolean {
   }
 }
 
+/**
+ * Mutation-oriented composable for the artwork-override store.
+ *
+ * Use this in components that need to READ AND WRITE overrides (the
+ * EditArtworkDialog Apply handler, a future "Reset cover" menu item).
+ * Render-only sites should prefer `useArtworkOverrideUrl(itemId)` below
+ * which returns just a reactive URL ComputedRef.
+ *
+ * Returned API:
+ *   - `overrides`      — the underlying reactive `Map<string, OverrideEntry>`
+ *                        (read-only intent; mutate via the helpers)
+ *   - `getOverride`    — synchronous lookup by item_id
+ *   - `setOverride`    — store/replace an override; returns `false` if
+ *                        localStorage write failed (typically QuotaExceeded
+ *                        for very large base64 uploads)
+ *   - `removeOverride` — delete an override; returns `true` even if the id
+ *                        wasn't present (idempotent)
+ */
 export function useArtworkOverrides() {
   const getOverride = (
     itemId: string | undefined,
