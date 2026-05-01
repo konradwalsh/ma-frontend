@@ -14,8 +14,18 @@
             { 'content-section--frameless': store.frameless },
           ]"
         >
+          <!--
+            Streamloader-fork: subtle on-brand route transition.
+            180-220ms fade + slight slide-up on enter (overshoot easing),
+            ease on leave. The route.fullPath key from batch 27 is
+            preserved on the inner <component> so per-route remounts still
+            happen correctly; <Transition> just animates the swap.
+            prefers-reduced-motion is honored in CSS (opacity-only fade).
+          -->
           <router-view v-slot="{ Component, route }">
-            <component :is="Component" :key="route.fullPath" />
+            <Transition name="sl-route" mode="out-in">
+              <component :is="Component" :key="route.fullPath" />
+            </Transition>
           </router-view>
           <add-to-playlist-dialog />
           <create-playlist-dialog />
@@ -118,5 +128,36 @@ onMounted(() => {
 
 .content-section--frameless {
   padding-bottom: 0;
+}
+
+/* Streamloader-fork: route transition.
+   Enter: 200ms fade-in + slide-up 10px with a soft overshoot easing.
+   Leave: 180ms ease fade-out, no translate (cleaner exit).
+   Reduced-motion: opacity-only fade, no transform. */
+.sl-route-enter-active {
+  transition:
+    opacity 200ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    transform 200ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+.sl-route-leave-active {
+  transition: opacity 180ms ease;
+}
+.sl-route-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.sl-route-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-route-enter-active,
+  .sl-route-leave-active {
+    transition: opacity 160ms ease;
+  }
+  .sl-route-enter-from {
+    opacity: 0;
+    transform: none;
+  }
 }
 </style>

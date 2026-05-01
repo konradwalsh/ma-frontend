@@ -81,6 +81,9 @@
         <button
           class="volume-icon-btn"
           :disabled="muteDisabled"
+          :title="muteTooltipLabel"
+          :aria-label="muteTooltipLabel"
+          :aria-keyshortcuts="muteShortcutKey || undefined"
           @click.stop="onMuteToggle"
         >
           <component :is="volumeIconComponent" :size="iconSize" />
@@ -124,7 +127,14 @@ import {
   PlayerFeature,
 } from "@/plugins/api/interfaces";
 import { store } from "@/plugins/store";
+import { getShortcutKeyFor } from "@/composables/useKeyboardShortcuts";
 import { computed, onUnmounted, ref, watch } from "vue";
+
+// Streamloader-fork: passive shortcut hint sourced from KEYBOARD_SHORTCUTS.
+// Hoisted near the top so the template binding resolves before the rest of
+// the props/computed dance below.
+const muteShortcutKey = getShortcutKeyFor("mute");
+const muteTooltipLabel = muteShortcutKey ? `Mute (${muteShortcutKey})` : "Mute";
 
 export interface Props {
   /** The player to control — component handles all volume logic internally */

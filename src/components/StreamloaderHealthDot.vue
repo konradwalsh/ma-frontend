@@ -58,7 +58,8 @@ const state = computed<DotState | null>(() => {
     return {
       tone: "error",
       label: "Offline",
-      title: "Streamloader provider not configured — open Settings → Streamloader",
+      title:
+        "Streamloader provider not configured — open Settings → Streamloader",
     };
   }
 
@@ -95,9 +96,17 @@ const state = computed<DotState | null>(() => {
      and the default sidebar surface. Color of the ring is currentColor
      so each tone gets a matching halo. */
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0);
-  transition: box-shadow 150ms ease, background-color 150ms ease;
+  transition:
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+  /* The dot lives inside the SidebarMenuButton (a RouterLink). Keep
+     pointer-events on so the native `title` tooltip still surfaces on
+     hover, but inherit the cursor from the surrounding nav item — a
+     `cursor: help` here would mislead users into thinking the streamloader
+     menu item itself isn't clickable. The wrapping <a> still receives the
+     click via event bubbling. */
   pointer-events: auto;
-  cursor: help;
+  cursor: inherit;
 }
 
 .sl-health-dot--ok {

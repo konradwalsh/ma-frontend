@@ -16,12 +16,12 @@
 -->
 <template>
   <div
-    v-if="enabled && !collapsed && hasCounts"
+    v-if="enabled && !collapsed && (hasCounts || showLoading)"
     class="sl-lib-stats"
-    :title="fullTitle"
+    :title="hasCounts ? fullTitle : 'Loading library counts'"
   >
     <span class="sl-lib-stats__label">Library</span>
-    <span class="sl-lib-stats__row">
+    <span v-if="hasCounts" class="sl-lib-stats__row">
       <span class="sl-lib-stats__value">{{ formatted.tracks }}</span>
       <span class="sl-lib-stats__unit">tracks</span>
       <span class="sl-lib-stats__sep">·</span>
@@ -31,14 +31,23 @@
       <span class="sl-lib-stats__value">{{ formatted.albums }}</span>
       <span class="sl-lib-stats__unit">albums</span>
     </span>
+    <!-- Show the on-brand spinner briefly while App.vue's library count
+         hydration is in flight. Auto-hides once `hasCounts` flips true OR
+         after a short timeout (so a stalled fetch doesn't pin the spinner
+         visible forever — falls back to the original "render nothing"
+         behaviour). -->
+    <span v-else class="sl-lib-stats__loading">
+      <StreamloaderSpinner :size="32" label="Loading library counts" />
+    </span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { store } from "@/plugins/store";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
+import StreamloaderSpinner from "@/components/StreamloaderSpinner.vue";
 
 // Forward-looking placeholder prop. As of this commit the streamloader
 // websocket api does NOT expose cache size / disk usage on its
@@ -69,6 +78,24 @@ const hasCounts = computed(
     store.libraryArtistsCount !== undefined ||
     store.libraryAlbumsCount !== undefined,
 );
+
+// Show the on-brand spinner only during the early hydration window. After
+// this expires we revert to the original silent-empty behaviour so a
+// permanently-failed count fetch doesn't pin a stale spinner in the
+// sidebar. Picked at 8s — empirically App.vue resolves counts well under
+// 2s on a warm connection; this is a conservative ceiling.
+const LOADING_TIMEOUT_MS = 8000;
+const loadingExpired = ref(false);
+let loadingTimer: ReturnType<typeof setTimeout> | undefined;
+onMounted(() => {
+  loadingTimer = setTimeout(() => {
+    loadingExpired.value = true;
+  }, LOADING_TIMEOUT_MS);
+});
+onBeforeUnmount(() => {
+  if (loadingTimer) clearTimeout(loadingTimer);
+});
+const showLoading = computed(() => !hasCounts.value && !loadingExpired.value);
 
 // Compact "1.2k" / "12.3k" formatter — keeps the footer one-line on narrow
 // sidebars. Falls back to "—" while counts are still loading.
@@ -137,5 +164,12 @@ const fullTitle = computed(() => {
 .sl-lib-stats__sep {
   opacity: 0.45;
   margin: 0 1px;
+}
+
+.sl-lib-stats__loading {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 4px 0 2px;
 }
 </style>

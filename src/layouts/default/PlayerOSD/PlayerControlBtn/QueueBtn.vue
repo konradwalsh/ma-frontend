@@ -13,6 +13,7 @@
     "
     :color="activeColor"
     :class="{ 'queue-btn': true, 'queue-btn--active': isActive }"
+    :title="$t('queue')"
     :aria-label="$t('queue')"
     :aria-pressed="isActive"
     @click="onClick"

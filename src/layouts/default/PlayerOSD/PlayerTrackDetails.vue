@@ -8,6 +8,7 @@
     <template #prepend>
       <div
         class="media-thumb player-media-thumb"
+        :class="{ 'sl-track-pulse': pulseActive }"
         :style="`cursor: pointer;height: ${
           getBreakpointValue({ breakpoint: 'phone' }) ? 60 : 64
         }px; width: ${
@@ -192,6 +193,7 @@
 import MarqueeText from "@/components/MarqueeText.vue";
 import NowPlayingBadge from "@/components/NowPlayingBadge.vue";
 import QualityDetailsBtn from "@/components/QualityDetailsBtn.vue";
+import { useTrackChangePulse } from "@/composables/useTrackChangePulse";
 import { MarqueeTextSync } from "@/helpers/marquee_text_sync";
 import {
   ImageColorPalette,
@@ -212,6 +214,12 @@ const PlayerFullscreen = defineAsyncComponent(
 );
 
 const marqueeSync = new MarqueeTextSync();
+
+// Streamloader-fork addition (batch AAA5): subscribe to the global
+// track-change pulse so the mini player thumbnail gets a soft scale
+// pulse whenever a NEW track starts. See useTrackChangePulse for
+// the debounce + reduced-motion gating.
+const { pulseActive } = useTrackChangePulse();
 
 // properties
 interface Props {
@@ -268,6 +276,33 @@ watch(
 <style scoped>
 .player-media-thumb {
   margin-right: 10px;
+}
+
+/* Streamloader-fork addition (batch AAA5): now-playing cover-art pulse.
+   Scale 1 → 1.05 → 1 with a tiny overshoot easing on the way up so the
+   hit lands as a soft "thump" rather than a linear bounce. ~420ms total
+   matches the JS pulseActive duration in useTrackChangePulse. The
+   transform-origin is the thumb center so the pulse stays put inside
+   the existing flex layout. */
+.player-media-thumb.sl-track-pulse {
+  animation: sl-track-pulse 420ms cubic-bezier(0.34, 1.36, 0.64, 1) both;
+  transform-origin: center center;
+}
+@keyframes sl-track-pulse {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .player-media-thumb.sl-track-pulse {
+    animation: none;
+  }
 }
 
 .player-track-content-type {

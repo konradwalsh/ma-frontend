@@ -39,30 +39,97 @@ const REPEAT_CYCLE: Record<RepeatMode, RepeatMode> = {
   [RepeatMode.ONE]: RepeatMode.OFF,
 };
 
-// Single source of truth for the shortcut list — consumed by both the
-// keyboard handler (above) and the help dialog (KeyboardShortcutsDialog.vue).
+// Single source of truth for the shortcut list — consumed by the keyboard
+// handler (above), the help dialog (KeyboardShortcutsDialog.vue), and the
+// passive tooltip hints sprinkled on PlayerControlBtn buttons (looked up via
+// `getShortcutKeyFor(id)`). Adding/changing a binding here updates every
+// surface automatically.
+//
 // `keys` is an array so the UI can render each token in its own <kbd>; combos
-// are joined with " + " in the dialog.
+// are joined with " + " in the dialog. `id` is the stable lookup key used by
+// `getShortcutKeyFor` — match it to the semantic action, NOT the key, so
+// rebinds don't break the tooltip wiring.
+export type ShortcutId =
+  | "play-pause"
+  | "next"
+  | "previous"
+  | "favorite"
+  | "repeat"
+  | "shuffle"
+  | "volume-up"
+  | "volume-down"
+  | "mute"
+  | "fullscreen"
+  | "close"
+  | "help";
+
 export interface KeyboardShortcut {
+  id: ShortcutId;
   keys: string[];
   action: string;
   group: "Playback" | "Volume" | "View" | "Help";
 }
 
 export const KEYBOARD_SHORTCUTS: readonly KeyboardShortcut[] = [
-  { keys: ["Space"], action: "Play / pause", group: "Playback" },
-  { keys: ["→"], action: "Next track", group: "Playback" },
-  { keys: ["←"], action: "Previous track", group: "Playback" },
-  { keys: ["L"], action: "Favorite current track", group: "Playback" },
-  { keys: ["R"], action: "Cycle repeat (Off / All / One)", group: "Playback" },
-  { keys: ["S"], action: "Toggle shuffle", group: "Playback" },
-  { keys: ["↑"], action: "Volume up (+5)", group: "Volume" },
-  { keys: ["↓"], action: "Volume down (-5)", group: "Volume" },
-  { keys: ["M"], action: "Mute toggle", group: "Volume" },
-  { keys: ["F"], action: "Toggle fullscreen player", group: "View" },
-  { keys: ["Esc"], action: "Close fullscreen player / dialog", group: "View" },
-  { keys: ["Shift", "/"], action: "Show this help", group: "Help" },
+  {
+    id: "play-pause",
+    keys: ["Space"],
+    action: "Play / pause",
+    group: "Playback",
+  },
+  { id: "next", keys: ["→"], action: "Next track", group: "Playback" },
+  { id: "previous", keys: ["←"], action: "Previous track", group: "Playback" },
+  {
+    id: "favorite",
+    keys: ["L"],
+    action: "Favorite current track",
+    group: "Playback",
+  },
+  {
+    id: "repeat",
+    keys: ["R"],
+    action: "Cycle repeat (Off / All / One)",
+    group: "Playback",
+  },
+  { id: "shuffle", keys: ["S"], action: "Toggle shuffle", group: "Playback" },
+  { id: "volume-up", keys: ["↑"], action: "Volume up (+5)", group: "Volume" },
+  {
+    id: "volume-down",
+    keys: ["↓"],
+    action: "Volume down (-5)",
+    group: "Volume",
+  },
+  { id: "mute", keys: ["M"], action: "Mute toggle", group: "Volume" },
+  {
+    id: "fullscreen",
+    keys: ["F"],
+    action: "Toggle fullscreen player",
+    group: "View",
+  },
+  {
+    id: "close",
+    keys: ["Esc"],
+    action: "Close fullscreen player / dialog",
+    group: "View",
+  },
+  { id: "help", keys: ["Shift", "/"], action: "Show this help", group: "Help" },
 ] as const;
+
+/**
+ * Look up the human-readable key combo for a given action id. Used by
+ * passive UI affordances (tooltips on PlayerControlBtn, etc.) so the
+ * shortcut text stays in sync with KEYBOARD_SHORTCUTS — no hard-coded
+ * "(Space)" strings scattered across the codebase.
+ *
+ * Returns the keys joined with " + " (e.g. "Shift + /") or an empty
+ * string if the id is unknown (defensive — caller can decide whether
+ * to render an empty hint or hide the parenthetical entirely).
+ */
+export function getShortcutKeyFor(id: ShortcutId): string {
+  const sc = KEYBOARD_SHORTCUTS.find((s) => s.id === id);
+  if (!sc) return "";
+  return sc.keys.join(" + ");
+}
 
 function isEditableTarget(target: EventTarget | null): boolean {
   if (!target || !(target instanceof HTMLElement)) return false;

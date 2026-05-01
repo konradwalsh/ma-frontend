@@ -4,6 +4,7 @@
     :ripple="false"
     icon
     :class="{ 'speaker-btn': true, 'speaker-btn--active': isActive }"
+    :title="$t('players')"
     :aria-label="$t('players')"
     :aria-pressed="isActive"
     :aria-haspopup="true"

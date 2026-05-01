@@ -7,7 +7,9 @@
     :disabled="!canPrevious || isLoading"
     variant="button"
     role="button"
+    :title="tooltipLabel"
     aria-label="Previous track"
+    :aria-keyshortcuts="shortcutKey || undefined"
     :aria-disabled="!canPrevious || isLoading"
     @click="api.playerCommandPrevious(player.player_id)"
   >
@@ -21,8 +23,13 @@ import Icon, { IconProps } from "@/components/Icon.vue";
 import api from "@/plugins/api";
 import { Player, PlayerFeature, PlayerQueue } from "@/plugins/api/interfaces";
 import { useActiveSource } from "@/composables/activeSource";
+import { getShortcutKeyFor } from "@/composables/useKeyboardShortcuts";
 import { computed, toRef } from "vue";
 import { SkipBack } from "lucide-vue-next";
+
+// Streamloader-fork: passive shortcut hint sourced from KEYBOARD_SHORTCUTS.
+const shortcutKey = getShortcutKeyFor("previous");
+const tooltipLabel = shortcutKey ? `Previous (${shortcutKey})` : "Previous";
 
 // properties
 export interface Props {

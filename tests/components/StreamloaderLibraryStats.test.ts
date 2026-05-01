@@ -81,8 +81,20 @@ describe("StreamloaderLibraryStats.vue", () => {
     expect(wrapper.find(".sl-lib-stats").exists()).toBe(false);
   });
 
-  it("hides itself when all counts are undefined", () => {
+  it("shows the loading spinner while counts hydrate", () => {
     const wrapper = mount(StreamloaderLibraryStats);
+    expect(wrapper.find(".sl-lib-stats").exists()).toBe(true);
+    expect(wrapper.find(".sl-lib-stats__loading").exists()).toBe(true);
+    expect(wrapper.find(".sl-lib-stats__row").exists()).toBe(false);
+  });
+
+  it("hides itself after the hydration timeout when no counts arrive", async () => {
+    vi.useFakeTimers();
+    const wrapper = mount(StreamloaderLibraryStats);
+    expect(wrapper.find(".sl-lib-stats").exists()).toBe(true);
+    vi.advanceTimersByTime(8000);
+    await wrapper.vm.$nextTick();
     expect(wrapper.find(".sl-lib-stats").exists()).toBe(false);
+    vi.useRealTimers();
   });
 });

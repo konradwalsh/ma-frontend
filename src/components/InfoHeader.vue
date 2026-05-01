@@ -65,14 +65,18 @@
           "
         >
           <div v-if="item.media_type && item.media_type == MediaType.ARTIST">
-            <v-avatar size="210" style="margin-bottom: 10%">
+            <v-avatar
+              size="210"
+              style="margin-bottom: 10%"
+              :class="{ 'sl-track-pulse': showPulse }"
+            >
               <MediaItemThumb :item="item" size="calc(100%)" />
             </v-avatar>
           </div>
           <div
             v-else-if="item.media_type === MediaType.ALBUM"
             class="sl-vinyl-wrapper"
-            :class="vinylWrapperClasses"
+            :class="[vinylWrapperClasses, { 'sl-track-pulse-host': showPulse }]"
           >
             <!-- Streamloader-fork addition: ALACarte-style vinyl-emerging-
                  from-cover hero, scoped to ALBUM only (other media types
@@ -96,10 +100,7 @@
                  which is the disc's center because the protrude wrapper
                  already placed it there). The label is a descendant of
                  the spinning wrapper so it tracks the disc perfectly. -->
-            <div
-              class="sl-vinyl-disc-protrude"
-              aria-hidden="true"
-            >
+            <div class="sl-vinyl-disc-protrude" aria-hidden="true">
               <div
                 class="sl-vinyl-disc-spin"
                 :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
@@ -130,7 +131,7 @@
               />
             </div>
           </div>
-          <div v-else>
+          <div v-else :class="{ 'sl-track-pulse': showPulse }">
             <MediaItemThumb
               :item="item"
               size="calc(100%)"
@@ -693,6 +694,7 @@ import {
 import { authManager } from "@/plugins/auth";
 import { eventbus } from "@/plugins/eventbus";
 import { store } from "@/plugins/store";
+import { useTrackChangePulse } from "@/composables/useTrackChangePulse";
 import { IconHeart, IconHeartFilled } from "@tabler/icons-vue";
 import {
   ArrowLeft,
@@ -770,6 +772,33 @@ const vinylShouldSpin = computed(() => {
   const ps = store.activePlayer?.playback_state;
   if (ps === undefined) return true;
   return ps === PlaybackState.PLAYING;
+});
+
+// Streamloader-fork addition (batch AAA5): pulse the displayed cover
+// when the now-playing track changes — but ONLY if the displayed item
+// is the now-playing item (album/artist/track URI match against the
+// current queue item). Stops the InfoHeader from twitching every time
+// a NEW track starts on an unrelated detail page the user is viewing.
+const { pulseActive: trackChangePulse } = useTrackChangePulse();
+const showPulse = computed(() => {
+  if (!trackChangePulse.value) return false;
+  const item = compProps.item;
+  if (!item) return false;
+  const playing = store.curQueueItem?.media_item;
+  if (!playing) return false;
+  // Direct URI match (track-on-track, album-on-album, etc.)
+  if ("uri" in item && item.uri && "uri" in playing && item.uri === playing.uri)
+    return true;
+  // Album page: the queue item is a TRACK whose album.item_id matches.
+  if (
+    item.media_type === MediaType.ALBUM &&
+    "album" in playing &&
+    playing.album &&
+    "item_id" in playing.album &&
+    playing.album.item_id === item.item_id
+  )
+    return true;
+  return false;
 });
 
 const marqueeSync = new MarqueeTextSync();
@@ -1349,9 +1378,39 @@ const deleteGenre = () => {
   mix-blend-mode: screen;
 }
 
+/* Streamloader-fork addition (batch AAA5): now-playing cover-art pulse
+   on the InfoHeader detail page. Only fires when the displayed item IS
+   the now-playing track (gated by the showPulse computed). For album
+   layouts we target .sl-vinyl-cover inside the wrapper so the orbiting
+   vinyl disc isn't dragged along — preserves the batch MMM4 vinyl-orbit
+   fix. For artist (v-avatar) and other media types the pulse class lands
+   directly on the cover container. */
+.sl-vinyl-wrapper.sl-track-pulse-host .sl-vinyl-cover,
+.v-avatar.sl-track-pulse,
+:not(.sl-vinyl-wrapper) > .sl-track-pulse {
+  animation: sl-track-pulse 420ms cubic-bezier(0.34, 1.36, 0.64, 1) both;
+  transform-origin: center center;
+}
+@keyframes sl-track-pulse {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* Respect users who've asked the OS to reduce motion. */
 @media (prefers-reduced-motion: reduce) {
   .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-spin {
+    animation: none;
+  }
+  .sl-vinyl-wrapper.sl-track-pulse-host .sl-vinyl-cover,
+  .v-avatar.sl-track-pulse,
+  :not(.sl-vinyl-wrapper) > .sl-track-pulse {
     animation: none;
   }
 }

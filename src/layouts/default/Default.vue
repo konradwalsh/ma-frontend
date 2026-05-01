@@ -23,9 +23,7 @@
          "streamloader" item) provides the same status signal without
          occluding chrome. Users who want the old badge back can flip
          the toggle in Streamloader Settings → Player Display. -->
-    <StreamloaderHealthPill
-      v-if="!store.frameless && showFloatingHealthPill"
-    />
+    <StreamloaderHealthPill v-if="!store.frameless && showFloatingHealthPill" />
     <!-- Streamloader-fork feature: live "what's happening right now"
          widget. Stacks beneath the health pill; renders nothing when
          there are no in-flight streamloader tasks (zero visual cost
@@ -44,6 +42,13 @@
          Same frameless guard as the health pill — when running inside
          a host shell (HA ingress), the host owns the install path. -->
     <StreamloaderInstallPrompt v-if="!store.frameless" />
+    <!-- Streamloader-fork: bottom-right "Press ? for shortcuts" pill.
+         Subtle discoverability hint for the existing keyboard shortcut
+         dialog — most users never find the help binding without a
+         passive prompt. Self-gates on touch-primary devices and a
+         localStorage dismiss flag, so it appears at most once per
+         browser. Hidden in frameless mode (host shells own chrome). -->
+    <StreamloaderShortcutsHint v-if="!store.frameless" />
     <!-- Streamloader-fork (batch 34): first-run welcome tour. Self-gates
          on frameless mode + connection state + a localStorage flag, so
          it shows exactly once per browser unless re-triggered from the
@@ -75,6 +80,7 @@ import StreamloaderHealthPill from "@/components/StreamloaderHealthPill.vue";
 import StreamloaderActivityPulse from "@/components/StreamloaderActivityPulse.vue";
 import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
 import StreamloaderInstallPrompt from "@/components/StreamloaderInstallPrompt.vue";
+import StreamloaderShortcutsHint from "@/components/StreamloaderShortcutsHint.vue";
 import StreamloaderWelcomeTour from "@/components/StreamloaderWelcomeTour.vue";
 import { store } from "@/plugins/store";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";

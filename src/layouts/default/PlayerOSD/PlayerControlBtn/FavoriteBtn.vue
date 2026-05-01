@@ -7,10 +7,11 @@
     :color="item?.favorite ? 'primary' : props.icon?.color"
     :disabled="disabled || !item"
     :icon="item?.favorite ? 'mdi-heart' : 'mdi-heart-outline'"
-    :title="$t('tooltip.favorite')"
+    :title="tooltipLabel"
     variant="button"
     role="button"
     :aria-label="$t('tooltip.favorite')"
+    :aria-keyshortcuts="shortcutKey || undefined"
     :aria-pressed="!!item?.favorite"
     :aria-disabled="disabled || !item"
     @click="onClick"
@@ -21,6 +22,9 @@
 import Icon, { IconProps } from "@/components/Icon.vue";
 import api from "@/plugins/api";
 import { type MediaItemType } from "@/plugins/api/interfaces";
+import { getShortcutKeyFor } from "@/composables/useKeyboardShortcuts";
+import { useI18n } from "vue-i18n";
+import { computed } from "vue";
 
 // properties
 export interface Props {
@@ -41,6 +45,14 @@ const onClick = function () {
   if (!props.item) return;
   api.toggleFavorite(props.item);
 };
+
+// Streamloader-fork: passive shortcut hint sourced from KEYBOARD_SHORTCUTS.
+const { t } = useI18n();
+const shortcutKey = getShortcutKeyFor("favorite");
+const tooltipLabel = computed(() => {
+  const base = t("tooltip.favorite");
+  return shortcutKey ? `${base} (${shortcutKey})` : base;
+});
 </script>
 
 <style scoped>

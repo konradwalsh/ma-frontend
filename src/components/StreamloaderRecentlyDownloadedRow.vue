@@ -21,7 +21,10 @@
   Mounted from HomeView.vue between the hero and the upstream HomeWidgetRows.
 -->
 <template>
-  <div v-if="enabled && visibleItems.length > 0" class="sl-recent-row">
+  <div
+    v-if="enabled && (visibleItems.length > 0 || isInitialLoading)"
+    class="sl-recent-row"
+  >
     <v-toolbar
       class="sl-recent-row__header"
       color="transparent"
@@ -36,7 +39,17 @@
     </v-toolbar>
 
     <div class="sl-recent-row__carousel-wrapper">
-      <Carousel :items="visibleItems" :item-key="(item: Track) => item.uri">
+      <!-- Initial load: show the brand spinner instead of an empty area
+           or generic Vuetify circular. Disappears the moment the first
+           fetch resolves (success OR empty). -->
+      <div v-if="isInitialLoading" class="sl-recent-row__loading">
+        <StreamloaderSpinner :size="40" label="Loading recent downloads" />
+      </div>
+      <Carousel
+        v-else
+        :items="visibleItems"
+        :item-key="(item: Track) => item.uri"
+      >
         <template #default="{ item }">
           <PanelviewItemCompact
             :item="item"
@@ -51,6 +64,7 @@
 <script setup lang="ts">
 import Carousel from "@/components/Carousel.vue";
 import PanelviewItemCompact from "@/components/PanelviewItemCompact.vue";
+import StreamloaderSpinner from "@/components/StreamloaderSpinner.vue";
 import api from "@/plugins/api";
 import { itemIsAvailable } from "@/plugins/api/helpers";
 import {
@@ -71,6 +85,11 @@ const DISPLAY_LIMIT = 12;
 const title = "Recently Downloaded by Streamloader";
 
 const visibleItems = ref<Track[]>([]);
+// Tracks ONLY the very first fetch — once it resolves (with items or not)
+// we never show the spinner again. Subsequent refreshes from the
+// MEDIA_ITEM_ADDED subscription are silent so the rail doesn't flicker
+// every time a new track lands.
+const isInitialLoading = ref(true);
 
 const hasStreamloaderMapping = (track: Track): boolean => {
   return (
@@ -109,6 +128,8 @@ const loadData = async () => {
     // Best-effort feature — silently render nothing on failure rather
     // than spamming the homepage with an error chip.
     visibleItems.value = [];
+  } finally {
+    isInitialLoading.value = false;
   }
 };
 
@@ -200,6 +221,16 @@ onMounted(() => {
   padding: 8px;
   padding-right: 0;
   border-radius: 5px 0 0 5px;
+}
+
+/* Spinner pad: keep the rail at roughly the same height it has when
+   populated, so the page doesn't jump when the first results land. */
+.sl-recent-row__loading {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 18px 12px;
+  min-height: 120px;
 }
 
 @media (max-width: 575px) {

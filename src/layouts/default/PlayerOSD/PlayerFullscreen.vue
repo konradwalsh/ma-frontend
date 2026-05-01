@@ -14,7 +14,13 @@
     >
       <v-toolbar class="v-toolbar-default" color="transparent">
         <template #prepend>
-          <Button icon @click="store.showFullscreenPlayer = false">
+          <Button
+            icon
+            :title="fullscreenCloseTooltip"
+            :aria-label="fullscreenCloseTooltip"
+            :aria-keyshortcuts="fullscreenShortcutKey || undefined"
+            @click="store.showFullscreenPlayer = false"
+          >
             <v-icon icon="mdi-chevron-down" />
           </Button>
         </template>
@@ -108,7 +114,10 @@
                      does NOT rotate. -->
                 <div class="sl-vinyl-sheen"></div>
               </div>
-              <div class="sl-vinyl-cover">
+              <div
+                class="sl-vinyl-cover"
+                :class="{ 'sl-track-pulse': pulseActive }"
+              >
                 <!-- Streamloader-fork fix (batch JJJ3): the large vinyl-overlay
                      cover used <v-img :src=getMediaImageUrl(image_url)>, which
                      returned the raw provider URL as-is unless there was a
@@ -498,7 +507,10 @@
                 </div>
                 <div class="sl-vinyl-sheen"></div>
               </div>
-              <div class="sl-vinyl-cover">
+              <div
+                class="sl-vinyl-cover"
+                :class="{ 'sl-track-pulse': pulseActive }"
+              >
                 <!-- Streamloader-fork fix (batch JJJ3): see matching block
                      above for the rationale. Same fix mirrored here for the
                      short-screen alt cover position. -->
@@ -661,6 +673,16 @@ import StreamloaderSourceBadge from "@/components/StreamloaderSourceBadge.vue";
 import { useArtworkOverrideUrl } from "@/composables/useArtworkOverrides";
 import { useLyricsElapsedTime } from "@/composables/useLyricsElapsedTime";
 import { usePartyConfig } from "@/composables/usePartyConfig";
+import { useTrackChangePulse } from "@/composables/useTrackChangePulse";
+import { getShortcutKeyFor } from "@/composables/useKeyboardShortcuts";
+
+// Streamloader-fork: passive shortcut hint sourced from KEYBOARD_SHORTCUTS.
+// The toolbar chevron-down closes the fullscreen player; F also toggles it
+// from anywhere (and Esc closes it), so surface "F" as the discoverable hint.
+const fullscreenShortcutKey = getShortcutKeyFor("fullscreen");
+const fullscreenCloseTooltip = fullscreenShortcutKey
+  ? `Close fullscreen (${fullscreenShortcutKey})`
+  : "Close fullscreen";
 import { MarqueeTextSync } from "@/helpers/marquee_text_sync";
 import { getPlayerMenuItems } from "@/helpers/player_menu_items";
 import {
@@ -742,6 +764,13 @@ const vinylShouldSpin = computed(() => {
   if (vinylDisplayMode !== "always-visible-spinning") return false;
   return store.activePlayer?.playback_state === PlaybackState.PLAYING;
 });
+
+// Streamloader-fork addition (batch AAA5): subscribe to the global
+// track-change pulse so the fullscreen hero cover gets a soft scale
+// pulse whenever a NEW track starts. Pulse is scoped to .sl-vinyl-cover
+// (the album-art square) — the orbit/spin wrappers are NOT touched, so
+// the vinyl-orbit fix from batch MMM4 is preserved.
+const { pulseActive } = useTrackChangePulse();
 
 // Streamloader-fork fix (batch JJJ3): brand-mark fallback shown if the
 // large vinyl-overlay cover fails to load. Keeps the hero composition
@@ -2200,9 +2229,33 @@ button {
   mix-blend-mode: screen;
 }
 
+/* Streamloader-fork addition (batch AAA5): now-playing cover-art pulse
+   on the fullscreen hero. Scoped to .sl-vinyl-cover so the orbit/spin
+   wrappers (and the vinyl-orbit fix from batch MMM4) are untouched.
+   Subtle 1 → 1.05 → 1 with overshoot ease, ~420ms total — matches
+   useTrackChangePulse + the mini player pulse for visual consistency. */
+.sl-vinyl-cover.sl-track-pulse {
+  animation: sl-track-pulse 420ms cubic-bezier(0.34, 1.36, 0.64, 1) both;
+  transform-origin: center center;
+}
+@keyframes sl-track-pulse {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* Respect users who've asked the OS to reduce motion. */
 @media (prefers-reduced-motion: reduce) {
   .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-spin {
+    animation: none;
+  }
+  .sl-vinyl-cover.sl-track-pulse {
     animation: none;
   }
 }

@@ -7,7 +7,9 @@
     :disabled="!canPlayPause || isLoading"
     variant="button"
     role="button"
+    :title="tooltipLabel"
     :aria-label="isPlaying ? 'Pause' : $t('play')"
+    :aria-keyshortcuts="shortcutKey || undefined"
     :aria-pressed="isPlaying"
     :aria-disabled="!canPlayPause || isLoading"
     @click="api.playerCommandPlayPause(player.player_id)"
@@ -39,8 +41,10 @@
 defineOptions({ inheritAttrs: false });
 import Icon, { IconProps } from "@/components/Icon.vue";
 import { useActiveSource } from "@/composables/activeSource";
+import { getShortcutKeyFor } from "@/composables/useKeyboardShortcuts";
 import api from "@/plugins/api";
 import { PlaybackState, Player, PlayerQueue } from "@/plugins/api/interfaces";
+import { useI18n } from "vue-i18n";
 import { Pause, Play } from "lucide-vue-next";
 import { computed, toRef } from "vue";
 
@@ -96,6 +100,16 @@ const isLoading = computed(() => {
   return (
     compProps.playerQueue?.extra_attributes?.play_action_in_progress === true
   );
+});
+
+// Streamloader-fork: passive keyboard-shortcut hint in the tooltip. Pulls the
+// key from KEYBOARD_SHORTCUTS so the displayed combo always matches the active
+// binding (single source of truth).
+const { t } = useI18n();
+const shortcutKey = getShortcutKeyFor("play-pause");
+const tooltipLabel = computed(() => {
+  const base = isPlaying.value ? "Pause" : t("play");
+  return shortcutKey ? `${base} (${shortcutKey})` : base;
 });
 </script>
 

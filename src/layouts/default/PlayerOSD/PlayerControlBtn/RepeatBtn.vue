@@ -22,7 +22,9 @@
     "
     variant="button"
     role="button"
+    :title="tooltipLabel"
     :aria-label="$t('select_repeat_mode')"
+    :aria-keyshortcuts="shortcutKey || undefined"
     :aria-pressed="isRepeatActive"
     @click="
       api.queueCommandRepeat(
@@ -56,6 +58,8 @@ import { getValueFromSources } from "@/helpers/utils";
 import api from "@/plugins/api";
 import { PlayerQueue, RepeatMode } from "@/plugins/api/interfaces";
 import { isQueueDynamicPlaylist } from "@/plugins/api/helpers";
+import { getShortcutKeyFor } from "@/composables/useKeyboardShortcuts";
+import { useI18n } from "vue-i18n";
 import { computed } from "vue";
 import { IconRepeat, IconRepeatOff, IconRepeatOnce } from "@tabler/icons-vue";
 
@@ -85,6 +89,14 @@ const isSingleDynamicPlaylist = computed(() =>
 const isRepeatActive = computed(
   () => compProps.playerQueue?.repeat_mode !== RepeatMode.OFF,
 );
+
+// Streamloader-fork: passive shortcut hint sourced from KEYBOARD_SHORTCUTS.
+const { t } = useI18n();
+const shortcutKey = getShortcutKeyFor("repeat");
+const tooltipLabel = computed(() => {
+  const base = t("select_repeat_mode");
+  return shortcutKey ? `${base} (${shortcutKey})` : base;
+});
 </script>
 
 <style scoped>

@@ -17,7 +17,9 @@
     "
     variant="button"
     role="button"
+    :title="tooltipLabel"
     :aria-label="$t('shuffle')"
+    :aria-keyshortcuts="shortcutKey || undefined"
     :aria-pressed="!!playerQueue.shuffle_enabled"
     @click="
       api.queueCommandShuffle(
@@ -42,8 +44,10 @@ import { getValueFromSources } from "@/helpers/utils";
 import api from "@/plugins/api";
 import { PlayerQueue } from "@/plugins/api/interfaces";
 import { isQueueDynamicPlaylist } from "@/plugins/api/helpers";
+import { getShortcutKeyFor } from "@/composables/useKeyboardShortcuts";
 import { IconArrowsRight } from "@tabler/icons-vue";
 import { Shuffle } from "lucide-vue-next";
+import { useI18n } from "vue-i18n";
 import { computed } from "vue";
 
 // properties
@@ -68,6 +72,14 @@ const isLoading = computed(() => {
 const isSingleDynamicPlaylist = computed(() =>
   isQueueDynamicPlaylist(compProps.playerQueue),
 );
+
+// Streamloader-fork: passive shortcut hint sourced from KEYBOARD_SHORTCUTS.
+const { t } = useI18n();
+const shortcutKey = getShortcutKeyFor("shuffle");
+const tooltipLabel = computed(() => {
+  const base = t("shuffle");
+  return shortcutKey ? `${base} (${shortcutKey})` : base;
+});
 </script>
 
 <style scoped>
