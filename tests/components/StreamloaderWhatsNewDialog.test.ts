@@ -13,6 +13,15 @@ vi.mock("@/assets/streamloader-mark.svg", () => ({
   default: "/streamloader-mark.svg",
 }));
 
+// vue-i18n's useI18n() throws "Need to install with `app.use` function"
+// when called outside an installed plugin. The shared mock resolves keys
+// against the real en.json so assertions still match the rendered copy
+// without installing the live plugin.
+vi.mock("vue-i18n", async () => {
+  const { vueI18nMock } = await import("../i18n-mock");
+  return vueI18nMock();
+});
+
 // Mock the Vuetify VDialog/VCard surface — see other Streamloader dialog
 // tests for the rationale (auto-importer CSS side-effects).
 vi.mock("vuetify/lib/components/VDialog/index.mjs", () => {

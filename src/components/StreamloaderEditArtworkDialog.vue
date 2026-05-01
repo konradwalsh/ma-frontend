@@ -32,7 +32,7 @@
   >
     <v-card class="sl-eaw-card" role="dialog" aria-labelledby="sl-eaw-title">
       <v-card-title id="sl-eaw-title" class="sl-eaw-title">
-        Replace Artwork
+        {{ t("streamloader.edit_artwork.title") }}
         <div class="sl-eaw-title-rule"></div>
       </v-card-title>
 
@@ -50,13 +50,15 @@
         >
           <img
             :src="existingOverride.value"
-            alt="Current override preview"
+            :alt="t('streamloader.edit_artwork.current_override_alt')"
             class="sl-eaw-banner-thumb"
           />
           <div class="sl-eaw-banner-text">
-            <div class="sl-eaw-banner-title">Currently overridden</div>
+            <div class="sl-eaw-banner-title">
+              {{ t("streamloader.edit_artwork.currently_overridden") }}
+            </div>
             <div class="sl-eaw-banner-sub">
-              An override is currently set for this item.
+              {{ t("streamloader.edit_artwork.current_override_sub") }}
             </div>
           </div>
           <v-btn
@@ -64,10 +66,10 @@
             class="sl-eaw-reset"
             variant="outlined"
             size="small"
-            aria-label="Reset to default artwork"
+            :aria-label="t('streamloader.edit_artwork.reset_aria_label')"
             @click="resetOverride"
           >
-            Reset to default artwork
+            {{ t("streamloader.edit_artwork.reset_button") }}
           </v-btn>
         </div>
 
@@ -77,9 +79,15 @@
           density="compact"
           class="sl-eaw-tabs"
         >
-          <v-tab value="url" aria-label="Paste image URL">Paste URL</v-tab>
-          <v-tab value="upload" aria-label="Upload image file"
-            >Upload Image</v-tab
+          <v-tab
+            value="url"
+            :aria-label="t('streamloader.edit_artwork.tab_url_aria')"
+            >{{ t("streamloader.edit_artwork.tab_url") }}</v-tab
+          >
+          <v-tab
+            value="upload"
+            :aria-label="t('streamloader.edit_artwork.tab_upload_aria')"
+            >{{ t("streamloader.edit_artwork.tab_upload") }}</v-tab
           >
         </v-tabs>
 
@@ -87,9 +95,9 @@
           <!-- ── URL TAB ─────────────────────────────────────────────── -->
           <v-window-item value="url">
             <div class="sl-eaw-pane">
-              <label for="sl-eaw-url" class="sl-eaw-label"
-                >Image URL (paste from clipboard or type)</label
-              >
+              <label for="sl-eaw-url" class="sl-eaw-label">{{
+                t("streamloader.edit_artwork.url_label")
+              }}</label>
               <input
                 id="sl-eaw-url"
                 ref="urlInputRef"
@@ -97,20 +105,20 @@
                 type="url"
                 inputmode="url"
                 class="sl-eaw-input"
-                placeholder="https://example.com/cover.jpg"
-                aria-label="Image URL"
+                :placeholder="t('streamloader.edit_artwork.url_placeholder')"
+                :aria-label="t('streamloader.edit_artwork.url_input_aria')"
                 @paste="handleUrlPaste"
               />
               <div v-if="urlPreviewSrc" class="sl-eaw-preview-wrap">
                 <img
                   :src="urlPreviewSrc"
-                  alt="Preview of pasted artwork URL"
+                  :alt="t('streamloader.edit_artwork.url_preview_alt')"
                   class="sl-eaw-preview"
                   @error="urlPreviewError = true"
                   @load="urlPreviewError = false"
                 />
                 <div v-if="urlPreviewError" class="sl-eaw-preview-error">
-                  Could not load image from that URL.
+                  {{ t("streamloader.edit_artwork.url_load_error") }}
                 </div>
               </div>
             </div>
@@ -126,28 +134,28 @@
               @dragleave.prevent="isDragging = false"
               @drop.prevent="handleDrop"
             >
-              <label for="sl-eaw-file" class="sl-eaw-label"
-                >Choose an image file (JPG, PNG, WebP)</label
-              >
+              <label for="sl-eaw-file" class="sl-eaw-label">{{
+                t("streamloader.edit_artwork.file_label")
+              }}</label>
               <input
                 id="sl-eaw-file"
                 ref="fileInputRef"
                 type="file"
                 accept="image/*"
                 class="sl-eaw-file"
-                aria-label="Upload image file"
+                :aria-label="t('streamloader.edit_artwork.file_input_aria')"
                 @change="handleFileChange"
               />
               <div
                 class="sl-eaw-drop-hint"
                 :class="{ 'sl-eaw-drop-hint--active': isDragging }"
               >
-                or drop an image here
+                {{ t("streamloader.edit_artwork.drop_hint") }}
               </div>
               <div v-if="uploadPreviewSrc" class="sl-eaw-preview-wrap">
                 <img
                   :src="uploadPreviewSrc"
-                  alt="Preview of uploaded artwork"
+                  :alt="t('streamloader.edit_artwork.upload_preview_alt')"
                   class="sl-eaw-preview"
                 />
               </div>
@@ -156,8 +164,7 @@
         </v-window>
 
         <p class="sl-eaw-footer-hint">
-          Streamloader will use this image instead of the auto-detected one.
-          (Backend endpoint coming soon — your input is queued.)
+          {{ t("streamloader.edit_artwork.footer_hint") }}
         </p>
       </v-card-text>
 
@@ -166,18 +173,18 @@
         <v-btn
           variant="text"
           class="sl-eaw-cancel"
-          aria-label="Cancel and close dialog"
+          :aria-label="t('streamloader.edit_artwork.cancel_aria')"
           @click="close"
         >
-          Cancel
+          {{ t("streamloader.edit_artwork.cancel") }}
         </v-btn>
         <v-btn
           class="sl-eaw-apply"
           :disabled="!canApply"
           :aria-label="
-            applyLabel === 'Apply'
-              ? 'Apply artwork override'
-              : 'Replace existing artwork override'
+            applyLabel === t('streamloader.edit_artwork.apply')
+              ? t('streamloader.edit_artwork.apply_aria')
+              : t('streamloader.edit_artwork.replace_override_aria')
           "
           @click="apply"
         >
@@ -190,11 +197,14 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 import {
   useArtworkOverrides,
   type OverrideEntry,
 } from "@/composables/useArtworkOverrides";
+
+const { t } = useI18n();
 
 interface Props {
   modelValue: boolean;
@@ -236,8 +246,10 @@ const existingOverride = computed<OverrideEntry | undefined>(() =>
 // Falls back to "Apply" when there's no existing override or the user is on
 // the upload tab without a fresh selection.
 const applyLabel = computed(() => {
-  if (!existingOverride.value) return "Apply";
-  return canApply.value ? "Replace override" : "Apply";
+  if (!existingOverride.value) return t("streamloader.edit_artwork.apply");
+  return canApply.value
+    ? t("streamloader.edit_artwork.replace_override")
+    : t("streamloader.edit_artwork.apply");
 });
 
 // Reset state every time the dialog opens. Avoids leaking stale input from
@@ -312,7 +324,7 @@ const handleDrop = (evt: DragEvent) => {
 
 const loadFile = (file: File) => {
   if (!file.type.startsWith("image/")) {
-    toast.error("That file is not an image.");
+    toast.error(t("streamloader.edit_artwork.toast_not_image"));
     return;
   }
   const reader = new FileReader();
@@ -321,7 +333,7 @@ const loadFile = (file: File) => {
       typeof reader.result === "string" ? reader.result : null;
   };
   reader.onerror = () => {
-    toast.error("Could not read that file.");
+    toast.error(t("streamloader.edit_artwork.toast_read_error"));
   };
   reader.readAsDataURL(file);
 };
@@ -338,12 +350,10 @@ const apply = () => {
   // multi-MB base64 upload pushing total storage past the browser limit.
   const ok = setOverride(props.itemId, activeTab.value, value);
   if (!ok) {
-    toast.error(
-      "Could not save artwork override (browser storage may be full).",
-    );
+    toast.error(t("streamloader.edit_artwork.toast_storage_full"));
     return;
   }
-  toast.success("Artwork updated. (Saved locally — backend sync pending.)");
+  toast.success(t("streamloader.edit_artwork.toast_saved"));
   close();
 };
 
@@ -358,10 +368,10 @@ const close = () => {
 const resetOverride = () => {
   const ok = removeOverride(props.itemId);
   if (!ok) {
-    toast.error("Could not reset artwork override.");
+    toast.error(t("streamloader.edit_artwork.toast_reset_error"));
     return;
   }
-  toast.success("Default artwork restored.");
+  toast.success(t("streamloader.edit_artwork.toast_reset_success"));
   close();
 };
 </script>

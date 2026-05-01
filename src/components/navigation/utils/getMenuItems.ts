@@ -4,6 +4,7 @@ import { DEFAULT_MENU_ITEMS } from "@/constants";
 import api from "@/plugins/api";
 import { store } from "@/plugins/store";
 import {
+  BarChart3,
   BookAudio,
   Compass,
   Disc3,
@@ -166,6 +167,19 @@ export const getMenuItems = function () {
         label: "recently_played",
         icon: History,
         path: "/recently-played",
+        isLibraryNode: false,
+      });
+    }
+    if (enabledMenuItemStr === "streamloaderstats") {
+      // Streamloader-fork addition: consolidated "insights" page. Sits
+      // between Recently Played and the streamloader settings shortcut so
+      // it reads as a sibling read-only dashboard, not a settings panel.
+      // Label is a literal string (no i18n key) — same pattern used by
+      // the streamloader settings entry below.
+      items.push({
+        label: "Streamloader Stats",
+        icon: BarChart3,
+        path: "/streamloader-stats",
         isLibraryNode: false,
       });
     }

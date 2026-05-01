@@ -38,14 +38,20 @@
     <Container variant="comfortable" class="sl-rp-container">
       <!-- Page header with brand-teal underline -->
       <div class="sl-rp-header">
-        <h1 class="sl-rp-title">Recently Played</h1>
+        <h1 class="sl-rp-title">
+          {{ $t("streamloader.recently_played.page_title") }}
+        </h1>
         <div class="sl-rp-subtitle">
-          What you've been listening to on streamloader.
+          {{ $t("streamloader.recently_played.subtitle") }}
         </div>
       </div>
 
       <!-- Brand pill chips for time-window selection -->
-      <div class="sl-rp-chips" role="tablist" aria-label="Recently Played">
+      <div
+        class="sl-rp-chips"
+        role="tablist"
+        :aria-label="$t('streamloader.recently_played.tablist_aria')"
+      >
         <button
           v-for="chip in chips"
           :key="chip.id"
@@ -62,15 +68,18 @@
 
       <!-- Loading -->
       <div v-if="isInitialLoading" class="sl-rp-loading">
-        <StreamloaderSpinner :size="48" label="Loading recently played" />
+        <StreamloaderSpinner
+          :size="48"
+          :label="$t('streamloader.recently_played.loading_label')"
+        />
       </div>
 
       <!-- Empty state -->
       <StreamloaderEmptyState
         v-else-if="visibleItems.length === 0"
         :icon="History"
-        title="Nothing played yet"
-        message="Nothing played yet — pick something to get started."
+        :title="$t('streamloader.recently_played.empty_title')"
+        :message="$t('streamloader.recently_played.empty_message')"
         :cta-label="$t('discover')"
         :cta-action="goDiscover"
       />
@@ -106,8 +115,10 @@ import {
 import { store } from "@/plugins/store";
 import { History } from "lucide-vue-next";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
+const { t } = useI18n();
 const router = useRouter();
 
 // "Time window" chips: with no per-item timestamp, we tier by recency
@@ -120,12 +131,18 @@ interface Chip {
   limit: number;
 }
 const chips = computed<Chip[]>(() => [
-  { id: "today", label: "Today", limit: 10 },
-  { id: "week", label: "Past 7 days", limit: 25 },
-  { id: "month", label: "Past 30 days", limit: 50 },
-  { id: "all", label: "All time", limit: 100 },
+  { id: "today", label: t("streamloader.recently_played.chip_today"), limit: 10 },
+  { id: "week", label: t("streamloader.recently_played.chip_week"), limit: 25 },
+  {
+    id: "month",
+    label: t("streamloader.recently_played.chip_month"),
+    limit: 50,
+  },
+  { id: "all", label: t("streamloader.recently_played.chip_all"), limit: 100 },
 ]);
-const chipTooltip = "Filters approximate by recency count";
+const chipTooltip = computed(() =>
+  t("streamloader.recently_played.chip_tooltip"),
+);
 
 const activeChip = ref<ChipId>("week");
 const items = ref<(ItemMapping | MediaItemType)[]>([]);

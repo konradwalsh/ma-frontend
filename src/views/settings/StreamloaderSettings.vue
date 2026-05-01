@@ -35,9 +35,11 @@
           />
         </div>
         <div class="flex flex-col gap-1">
-          <CardTitle class="streamloader-wordmark">streamloader</CardTitle>
+          <CardTitle class="streamloader-wordmark">{{
+            t("streamloader.settings.header_title")
+          }}</CardTitle>
           <CardDescription>
-            Customize how Streamloader looks and feels.
+            {{ t("streamloader.settings.header_description") }}
           </CardDescription>
         </div>
       </CardHeader>
@@ -46,19 +48,22 @@
     <!-- Section: Player Display -->
     <Card>
       <CardHeader>
-        <CardTitle class="sl-section-title">Player Display</CardTitle>
+        <CardTitle class="sl-section-title">{{
+          t("streamloader.settings.section_player_display")
+        }}</CardTitle>
         <CardDescription>
-          Vinyl record visuals and source-of-truth indicators.
+          {{ t("streamloader.settings.section_player_display_description") }}
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
         <!-- Vinyl display mode (mirrors FrontendConfig) -->
         <div class="sl-field">
           <div class="sl-field__text">
-            <div class="sl-field__label">Vinyl record display</div>
+            <div class="sl-field__label">
+              {{ t("streamloader.settings.vinyl_label") }}
+            </div>
             <div class="sl-field__desc">
-              How the vinyl disc behind album cover art is shown. Spinning
-              pauses when playback is paused or stopped.
+              {{ t("streamloader.settings.vinyl_description") }}
             </div>
           </div>
           <v-select
@@ -75,8 +80,10 @@
 
         <!-- Library stats -->
         <SLToggleRow
-          label="Show Library Stats in sidebar"
-          description="Surface live track / artist / album counts at the bottom of the navigation rail."
+          :label="t('streamloader.settings.toggle_library_stats_label')"
+          :description="
+            t('streamloader.settings.toggle_library_stats_description')
+          "
           :model-value="showLibraryStats"
           @update:model-value="setPref('showLibraryStats')"
         />
@@ -85,8 +92,10 @@
 
         <!-- Source badge on cards -->
         <SLToggleRow
-          label="Show Source Badge on cards"
-          description="Tiny dot on track thumbnails and rows that classifies items as Local, Streamloader-cached, or Streaming."
+          :label="t('streamloader.settings.toggle_source_badge_label')"
+          :description="
+            t('streamloader.settings.toggle_source_badge_description')
+          "
           :model-value="showSourceBadge"
           @update:model-value="setPref('showSourceBadge')"
         />
@@ -97,8 +106,10 @@
              the sidebar dot next to the "streamloader" menu item is the
              new primary indicator and avoids overlapping page chrome. -->
         <SLToggleRow
-          label="Show floating health pill"
-          description="Bring back the older top-right status badge. The sidebar dot next to the streamloader menu item shows the same state without overlapping page controls, so this is off by default."
+          :label="t('streamloader.settings.toggle_floating_pill_label')"
+          :description="
+            t('streamloader.settings.toggle_floating_pill_description')
+          "
           :model-value="showFloatingHealthPill"
           @update:model-value="setPref('showFloatingHealthPill')"
         />
@@ -109,16 +120,18 @@
     <Card>
       <CardHeader>
         <CardTitle class="sl-section-title">
-          Activity &amp; Notifications
+          {{ t("streamloader.settings.section_activity") }}
         </CardTitle>
         <CardDescription>
-          Background work and accessibility cues.
+          {{ t("streamloader.settings.section_activity_description") }}
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
         <SLToggleRow
-          label="Show Activity Pulse widget"
-          description="Live overlay top-right when streamloader has in-flight tasks (sync, fetch, ReplayGain compute). Hidden when idle."
+          :label="t('streamloader.settings.toggle_activity_pulse_label')"
+          :description="
+            t('streamloader.settings.toggle_activity_pulse_description')
+          "
           :model-value="showActivityPulse"
           @update:model-value="setPref('showActivityPulse')"
         />
@@ -126,8 +139,10 @@
         <v-divider />
 
         <SLToggleRow
-          label="Show Recently Downloaded rail on home"
-          description="Horizontal carousel at the top of the discover page surfacing your most recent streamloader-cached tracks."
+          :label="t('streamloader.settings.toggle_recently_downloaded_label')"
+          :description="
+            t('streamloader.settings.toggle_recently_downloaded_description')
+          "
           :model-value="showRecentlyDownloaded"
           @update:model-value="setPref('showRecentlyDownloaded')"
         />
@@ -135,8 +150,10 @@
         <v-divider />
 
         <SLToggleRow
-          label="Announce queue actions to screen reader"
-          description="Polite aria-live announcements when songs are added, the queue is cleared, or shuffle is toggled."
+          :label="t('streamloader.settings.toggle_announce_queue_label')"
+          :description="
+            t('streamloader.settings.toggle_announce_queue_description')
+          "
           :model-value="announceQueueChanges"
           @update:model-value="setPref('announceQueueChanges')"
         />
@@ -146,18 +163,22 @@
     <!-- Section: Provider -->
     <Card>
       <CardHeader>
-        <CardTitle class="sl-section-title">Provider</CardTitle>
+        <CardTitle class="sl-section-title">{{
+          t("streamloader.settings.section_provider")
+        }}</CardTitle>
         <CardDescription>
-          The streamloader plugin instance that powers this fork.
+          {{ t("streamloader.settings.section_provider_description") }}
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-3">
         <Item variant="outline" size="sm" class="justify-between sl-prov-item">
           <ItemContent>
-            <ItemTitle>Configured provider</ItemTitle>
+            <ItemTitle>{{
+              t("streamloader.settings.configured_provider")
+            }}</ItemTitle>
             <div v-if="provider" class="sl-prov-name">{{ provider.name }}</div>
             <div v-else class="sl-prov-name sl-prov-name--missing">
-              Not configured
+              {{ t("streamloader.settings.not_configured") }}
             </div>
           </ItemContent>
           <ItemContent class="flex-none text-right">
@@ -167,7 +188,11 @@
                 `sl-status-pill--${providerState.tone}`,
               ]"
               :title="providerState.title"
-              :aria-label="`Streamloader status: ${providerState.label}`"
+              :aria-label="
+                t('streamloader.settings.status_aria_label', {
+                  label: providerState.label,
+                })
+              "
             >
               <span class="sl-status-pill__dot" aria-hidden="true"></span>
               {{ providerState.label }}
@@ -187,7 +212,7 @@
             })
           "
         >
-          Open Provider Settings
+          {{ t("streamloader.settings.open_provider_settings") }}
         </v-btn>
         <v-btn
           v-else
@@ -201,7 +226,7 @@
             })
           "
         >
-          Add Streamloader Provider
+          {{ t("streamloader.settings.add_provider") }}
         </v-btn>
       </CardContent>
     </Card>
@@ -209,7 +234,9 @@
     <!-- Section: About -->
     <Card>
       <CardHeader>
-        <CardTitle class="sl-section-title">About</CardTitle>
+        <CardTitle class="sl-section-title">{{
+          t("streamloader.settings.section_about")
+        }}</CardTitle>
       </CardHeader>
       <CardContent class="space-y-2">
         <a
@@ -222,17 +249,17 @@
             <v-icon icon="mdi-github" size="22" />
           </div>
           <div class="sl-link-row__body">
-            <div class="sl-link-row__title">Streamloader frontend fork</div>
+            <div class="sl-link-row__title">
+              {{ t("streamloader.settings.github_title") }}
+            </div>
             <div class="sl-link-row__sub">
-              github.com/konradwalsh/ma-frontend
+              {{ t("streamloader.settings.github_sub") }}
             </div>
           </div>
           <v-icon icon="mdi-open-in-new" size="18" class="sl-link-row__chev" />
         </a>
         <p class="sl-about-note">
-          Streamloader is a fork of Music Assistant's frontend with extra UI for
-          the streamloader plugin. It depends on the upstream server runtime —
-          visit
+          {{ t("streamloader.settings.about_note_part1") }}
           <a
             href="https://music-assistant.io"
             target="_blank"
@@ -240,7 +267,7 @@
             class="sl-about-inline-link"
             >music-assistant.io</a
           >
-          for the underlying project.
+          {{ t("streamloader.settings.about_note_part2") }}
         </p>
         <!-- Re-trigger the first-run welcome tour. Clears the localStorage
              flag and emits an eventbus event picked up by
@@ -251,7 +278,7 @@
           @click="replayWelcomeTour"
         >
           <v-icon icon="mdi-play-circle-outline" size="18" />
-          <span>Show welcome tour again</span>
+          <span>{{ t("streamloader.settings.show_welcome_tour") }}</span>
         </button>
         <!-- Force-open the "What's new" dialog regardless of whether the
              current WHATS_NEW_VERSION has already been acknowledged. The
@@ -259,7 +286,7 @@
              `sl-whats-new:show` eventbus event. -->
         <button type="button" class="sl-replay-tour-btn" @click="showWhatsNew">
           <v-icon icon="mdi-sparkles" size="18" />
-          <span>Show what's new</span>
+          <span>{{ t("streamloader.settings.show_whats_new") }}</span>
         </button>
       </CardContent>
     </Card>
@@ -268,10 +295,13 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
 import streamloaderMark from "@/assets/streamloader-mark.svg";
 import Container from "@/components/Container.vue";
+
+const { t } = useI18n();
 import {
   Card,
   CardContent,
@@ -321,11 +351,17 @@ const router = useRouter();
 // does because its EditConfig submits the whole frontend block at once);
 // here we want the snappy "tweak and see" experience that feels at home
 // in a dedicated settings page, so we just write through.
-const vinylDisplayOptions = [
-  { title: "Hover only", value: "hover" },
-  { title: "Always visible", value: "always-visible" },
-  { title: "Always visible & spinning", value: "always-visible-spinning" },
-];
+const vinylDisplayOptions = computed(() => [
+  { title: t("streamloader.settings.vinyl_option_hover"), value: "hover" },
+  {
+    title: t("streamloader.settings.vinyl_option_always"),
+    value: "always-visible",
+  },
+  {
+    title: t("streamloader.settings.vinyl_option_always_spinning"),
+    value: "always-visible-spinning",
+  },
+]);
 const vinylDisplayMode = ref<string>(
   localStorage.getItem(VINYL_STORAGE_KEY) || "always-visible-spinning",
 );
@@ -370,22 +406,23 @@ const providerState = computed<{ tone: Tone; label: string; title: string }>(
     if (!p) {
       return {
         tone: "error",
-        label: "Not configured",
-        title:
-          "No streamloader provider is registered yet. Use 'Add Streamloader Provider' to install one.",
+        label: t("streamloader.settings.status_not_configured_label"),
+        title: t("streamloader.settings.status_not_configured_title"),
       };
     }
     if (!p.available) {
       return {
         tone: "warn",
-        label: "Provider issue",
-        title: `Streamloader provider unavailable (${p.name}) — check API key + connectivity`,
+        label: t("streamloader.settings.status_provider_issue_label"),
+        title: t("streamloader.settings.status_provider_issue_title", {
+          name: p.name,
+        }),
       };
     }
     return {
       tone: "ok",
-      label: "Ready",
-      title: `Streamloader (${p.name}) is reachable and authenticated`,
+      label: t("streamloader.settings.status_ready_label"),
+      title: t("streamloader.settings.status_ready_title", { name: p.name }),
     };
   },
 );

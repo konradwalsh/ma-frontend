@@ -27,7 +27,12 @@
       v-if="visible"
       type="button"
       class="sl-shortcuts-hint"
-      :aria-label="`${labelText}. Press ${shortcutKey} to open keyboard shortcuts.`"
+      :aria-label="
+        t('streamloader.shortcuts_hint.aria_label', {
+          label: labelText,
+          key: shortcutKey,
+        })
+      "
       @click="openDialog"
     >
       <span class="sl-shortcuts-hint__text">{{ labelText }}</span>
@@ -36,7 +41,7 @@
         class="sl-shortcuts-hint__dismiss"
         role="button"
         tabindex="0"
-        aria-label="Dismiss shortcut hint"
+        :aria-label="t('streamloader.shortcuts_hint.dismiss_aria_label')"
         @click.stop="dismiss"
         @keydown.enter.stop.prevent="dismiss"
         @keydown.space.stop.prevent="dismiss"
@@ -51,8 +56,11 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { store } from "@/plugins/store";
 import { getShortcutKeyFor } from "@/composables/useKeyboardShortcuts";
+
+const { t } = useI18n();
 
 const STORAGE_KEY = "sl-shortcuts-hint-dismissed";
 
@@ -70,7 +78,7 @@ const shortcutKey = getShortcutKeyFor("help");
 const displayKey = computed(() =>
   shortcutKey === "Shift + /" ? "?" : shortcutKey,
 );
-const labelText = "Press for shortcuts";
+const labelText = t("streamloader.shortcuts_hint.label");
 
 const isAlreadyDismissed = (): boolean => {
   try {

@@ -28,6 +28,15 @@ vi.mock("@/assets/streamloader-mark.svg", () => ({
   default: "/streamloader-mark.svg",
 }));
 
+// vue-i18n's useI18n() throws "Need to install with `app.use` function"
+// when called outside an installed plugin. The shared mock resolves keys
+// against the real en.json so assertions still match the rendered copy
+// without installing the live plugin.
+vi.mock("vue-i18n", async () => {
+  const { vueI18nMock } = await import("../i18n-mock");
+  return vueI18nMock();
+});
+
 import StreamloaderErrorBoundary from "@/components/StreamloaderErrorBoundary.vue";
 
 // Local kebab-case fallback stub — used when the SFC template path

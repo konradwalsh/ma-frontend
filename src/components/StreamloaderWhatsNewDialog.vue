@@ -30,12 +30,12 @@
         aria-hidden="true"
       />
       <v-card-title class="swn-title">
-        What's new in Streamloader
+        {{ t("streamloader.whats_new.title") }}
         <div class="swn-title-rule"></div>
       </v-card-title>
-      <v-card-subtitle class="swn-version"
-        >Version {{ currentVersion }}</v-card-subtitle
-      >
+      <v-card-subtitle class="swn-version">{{
+        t("streamloader.whats_new.version", { version: currentVersion })
+      }}</v-card-subtitle>
       <v-card-text class="swn-body">
         <ul class="swn-list">
           <li v-for="(item, idx) in items" :key="idx" class="swn-item">
@@ -47,7 +47,7 @@
       <v-card-actions class="swn-footer">
         <v-spacer />
         <button type="button" class="swn-btn swn-btn--primary" @click="onGotIt">
-          Got it
+          {{ t("streamloader.whats_new.got_it") }}
         </button>
       </v-card-actions>
     </v-card>
@@ -55,7 +55,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { WHATS_NEW_VERSION } from "@/composables/useWhatsNewVersion";
+
+const { t } = useI18n();
 
 defineProps<{
   modelValue: boolean;
@@ -71,15 +75,15 @@ const currentVersion = WHATS_NEW_VERSION;
 // Hand-curated highlights from recent batches. Keep to ~5–7 items —
 // scanning a long list is its own friction and defeats the point of a
 // brief overlay. Bump alongside WHATS_NEW_VERSION when this list changes.
-const items: ReadonlyArray<string> = [
-  "Vinyl record now spins in place when playing — make it always visible in Settings → Streamloader.",
-  "New Source Badge dot shows whether each track is local, cached, or streaming.",
-  "Keyboard shortcuts: press ? to see all of them.",
-  "Replace wrong artwork: click the Edit Artwork button on any track.",
-  "Activity Pulse widget shows live downloads in the top-right.",
-  "88% smaller initial page load — should feel instant.",
-  "Sidebar status dot replaces the old floating Ready pill.",
-];
+const items = computed<ReadonlyArray<string>>(() => [
+  t("streamloader.whats_new.item1"),
+  t("streamloader.whats_new.item2"),
+  t("streamloader.whats_new.item3"),
+  t("streamloader.whats_new.item4"),
+  t("streamloader.whats_new.item5"),
+  t("streamloader.whats_new.item6"),
+  t("streamloader.whats_new.item7"),
+]);
 
 const onGotIt = () => {
   // Parent owns the markSeen() call so the localStorage write stays

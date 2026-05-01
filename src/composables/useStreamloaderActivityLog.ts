@@ -27,7 +27,12 @@ const LAST_VIEW_KEY = "frontend.settings.streamloader.activityLogLastViewedAt";
 const MAX_ENTRIES = 50;
 const PERSIST_ENTRIES = 20;
 
-export type ActivityKind = "download" | "scan" | "replaygain" | "task" | "error";
+export type ActivityKind =
+  | "download"
+  | "scan"
+  | "replaygain"
+  | "task"
+  | "error";
 
 export interface ActivityEntry {
   id: string;
@@ -82,13 +87,21 @@ function inferKind(task: BackgroundTask, status: TaskStatus): ActivityKind {
   if (status === TaskStatus.FAILED) return "error";
   const domain = String(task.metadata?.task_domain ?? "").toLowerCase();
   const name = (task.name ?? "").toLowerCase();
-  if (domain.includes("music_sync") || name.includes("scan") || name.includes("sync")) {
+  if (
+    domain.includes("music_sync") ||
+    name.includes("scan") ||
+    name.includes("sync")
+  ) {
     return "scan";
   }
   if (name.includes("replaygain") || name.includes("replay gain")) {
     return "replaygain";
   }
-  if (name.includes("download") || name.includes("fetch") || name.includes("cache")) {
+  if (
+    name.includes("download") ||
+    name.includes("fetch") ||
+    name.includes("cache")
+  ) {
     return "download";
   }
   return "task";
@@ -104,12 +117,16 @@ function buildMessage(task: BackgroundTask, status: TaskStatus): string {
   if (status === TaskStatus.PARTIAL_SUCCESS) return `${label} (partial)`;
   // Light prettification for common task shapes.
   const lower = label.toLowerCase();
-  if (lower.startsWith("download")) return `Downloaded ${label.slice("download".length).trim() || "track"}`;
-  if (lower.startsWith("scan")) return `Scanned ${label.slice("scan".length).trim() || "library"}`;
+  if (lower.startsWith("download"))
+    return `Downloaded ${label.slice("download".length).trim() || "track"}`;
+  if (lower.startsWith("scan"))
+    return `Scanned ${label.slice("scan".length).trim() || "library"}`;
   return label;
 }
 
-export function appendActivity(entry: Omit<ActivityEntry, "id" | "timestamp"> & { timestamp?: number }) {
+export function appendActivity(
+  entry: Omit<ActivityEntry, "id" | "timestamp"> & { timestamp?: number },
+) {
   const next: ActivityEntry = {
     id: `${entry.taskId}-${entry.status}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     timestamp: entry.timestamp ?? Date.now(),

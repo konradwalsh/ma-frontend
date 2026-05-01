@@ -18,18 +18,26 @@
   <div
     v-if="enabled && !collapsed && (hasCounts || showLoading)"
     class="sl-lib-stats"
-    :title="hasCounts ? fullTitle : 'Loading library counts'"
+    :title="hasCounts ? fullTitle : t('streamloader.library_stats.loading_title')"
   >
-    <span class="sl-lib-stats__label">Library</span>
+    <span class="sl-lib-stats__label">{{
+      t("streamloader.library_stats.label")
+    }}</span>
     <span v-if="hasCounts" class="sl-lib-stats__row">
       <span class="sl-lib-stats__value">{{ formatted.tracks }}</span>
-      <span class="sl-lib-stats__unit">tracks</span>
+      <span class="sl-lib-stats__unit">{{
+        t("streamloader.library_stats.tracks")
+      }}</span>
       <span class="sl-lib-stats__sep">·</span>
       <span class="sl-lib-stats__value">{{ formatted.artists }}</span>
-      <span class="sl-lib-stats__unit">artists</span>
+      <span class="sl-lib-stats__unit">{{
+        t("streamloader.library_stats.artists")
+      }}</span>
       <span class="sl-lib-stats__sep">·</span>
       <span class="sl-lib-stats__value">{{ formatted.albums }}</span>
-      <span class="sl-lib-stats__unit">albums</span>
+      <span class="sl-lib-stats__unit">{{
+        t("streamloader.library_stats.albums")
+      }}</span>
     </span>
     <!-- Show the on-brand spinner briefly while App.vue's library count
          hydration is in flight. Auto-hides once `hasCounts` flips true OR
@@ -37,17 +45,23 @@
          visible forever — falls back to the original "render nothing"
          behaviour). -->
     <span v-else class="sl-lib-stats__loading">
-      <StreamloaderSpinner :size="32" label="Loading library counts" />
+      <StreamloaderSpinner
+        :size="32"
+        :label="t('streamloader.library_stats.loading_label')"
+      />
     </span>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { store } from "@/plugins/store";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
 import StreamloaderSpinner from "@/components/StreamloaderSpinner.vue";
+
+const { t } = useI18n();
 
 // Forward-looking placeholder prop. As of this commit the streamloader
 // websocket api does NOT expose cache size / disk usage on its
@@ -114,10 +128,10 @@ const formatted = computed(() => ({
 }));
 
 const fullTitle = computed(() => {
-  const t = (store.libraryTracksCount ?? 0).toLocaleString();
-  const a = (store.libraryArtistsCount ?? 0).toLocaleString();
-  const al = (store.libraryAlbumsCount ?? 0).toLocaleString();
-  return `Library: ${t} tracks · ${a} artists · ${al} albums`;
+  const tracks = (store.libraryTracksCount ?? 0).toLocaleString();
+  const artists = (store.libraryArtistsCount ?? 0).toLocaleString();
+  const albums = (store.libraryAlbumsCount ?? 0).toLocaleString();
+  return t("streamloader.library_stats.full_title", { tracks, artists, albums });
 });
 </script>
 

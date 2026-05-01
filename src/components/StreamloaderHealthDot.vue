@@ -27,12 +27,13 @@
     :class="`sl-health-dot--${state.tone}`"
     :title="state.title"
     role="img"
-    :aria-label="`Streamloader status: ${state.label}`"
+    :aria-label="t('streamloader.health_dot.aria_label', { label: state.label })"
   ></span>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import api from "@/plugins/api";
 
 type Tone = "ok" | "warn" | "error";
@@ -44,6 +45,8 @@ interface DotState {
   label: string;
   title: string;
 }
+
+const { t } = useI18n();
 
 const state = computed<DotState | null>(() => {
   if (!api.providers || Object.keys(api.providers).length === 0) {
@@ -57,24 +60,27 @@ const state = computed<DotState | null>(() => {
   if (!streamloader) {
     return {
       tone: "error",
-      label: "Offline",
-      title:
-        "Streamloader provider not configured — open Settings → Streamloader",
+      label: t("streamloader.health_dot.offline_label"),
+      title: t("streamloader.health_dot.offline_title"),
     };
   }
 
   if (!streamloader.available) {
     return {
       tone: "warn",
-      label: "Degraded",
-      title: `Streamloader provider unavailable (${streamloader.name}) — check API key + connectivity`,
+      label: t("streamloader.health_dot.degraded_label"),
+      title: t("streamloader.health_dot.degraded_title", {
+        name: streamloader.name,
+      }),
     };
   }
 
   return {
     tone: "ok",
-    label: "Ready",
-    title: `Streamloader (${streamloader.name}) is reachable and authenticated`,
+    label: t("streamloader.health_dot.ready_label"),
+    title: t("streamloader.health_dot.ready_title", {
+      name: streamloader.name,
+    }),
   };
 });
 </script>

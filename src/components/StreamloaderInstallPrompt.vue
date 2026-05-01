@@ -44,10 +44,10 @@
         />
         <div class="sl-install-toast__copy">
           <div id="sl-install-title" class="sl-install-toast__title">
-            Install Streamloader as an app
+            {{ t("streamloader.install_prompt.title") }}
           </div>
           <div id="sl-install-desc" class="sl-install-toast__desc">
-            Faster launch, full-screen, and a home-screen icon.
+            {{ t("streamloader.install_prompt.description") }}
           </div>
         </div>
       </div>
@@ -57,14 +57,14 @@
           class="sl-install-btn sl-install-btn--primary"
           @click="install"
         >
-          Install
+          {{ t("streamloader.install_prompt.install") }}
         </button>
         <button
           type="button"
           class="sl-install-btn sl-install-btn--ghost"
           @click="dismiss"
         >
-          Not now
+          {{ t("streamloader.install_prompt.not_now") }}
         </button>
       </div>
     </div>
@@ -73,8 +73,11 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { store } from "@/plugins/store";
 import { PlaybackState } from "@/plugins/api/interfaces";
+
+const { t } = useI18n();
 
 // The shape of `beforeinstallprompt` is not in lib.dom.d.ts yet, so we
 // declare a minimal local type rather than pulling in @types/wicg-* (no

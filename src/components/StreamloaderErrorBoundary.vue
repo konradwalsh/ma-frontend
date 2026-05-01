@@ -36,10 +36,9 @@
       <div class="sl-eb__icon-halo" aria-hidden="true">
         <img :src="markUrl" alt="" class="sl-eb__mark" draggable="false" />
       </div>
-      <div class="sl-eb__title">Something went wrong</div>
+      <div class="sl-eb__title">{{ t("streamloader.error_boundary.title") }}</div>
       <div class="sl-eb__message">
-        Streamloader hit an error rendering this view. The error has been
-        logged.
+        {{ t("streamloader.error_boundary.message") }}
       </div>
       <div class="sl-eb__actions">
         <v-btn
@@ -50,7 +49,7 @@
           rounded="pill"
           @click="retry"
         >
-          Try again
+          {{ t("streamloader.error_boundary.try_again") }}
         </v-btn>
         <v-btn
           class="sl-eb__btn"
@@ -58,11 +57,13 @@
           rounded="pill"
           @click="reload"
         >
-          Reload
+          {{ t("streamloader.error_boundary.reload") }}
         </v-btn>
       </div>
       <details v-if="isDev" class="sl-eb__details">
-        <summary class="sl-eb__details-summary">Technical details</summary>
+        <summary class="sl-eb__details-summary">{{
+          t("streamloader.error_boundary.details_summary")
+        }}</summary>
         <div class="sl-eb__details-body">
           <div class="sl-eb__details-msg">
             {{ capturedError.message || String(capturedError) }}
@@ -81,7 +82,10 @@
 
 <script setup lang="ts">
 import { nextTick, onErrorCaptured, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import markUrl from "@/assets/streamloader-mark.svg";
+
+const { t } = useI18n();
 
 const capturedError = ref<Error | null>(null);
 const resetKey = ref(0);

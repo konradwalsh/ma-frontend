@@ -28,12 +28,16 @@
     v-if="enabled && visibleTasks.length > 0"
     class="sl-activity-pulse"
     role="status"
-    :aria-label="`Streamloader activity: ${visibleTasks.length} active task${visibleTasks.length === 1 ? '' : 's'}`"
+    :aria-label="
+      visibleTasks.length === 1
+        ? t('streamloader.activity_pulse.aria_label_one', { count: visibleTasks.length })
+        : t('streamloader.activity_pulse.aria_label_other', { count: visibleTasks.length })
+    "
   >
     <div class="sl-activity-pulse__header">
       <span class="sl-activity-pulse__beacon" aria-hidden="true"></span>
       <span class="sl-activity-pulse__title">
-        Streamloader activity
+        {{ t("streamloader.activity_pulse.title") }}
         <span class="sl-activity-pulse__count"
           >({{ visibleTasks.length }})</span
         >
@@ -85,10 +89,13 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import api from "@/plugins/api";
 import { useBackgroundTasks } from "@/composables/useBackgroundTasks";
 import { type BackgroundTask, TaskStatus } from "@/plugins/api/interfaces";
 import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
+
+const { t } = useI18n();
 
 // Provider domain published by the streamloader plugin. Lives here as a
 // constant (not imported) to avoid a load-bearing dep on the health pill.
@@ -141,7 +148,7 @@ const visibleTasks = computed<BackgroundTask[]>(() =>
 );
 
 const taskLabel = (task: BackgroundTask): string =>
-  task.name?.trim() || "Streamloader task";
+  task.name?.trim() || t("streamloader.activity_pulse.task_fallback");
 </script>
 
 <style scoped>

@@ -31,7 +31,7 @@
     class="sl-health-pill"
     :class="`sl-health-pill--${state.tone}`"
     :title="state.title"
-    :aria-label="`Streamloader status: ${state.label}`"
+    :aria-label="t('streamloader.health_pill.aria_label', { label: state.label })"
     href="/#/settings/providers"
   >
     <span class="sl-health-pill__dot"></span>
@@ -41,6 +41,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import api from "@/plugins/api";
 
 type Tone = "ok" | "warn" | "error";
@@ -52,6 +53,8 @@ interface PillState {
   label: string;
   title: string;
 }
+
+const { t } = useI18n();
 
 const state = computed<PillState | null>(() => {
   // Defensive: if the provider map hasn't populated yet (cold app boot,
@@ -68,23 +71,27 @@ const state = computed<PillState | null>(() => {
   if (!streamloader) {
     return {
       tone: "error",
-      label: "Not configured",
-      title: "Streamloader provider not configured — open Settings → Providers",
+      label: t("streamloader.health_pill.not_configured_label"),
+      title: t("streamloader.health_pill.not_configured_title"),
     };
   }
 
   if (!streamloader.available) {
     return {
       tone: "warn",
-      label: "Provider issue",
-      title: `Streamloader provider unavailable (${streamloader.name}) — check API key + connectivity`,
+      label: t("streamloader.health_pill.provider_issue_label"),
+      title: t("streamloader.health_pill.provider_issue_title", {
+        name: streamloader.name,
+      }),
     };
   }
 
   return {
     tone: "ok",
-    label: "Ready",
-    title: `Streamloader (${streamloader.name}) is reachable and authenticated`,
+    label: t("streamloader.health_pill.ready_label"),
+    title: t("streamloader.health_pill.ready_title", {
+      name: streamloader.name,
+    }),
   };
 });
 </script>

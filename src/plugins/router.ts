@@ -315,6 +315,18 @@ const routes: RouteRecordRaw[] = [
           ),
       },
       {
+        // Streamloader-fork addition: consolidated "insights" page reading
+        // from existing reactive sources (library counts, provider state,
+        // activity log). No new backend endpoints — see the file header
+        // for the honest data-source mapping.
+        path: "/streamloader-stats",
+        name: "streamloaderstats",
+        component: () =>
+          import(
+            /* webpackChunkName: "streamloaderstats" */ "@/views/StreamloaderStats.vue"
+          ),
+      },
+      {
         path: "/settings",
         name: "settings",
         component: () =>

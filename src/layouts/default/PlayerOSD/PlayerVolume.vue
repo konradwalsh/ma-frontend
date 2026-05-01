@@ -21,17 +21,17 @@
           class="group-popout"
           :style="popoutStyle"
           @click.stop
-          @touchstart.stop
-          @touchmove.stop
-          @touchend.stop
+          @touchstart.stop.passive
+          @touchmove.stop.passive
+          @touchend.stop.passive
         >
           <!-- Drag handle for swipe-down-to-dismiss -->
           <div
             class="group-popout-drag-handle"
-            @touchstart.stop="onDragHandleTouchStart"
-            @touchmove.stop="onDragHandleTouchMove"
-            @touchend.stop="onDragHandleTouchEnd"
-            @touchcancel.stop="onDragHandleTouchCancel"
+            @touchstart.stop.passive="onDragHandleTouchStart"
+            @touchmove.stop.passive="onDragHandleTouchMove"
+            @touchend.stop.passive="onDragHandleTouchEnd"
+            @touchcancel.stop.passive="onDragHandleTouchCancel"
           >
             <div class="group-popout-drag-handle-pill"></div>
           </div>
@@ -71,13 +71,13 @@
       :style="{ width: width }"
       @click="onSliderClick"
       @wheel.prevent="onWheel"
-      @touchstart="onTouchStart"
+      @touchstart.passive="onTouchStart"
       @touchmove="onTouchMove"
-      @touchend="onTouchEnd"
-      @touchcancel="onTouchCancel"
+      @touchend.passive="onTouchEnd"
+      @touchcancel.passive="onTouchCancel"
     >
       <!-- Mute button with dynamic volume icon -->
-      <div class="volume-prepend" @touchstart.stop @touchend.stop>
+      <div class="volume-prepend" @touchstart.stop.passive @touchend.stop.passive>
         <button
           class="volume-icon-btn"
           :class="{ 'is-muted': isMuted }"
@@ -121,8 +121,8 @@
       <div
         v-if="showVolumeLevel"
         class="volume-append"
-        @touchstart.stop
-        @touchend.stop
+        @touchstart.stop.passive
+        @touchend.stop.passive
       >
         <span class="volume-level-text">
           {{ Math.round(displayValue) }}

@@ -33,7 +33,9 @@
       <template #title>
         <div class="sl-recent-row__title-wrap">
           <span class="sl-recent-row__title">{{ title }}</span>
-          <span class="sl-recent-row__chip">STREAMLOADER</span>
+          <span class="sl-recent-row__chip">{{
+            t("streamloader.recently_downloaded.chip")
+          }}</span>
         </div>
       </template>
     </v-toolbar>
@@ -43,7 +45,10 @@
            or generic Vuetify circular. Disappears the moment the first
            fetch resolves (success OR empty). -->
       <div v-if="isInitialLoading" class="sl-recent-row__loading">
-        <StreamloaderSpinner :size="40" label="Loading recent downloads" />
+        <StreamloaderSpinner
+          :size="40"
+          :label="t('streamloader.recently_downloaded.loading_label')"
+        />
       </div>
       <Carousel
         v-else
@@ -73,7 +78,10 @@ import {
   type Track,
 } from "@/plugins/api/interfaces";
 import { onBeforeUnmount, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
+
+const { t } = useI18n();
 
 const STREAMLOADER_DOMAIN = "streamloader";
 
@@ -82,7 +90,7 @@ const enabled = useStreamloaderPref("showRecentlyDownloaded");
 const FETCH_LIMIT = 30; // pull a few extra so post-filtering still leaves ~12
 const DISPLAY_LIMIT = 12;
 
-const title = "Recently Downloaded by Streamloader";
+const title = t("streamloader.recently_downloaded.title");
 
 const visibleItems = ref<Track[]>([]);
 // Tracks ONLY the very first fetch — once it resolves (with items or not)

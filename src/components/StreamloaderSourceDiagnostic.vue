@@ -21,7 +21,7 @@
     <button
       type="button"
       class="sl-src-diag__btn"
-      aria-label="Source information"
+      :aria-label="t('streamloader.source_diagnostic.info_aria')"
       :title="diagnostic.iconTitle"
       @click="dialogOpen = true"
     >
@@ -38,7 +38,7 @@
           <div
             v-if="diagnostic.providerNames.length"
             class="sl-src-diag__chips"
-            aria-label="Source providers"
+            :aria-label="t('streamloader.source_diagnostic.providers_aria_label')"
           >
             <span
               v-for="name in diagnostic.providerNames"
@@ -53,13 +53,15 @@
         </v-card-text>
         <v-card-actions class="sl-src-diag__footer">
           <v-spacer />
-          <v-btn variant="text" @click="dialogOpen = false">Close</v-btn>
+          <v-btn variant="text" @click="dialogOpen = false">{{
+            t("streamloader.source_diagnostic.close")
+          }}</v-btn>
           <a
             v-if="diagnostic.showSettingsCta"
             class="sl-src-diag__cta"
             href="/#/settings/providers"
             @click="dialogOpen = false"
-            >Open Streamloader Settings</a
+            >{{ t("streamloader.source_diagnostic.open_settings") }}</a
           >
         </v-card-actions>
       </v-card>
@@ -69,9 +71,12 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { Info } from "lucide-vue-next";
 import api from "@/plugins/api";
 import type { MediaItem } from "@/plugins/api/interfaces";
+
+const { t } = useI18n();
 
 type Tone = "local" | "cached" | "streaming";
 
@@ -118,14 +123,18 @@ const diagnostic = computed<Diagnostic | null>(() => {
   // Local tracks need no diagnostic — bytes already on disk, nothing to mirror.
   if (hasLocal) return null;
 
-  const sourceList = providerNames.join(", ") || "the source provider";
+  const sourceList =
+    providerNames.join(", ") ||
+    t("streamloader.source_diagnostic.default_source");
 
   if (hasStreamloader) {
     return {
       tone: "cached",
-      title: "Available offline",
-      iconTitle: "Why this is offline-ready",
-      body: `This track was downloaded by streamloader from ${sourceList}. It's available offline.`,
+      title: t("streamloader.source_diagnostic.cached_title"),
+      iconTitle: t("streamloader.source_diagnostic.cached_icon_title"),
+      body: t("streamloader.source_diagnostic.cached_body", {
+        source: sourceList,
+      }),
       suggestion: "",
       providerNames,
       showSettingsCta: false,
@@ -141,12 +150,19 @@ const diagnostic = computed<Diagnostic | null>(() => {
     );
     return {
       tone: "streaming",
-      title: "Streaming only",
-      iconTitle: "Why this is streaming only",
-      body: `This track is only available from ${sourceList}.`,
+      title: t("streamloader.source_diagnostic.streaming_title"),
+      iconTitle: t("streamloader.source_diagnostic.streaming_icon_title"),
+      body: t("streamloader.source_diagnostic.streaming_body", {
+        source: sourceList,
+      }),
       suggestion: streamloaderConfigured
-        ? `Start a download by playing this track, then check Streamloader's settings to confirm it mirrored from ${sourceList}.`
-        : `Configure streamloader to mirror tracks from ${sourceList} in Settings - Providers.`,
+        ? t("streamloader.source_diagnostic.streaming_suggestion_configured", {
+            source: sourceList,
+          })
+        : t(
+            "streamloader.source_diagnostic.streaming_suggestion_unconfigured",
+            { source: sourceList },
+          ),
       providerNames,
       showSettingsCta: true,
     };

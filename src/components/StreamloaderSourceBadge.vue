@@ -32,9 +32,16 @@
       `sl-source-badge--${classification.tone}`,
       { 'sl-source-badge--compact': compact },
     ]"
-    :title="`${classification.label} — ${classification.tooltip}`"
+    :title="
+      t('streamloader.source_badge.title', {
+        label: classification.label,
+        tooltip: classification.tooltip,
+      })
+    "
     role="status"
-    :aria-label="`Source: ${classification.label}`"
+    :aria-label="
+      t('streamloader.source_badge.aria_label', { label: classification.label })
+    "
   >
     <span class="sl-source-badge__dot" aria-hidden="true"></span>
     <span v-if="!compact" class="sl-source-badge__label">{{
@@ -45,8 +52,11 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import api from "@/plugins/api";
 import type { MediaItem } from "@/plugins/api/interfaces";
+
+const { t } = useI18n();
 
 type Tone = "local" | "cached" | "streaming";
 
@@ -105,22 +115,28 @@ const classification = computed<Classification | null>(() => {
   if (hasLocal) {
     return {
       tone: "local",
-      label: "Local",
-      tooltip: `Served from local library (${sourceList})`,
+      label: t("streamloader.source_badge.local_label"),
+      tooltip: t("streamloader.source_badge.local_tooltip", {
+        sources: sourceList,
+      }),
     };
   }
   if (hasStreamloader) {
     return {
       tone: "cached",
-      label: "Streamloader",
-      tooltip: `Cached via streamloader (${sourceList})`,
+      label: t("streamloader.source_badge.cached_label"),
+      tooltip: t("streamloader.source_badge.cached_tooltip", {
+        sources: sourceList,
+      }),
     };
   }
   if (hasStreaming) {
     return {
       tone: "streaming",
-      label: "Streaming",
-      tooltip: `Streamed live from ${sourceList}`,
+      label: t("streamloader.source_badge.streaming_label"),
+      tooltip: t("streamloader.source_badge.streaming_tooltip", {
+        sources: sourceList,
+      }),
     };
   }
   return null;

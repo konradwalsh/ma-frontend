@@ -97,7 +97,7 @@
             <span
               class="settings-recent-dot"
               :style="getIconBackgroundStyle(section.color)"
-            />
+            ></span>
             {{ t(section.label) }}
           </button>
         </div>
@@ -186,7 +186,7 @@
           >
             <div class="settings-group-header">
               <span class="settings-group-title">{{ t(group.label) }}</span>
-              <span class="settings-group-divider" />
+              <span class="settings-group-divider"></span>
             </div>
             <div
               :class="
@@ -238,10 +238,7 @@
           </section>
         </transition-group>
 
-        <div
-          v-if="visibleGroups.length === 0"
-          class="settings-empty"
-        >
+        <div v-if="visibleGroups.length === 0" class="settings-empty">
           <Icon icon="mdi-magnify-close" size="32" />
           <p>{{ t("no_results") }}</p>
         </div>
@@ -256,7 +253,7 @@
           >
             <div class="settings-group-header">
               <span class="settings-group-title">{{ t(group.label) }}</span>
-              <span class="settings-group-divider" />
+              <span class="settings-group-divider"></span>
             </div>
             <v-list class="settings-list">
               <ListItem
@@ -297,10 +294,7 @@
           </section>
         </transition-group>
 
-        <div
-          v-if="visibleGroups.length === 0"
-          class="settings-empty"
-        >
+        <div v-if="visibleGroups.length === 0" class="settings-empty">
           <Icon icon="mdi-magnify-close" size="32" />
           <p>{{ t("no_results") }}</p>
         </div>
@@ -712,7 +706,8 @@ const searchQuery = ref("");
 
 const sectionMatchesQuery = (section: SettingsSection, q: string) => {
   if (!q) return true;
-  const haystack = `${t(section.label)} ${t(section.description)}`.toLowerCase();
+  const haystack =
+    `${t(section.label)} ${t(section.description)}`.toLowerCase();
   return haystack.includes(q.toLowerCase());
 };
 
@@ -761,9 +756,7 @@ const offlineProviderCount = computed(() => {
 const updateAvailable = computed(() => {
   const info = api.serverInfo.value as Record<string, unknown> | undefined;
   if (!info) return false;
-  return Boolean(
-    (info as { update_available?: boolean }).update_available,
-  );
+  return Boolean((info as { update_available?: boolean }).update_available);
 });
 
 const badgeForSection = (
@@ -799,7 +792,9 @@ const loadRecent = () => {
     }
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      recentNames.value = parsed.filter((x): x is string => typeof x === "string");
+      recentNames.value = parsed.filter(
+        (x): x is string => typeof x === "string",
+      );
     }
   } catch {
     recentNames.value = [];

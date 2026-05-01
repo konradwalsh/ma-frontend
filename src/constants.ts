@@ -16,6 +16,10 @@ export const DEFAULT_MENU_ITEMS = [
   // Sits between the library nodes and the settings group so it reads
   // as "your activity" rather than a library or a system setting.
   "recentlyplayed",
+  // Streamloader-fork addition: consolidated stats / insights page. Sits
+  // directly after Recently Played and immediately before the streamloader
+  // settings shortcut (added in getMenuItems.ts under the "settings" arm).
+  "streamloaderstats",
   "settings",
 ];
 

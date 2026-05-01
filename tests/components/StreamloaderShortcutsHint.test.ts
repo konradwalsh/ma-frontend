@@ -23,6 +23,15 @@ vi.mock("@/composables/useKeyboardShortcuts", () => ({
   getShortcutKeyFor: getShortcutKeyForMock,
 }));
 
+// vue-i18n's useI18n() throws "Need to install with `app.use` function"
+// when called outside an installed plugin. The shared mock resolves keys
+// against the real en.json so assertions still match the rendered copy
+// without installing the live plugin.
+vi.mock("vue-i18n", async () => {
+  const { vueI18nMock } = await import("../i18n-mock");
+  return vueI18nMock();
+});
+
 // matchMedia isn't implemented by happy-dom — provide a controllable
 // stub so we can flip "touch primary" vs "desktop" between tests.
 const setMatchMedia = (matches: boolean) => {

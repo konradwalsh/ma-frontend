@@ -12,6 +12,16 @@ const { apiMock } = vi.hoisted(() => ({
 
 vi.mock("@/plugins/api", () => ({ default: apiMock }));
 
+// vue-i18n's useI18n() throws "Need to install with `app.use` function"
+// when called outside an installed plugin. Several Streamloader
+// components added i18n strings mid-batch — the shared mock resolves
+// keys against the real en.json so assertions still match the rendered
+// English copy without installing the live plugin.
+vi.mock("vue-i18n", async () => {
+  const { vueI18nMock } = await import("../i18n-mock");
+  return vueI18nMock();
+});
+
 import StreamloaderHealthDot from "@/components/StreamloaderHealthDot.vue";
 
 describe("StreamloaderHealthDot.vue", () => {

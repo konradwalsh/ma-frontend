@@ -16,6 +16,15 @@ const { apiMock } = vi.hoisted(() => ({
 
 vi.mock("@/plugins/api", () => ({ default: apiMock }));
 
+// vue-i18n's useI18n() throws "Need to install with `app.use` function"
+// when called outside an installed plugin. The shared mock resolves keys
+// against the real en.json so assertions still match the rendered copy
+// without installing the live plugin.
+vi.mock("vue-i18n", async () => {
+  const { vueI18nMock } = await import("../i18n-mock");
+  return vueI18nMock();
+});
+
 // Vuetify auto-importer (vite-plugin-vuetify) injects raw component
 // imports — including their CSS side-effects — at SFC compile time, which
 // Node's loader can't satisfy in a vitest run. Mocking the surface

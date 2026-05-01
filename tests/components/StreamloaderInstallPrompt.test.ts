@@ -18,6 +18,15 @@ vi.mock("@/plugins/store", async () => {
   return { store };
 });
 
+// vue-i18n's useI18n() throws "Need to install with `app.use` function"
+// when called outside an installed plugin. The shared mock resolves keys
+// against the real en.json so assertions still match the rendered copy
+// without installing the live plugin.
+vi.mock("vue-i18n", async () => {
+  const { vueI18nMock } = await import("../i18n-mock");
+  return vueI18nMock();
+});
+
 // Minimal beforeinstallprompt event shape — the component only reads
 // `prompt()` + `userChoice` and calls `event.preventDefault()`.
 class FakeBeforeInstallPromptEvent extends Event {

@@ -49,6 +49,15 @@ vi.mock("vue-sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
+// vue-i18n's useI18n() throws "Need to install with `app.use` function"
+// when called outside an installed plugin. The shared mock resolves keys
+// against the real en.json so assertions still match the rendered copy
+// without installing the live plugin.
+vi.mock("vue-i18n", async () => {
+  const { vueI18nMock } = await import("../i18n-mock");
+  return vueI18nMock();
+});
+
 // Mock the Vuetify VDialog/VCard/VBtn/VTabs surface — same rationale as
 // other Streamloader dialog tests (auto-importer CSS at SFC compile time).
 vi.mock("vuetify/lib/components/VDialog/index.mjs", () => {

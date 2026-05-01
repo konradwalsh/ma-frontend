@@ -195,8 +195,8 @@
         @scroll="handleScroll"
         @touchstart.passive="onPtrTouchStart"
         @touchmove.passive="onPtrTouchMove"
-        @touchend="onPtrTouchEnd"
-        @touchcancel="onPtrTouchEnd"
+        @touchend.passive="onPtrTouchEnd"
+        @touchcancel.passive="onPtrTouchEnd"
       >
         <div
           v-if="pullOffset > 0 || isRefreshing"
@@ -464,7 +464,11 @@ const onPtrTouchEnd = async () => {
   ptrTracking.value = false;
   ptrStartY.value = null;
 
-  if (pullOffset.value >= PTR_THRESHOLD && !isRefreshing.value && hasSearched.value) {
+  if (
+    pullOffset.value >= PTR_THRESHOLD &&
+    !isRefreshing.value &&
+    hasSearched.value
+  ) {
     isRefreshing.value = true;
     try {
       await refreshSearch();
@@ -980,10 +984,7 @@ onBeforeUnmount(() => {
   position: absolute;
   top: 0;
   left: 50%;
-  transform: translate(
-    -50%,
-    calc(-100% + min(var(--ptr-offset, 0px), 56px))
-  );
+  transform: translate(-50%, calc(-100% + min(var(--ptr-offset, 0px), 56px)));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1035,7 +1036,6 @@ onBeforeUnmount(() => {
     animation: none;
   }
 }
-
 
 .back-btn {
   flex-shrink: 0;

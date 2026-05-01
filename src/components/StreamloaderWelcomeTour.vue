@@ -68,7 +68,7 @@
           <div
             class="sl-tour-card__dots"
             role="tablist"
-            aria-label="Tour progress"
+            :aria-label="t('streamloader.welcome_tour.tour_progress_aria_label')"
           >
             <button
               v-for="(_, i) in steps"
@@ -76,7 +76,12 @@
               type="button"
               class="sl-tour-dot"
               :class="{ 'sl-tour-dot--active': i === stepIndex }"
-              :aria-label="`Step ${i + 1} of ${steps.length}`"
+              :aria-label="
+                t('streamloader.welcome_tour.step_aria_label', {
+                  current: i + 1,
+                  total: steps.length,
+                })
+              "
               :aria-current="i === stepIndex ? 'step' : undefined"
               @click="goTo(i)"
             ></button>
@@ -88,7 +93,7 @@
               class="sl-tour-btn sl-tour-btn--ghost"
               @click="skip"
             >
-              Skip
+              {{ t("streamloader.welcome_tour.skip") }}
             </button>
             <button
               type="button"
@@ -96,7 +101,11 @@
               :class="{ 'sl-tour-btn--primary-lg': isLast }"
               @click="next"
             >
-              {{ isLast ? "Got it" : "Next" }}
+              {{
+                isLast
+                  ? t("streamloader.welcome_tour.got_it")
+                  : t("streamloader.welcome_tour.next")
+              }}
             </button>
           </div>
         </div>
@@ -114,9 +123,12 @@ import {
   ref,
   watch,
 } from "vue";
+import { useI18n } from "vue-i18n";
 import api, { ConnectionState } from "@/plugins/api";
 import { store } from "@/plugins/store";
 import { eventbus } from "@/plugins/eventbus";
+
+const { t } = useI18n();
 
 const STORAGE_KEY = "sl-welcome-tour-seen";
 
@@ -131,33 +143,33 @@ interface TourStep {
 // Five tooltips. Position is logical, not pixel-anchored: we lean on
 // scoped CSS to place each card in a sensible quadrant near the
 // feature it's describing.
-const steps: ReadonlyArray<TourStep> = [
+const steps = computed<ReadonlyArray<TourStep>>(() => [
   {
-    title: "Welcome to Streamloader",
-    body: "The spinning vinyl behind your now-playing artwork is your at-a-glance playback indicator — it pauses when audio stops.",
+    title: t("streamloader.welcome_tour.step1_title"),
+    body: t("streamloader.welcome_tour.step1_body"),
     position: "top-right",
   },
   {
-    title: "Source badges",
-    body: "The colored dot on tracks shows where each one lives — green = local file, teal = streamloader-cached, slate = streaming only.",
+    title: t("streamloader.welcome_tour.step2_title"),
+    body: t("streamloader.welcome_tour.step2_body"),
     position: "top-right",
   },
   {
-    title: "Activity Pulse",
-    body: "When streamloader is downloading or processing tracks, the pulse appears in the corner so you always know what's in flight.",
+    title: t("streamloader.welcome_tour.step3_title"),
+    body: t("streamloader.welcome_tour.step3_body"),
     position: "bottom-right",
   },
   {
-    title: "Keyboard shortcuts",
-    body: "Press ? (Shift + /) anywhere in the app to open the full keyboard shortcut cheat sheet.",
+    title: t("streamloader.welcome_tour.step4_title"),
+    body: t("streamloader.welcome_tour.step4_body"),
     position: "center",
   },
   {
-    title: "Streamloader settings",
-    body: "Click 'streamloader' in the sidebar to manage every fork-only toggle — and to re-run this tour from the About card.",
+    title: t("streamloader.welcome_tour.step5_title"),
+    body: t("streamloader.welcome_tour.step5_body"),
     position: "bottom-left",
   },
-];
+]);
 
 const visible = ref(false);
 const stepIndex = ref(0);
@@ -172,8 +184,8 @@ let lastFocusedBeforeOpen: HTMLElement | null = null;
 // Default forward; overridden when the user clicks an earlier dot.
 const transitionName = ref<"sl-tour-fwd" | "sl-tour-bwd">("sl-tour-fwd");
 
-const currentStep = computed<TourStep>(() => steps[stepIndex.value]);
-const isLast = computed(() => stepIndex.value === steps.length - 1);
+const currentStep = computed<TourStep>(() => steps.value[stepIndex.value]);
+const isLast = computed(() => stepIndex.value === steps.value.length - 1);
 
 const alreadySeen = (): boolean => {
   try {

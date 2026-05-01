@@ -15,7 +15,7 @@
       :class="{ 'sl-mobile-fullscreen': isMobileFullscreen }"
       @touchstart.passive="onCardTouchStart"
       @touchmove.passive="onCardTouchMove"
-      @touchend="onCardTouchEnd"
+      @touchend.passive="onCardTouchEnd"
     >
       <v-toolbar class="v-toolbar-default" color="transparent">
         <template #prepend>

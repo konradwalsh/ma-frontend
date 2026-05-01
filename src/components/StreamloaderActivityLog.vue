@@ -35,27 +35,37 @@
         :class="{ 'sl-activity-log__bell--collapsed': collapsed }"
         :aria-label="
           hasUnread
-            ? `Streamloader activity, ${unreadCount} unread`
-            : 'Streamloader activity'
+            ? t('streamloader.activity_log.bell_label_unread', { count: unreadCount })
+            : t('streamloader.activity_log.bell_label')
         "
       >
         <v-icon size="20">mdi-bell-outline</v-icon>
-        <span v-if="hasUnread" class="sl-activity-log__dot" aria-hidden="true" />
+        <span
+          v-if="hasUnread"
+          class="sl-activity-log__dot"
+          aria-hidden="true"
+        ></span>
         <span v-if="!collapsed" class="sl-activity-log__bell-label">
-          Activity
+          {{ t("streamloader.activity_log.bell_label_short") }}
         </span>
       </button>
     </template>
 
     <v-card class="sl-activity-log__card" :width="340">
       <div class="sl-activity-log__header">
-        <span class="sl-activity-log__title">Recent activity</span>
+        <span class="sl-activity-log__title">{{
+          t("streamloader.activity_log.title")
+        }}</span>
         <span class="sl-activity-log__count">
           {{ filteredEntries.length }}
         </span>
       </div>
 
-      <div class="sl-activity-log__filters" role="tablist" aria-label="Filter activity">
+      <div
+        class="sl-activity-log__filters"
+        role="tablist"
+        :aria-label="t('streamloader.activity_log.filter_aria_label')"
+      >
         <button
           v-for="chip in FILTER_CHIPS"
           :key="chip.value"
@@ -97,8 +107,8 @@
         <StreamloaderEmptyState
           v-else
           icon="mdi-bell-sleep-outline"
-          title="No recent activity"
-          message="Completed downloads and scans will appear here."
+          :title="t('streamloader.activity_log.empty_title')"
+          :message="t('streamloader.activity_log.empty_message')"
         />
       </div>
 
@@ -109,7 +119,7 @@
           :disabled="entries.length === 0"
           @click="clearAll"
         >
-          Clear all
+          {{ t("streamloader.activity_log.clear_all") }}
         </button>
       </div>
     </v-card>
@@ -118,6 +128,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import StreamloaderEmptyState from "@/components/StreamloaderEmptyState.vue";
 import { useSidebar } from "@/components/ui/sidebar";
 import {
@@ -125,14 +136,16 @@ import {
   type ActivityKind,
 } from "@/composables/useStreamloaderActivityLog";
 
+const { t } = useI18n();
+
 type FilterValue = "all" | "downloads" | "scans" | "errors";
 
-const FILTER_CHIPS: { value: FilterValue; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "downloads", label: "Downloads" },
-  { value: "scans", label: "Scans" },
-  { value: "errors", label: "Errors" },
-];
+const FILTER_CHIPS = computed<{ value: FilterValue; label: string }[]>(() => [
+  { value: "all", label: t("streamloader.activity_log.filter_all") },
+  { value: "downloads", label: t("streamloader.activity_log.filter_downloads") },
+  { value: "scans", label: t("streamloader.activity_log.filter_scans") },
+  { value: "errors", label: t("streamloader.activity_log.filter_errors") },
+]);
 
 const { entries, hasUnread, unreadCount, markAllRead, clearAll } =
   useStreamloaderActivityLog();
@@ -196,14 +209,18 @@ const kindIcon = (kind: ActivityKind): string => {
 const formatRelative = (ts: number, now: number): string => {
   const diff = Math.max(0, now - ts);
   const sec = Math.floor(diff / 1000);
-  if (sec < 30) return "just now";
-  if (sec < 60) return `${sec} sec ago`;
+  if (sec < 30) return t("streamloader.activity_log.relative_just_now");
+  if (sec < 60) return t("streamloader.activity_log.relative_sec", { sec });
   const min = Math.floor(sec / 60);
-  if (min < 60) return `${min} min ago`;
+  if (min < 60) return t("streamloader.activity_log.relative_min", { min });
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr} hr ago`;
+  if (hr < 24) return t("streamloader.activity_log.relative_hr", { hr });
   const day = Math.floor(hr / 24);
-  if (day < 7) return `${day} day${day === 1 ? "" : "s"} ago`;
+  if (day < 7) {
+    return day === 1
+      ? t("streamloader.activity_log.relative_day_one", { day })
+      : t("streamloader.activity_log.relative_day_other", { day });
+  }
   return new Date(ts).toLocaleDateString();
 };
 
@@ -231,7 +248,9 @@ void unreadCount;
   text-align: left;
   border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .sl-activity-log__bell:hover {
@@ -312,7 +331,9 @@ void unreadCount;
   padding: 3px 10px;
   border-radius: 999px;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .sl-activity-log__chip:hover {
