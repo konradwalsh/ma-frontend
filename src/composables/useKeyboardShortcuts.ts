@@ -10,6 +10,7 @@
 //   R      -> cycle repeat mode (Off -> All -> One -> Off)
 //   S      -> toggle shuffle
 //   F      -> fullscreen player toggle
+//   /      -> focus the global search input (Spotify pattern)
 //   Esc    -> close fullscreen player (when open)
 //   ?      -> open keyboard-shortcuts help dialog
 //
@@ -60,6 +61,7 @@ export type ShortcutId =
   | "volume-down"
   | "mute"
   | "fullscreen"
+  | "focusSearch"
   | "close"
   | "help";
 
@@ -104,6 +106,12 @@ export const KEYBOARD_SHORTCUTS: readonly KeyboardShortcut[] = [
     id: "fullscreen",
     keys: ["F"],
     action: "Toggle fullscreen player",
+    group: "View",
+  },
+  {
+    id: "focusSearch",
+    keys: ["/"],
+    action: "Focus search input",
     group: "View",
   },
   {
@@ -169,6 +177,21 @@ function handleKeydown(e: KeyboardEvent) {
 
   if (hasModifier(e)) return;
   if (store.dialogActive) return;
+
+  // "/" (Spotify pattern) — focus the global search input. Looked up by id
+  // rather than route-matched so it works from anywhere; the input lives in
+  // the Search view (id="searchInput"). No-op if the input isn't mounted.
+  if (e.key === "/") {
+    const el = document.getElementById(
+      "searchInput",
+    ) as HTMLInputElement | null;
+    if (el) {
+      el.focus();
+      el.select?.();
+      e.preventDefault();
+    }
+    return;
+  }
 
   // F (fullscreen toggle) doesn't need an active player; everything else does.
   if (e.key === "f" || e.key === "F") {

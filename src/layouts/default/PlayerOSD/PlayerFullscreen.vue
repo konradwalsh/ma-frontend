@@ -265,35 +265,66 @@
           v-if="store.showQueueItems && store.activePlayerQueue"
           class="main-queue-items"
         >
-          <v-tabs
-            v-model="activeQueuePanel"
-            hide-slider
-            density="compact"
-            @click="activeQueuePanelClick"
-          >
-            <v-tab :value="0">
-              {{ $t("queue") }}
-              <v-badge
-                color="grey"
-                :content="
-                  (store.activePlayerQueue?.items || 0) -
-                  (store.activePlayerQueue?.current_index || 0)
-                "
-                inline
-              />
-            </v-tab>
-            <v-tab :value="1">
-              {{ $t("played") }}
-              <v-badge
-                color="grey"
-                :content="store.activePlayerQueue?.current_index"
-                inline
-              />
-            </v-tab>
-            <v-tab v-if="hasLyrics" :value="2">
-              {{ $t("lyrics") }}
-            </v-tab>
-          </v-tabs>
+          <div class="queue-header-row">
+            <v-tabs
+              v-model="activeQueuePanel"
+              hide-slider
+              density="compact"
+              @click="activeQueuePanelClick"
+            >
+              <v-tab :value="0">
+                {{ $t("queue") }}
+                <v-badge
+                  color="grey"
+                  :content="
+                    (store.activePlayerQueue?.items || 0) -
+                    (store.activePlayerQueue?.current_index || 0)
+                  "
+                  inline
+                />
+              </v-tab>
+              <v-tab :value="1">
+                {{ $t("played") }}
+                <v-badge
+                  color="grey"
+                  :content="store.activePlayerQueue?.current_index"
+                  inline
+                />
+              </v-tab>
+              <v-tab v-if="hasLyrics" :value="2">
+                {{ $t("lyrics") }}
+              </v-tab>
+            </v-tabs>
+            <!-- Streamloader-fork addition (queue UX polish): inline header
+                 actions for "Save as playlist" and "Clear queue". Only shown
+                 on the Queue tab and when there are items. -->
+            <div
+              v-if="
+                activeQueuePanel === 0 &&
+                (store.activePlayerQueue?.items || 0) > 0
+              "
+              class="queue-header-actions"
+            >
+              <Button
+                variant="icon"
+                :title="$t('save_queue_as_playlist')"
+                :aria-label="$t('save_queue_as_playlist')"
+                class="queue-header-action-btn"
+                @click.stop="onSaveQueueAsPlaylist"
+              >
+                <ListPlus :size="16" />
+              </Button>
+              <Button
+                variant="icon"
+                :title="$t('queue_clear')"
+                :aria-label="$t('queue_clear')"
+                class="queue-header-action-btn"
+                @click.stop="onClearQueue"
+              >
+                <Trash2 :size="16" />
+              </Button>
+            </div>
+          </div>
           <div
             class="queue-items-scroll-box"
             :style="`--queue-title-size: ${queueTitleFontSize}; --queue-subtitle-size: ${queueSubtitleFontSize};`"
@@ -317,6 +348,23 @@
                   @mouseleave="hoveredQueueIndex = -1"
                 >
                   <template #prepend>
+                    <!-- Streamloader-fork addition (queue UX polish): drag
+                         handle on the left of each row, visible on hover.
+                         Reordering is handled today via the context menu
+                         (queue_move_up/down/end) — drag-to-reorder is a
+                         future enhancement; the handle is a discoverability
+                         affordance and shows the grab cursor. -->
+                    <div
+                      v-if="activeQueuePanel == 0"
+                      class="queue-row-drag-handle"
+                      :class="{ 'is-visible': hoveredQueueIndex == index }"
+                      :title="
+                        $t('queue_move_up') + ' / ' + $t('queue_move_down')
+                      "
+                      @click.stop
+                    >
+                      <GripVertical :size="16" />
+                    </div>
                     <div class="media-thumb listitem-media-thumb">
                       <MediaItemThumb size="50" :item="item" />
                     </div>
@@ -435,6 +483,24 @@
                       :show-badge="getBreakpointValue('bp4')"
                     />
                     <v-icon v-if="!item.available">mdi-alert</v-icon>
+                    <!-- Streamloader-fork addition (queue UX polish): inline
+                         remove (X) button. Visible on hover (desktop) and at
+                         reduced opacity on touch via @media (hover: none)
+                         in the scoped style. Confirmation only when removing
+                         the currently-playing track; otherwise silent remove
+                         + undo toast. Hidden on the Played tab since the
+                         backend gates removals there. -->
+                    <button
+                      v-if="activeQueuePanel == 0"
+                      type="button"
+                      class="queue-row-remove-btn"
+                      :class="{ 'is-visible': hoveredQueueIndex == index }"
+                      :title="$t('queue_delete')"
+                      :aria-label="$t('queue_delete')"
+                      @click.stop="onRemoveQueueItem(item)"
+                    >
+                      <X :size="14" />
+                    </button>
                   </template>
                 </ListItem>
                 <!-- Show chapters -->
@@ -462,6 +528,17 @@
                 </div>
               </template>
             </v-virtual-scroll>
+            <!-- Streamloader-fork addition (queue UX polish): friendly empty
+                 state when the upcoming queue is empty. Only shown on the
+                 Queue tab to avoid hiding past-played history. -->
+            <StreamloaderEmptyState
+              v-if="
+                !tempHide && activeQueuePanel === 0 && nextItems.length === 0
+              "
+              :icon="ListMusic"
+              :title="$t('queue_empty')"
+              :message="$t('pick_something_to_play')"
+            />
             <!-- Lyrics view -->
             <div v-if="activeQueuePanel === 2" class="lyrics-wrapper">
               <LyricsViewer
@@ -669,6 +746,7 @@ import MediaItemThumb from "@/components/MediaItemThumb.vue";
 import NowPlayingBadge from "@/components/NowPlayingBadge.vue";
 import PartyRequestBadge from "@/components/party/PartyRequestBadge.vue";
 import QualityDetailsBtn from "@/components/QualityDetailsBtn.vue";
+import StreamloaderEmptyState from "@/components/StreamloaderEmptyState.vue";
 import StreamloaderSourceBadge from "@/components/StreamloaderSourceBadge.vue";
 import { useArtworkOverrideUrl } from "@/composables/useArtworkOverrides";
 import { useLyricsElapsedTime } from "@/composables/useLyricsElapsedTime";
@@ -720,7 +798,15 @@ import router from "@/plugins/router";
 import { store } from "@/plugins/store";
 import vuetify from "@/plugins/vuetify";
 import Color from "color";
-import { Heart } from "lucide-vue-next";
+import {
+  GripVertical,
+  Heart,
+  ListMusic,
+  ListPlus,
+  Trash2,
+  X,
+} from "lucide-vue-next";
+import { toast } from "vue-sonner";
 import {
   computed,
   onBeforeUnmount,
@@ -1455,6 +1541,51 @@ const queueCommand = function (item: QueueItem | undefined, command: string) {
   }
 };
 
+// Streamloader-fork addition (queue UX polish): inline X-remove + header
+// Clear/Save buttons. Mirror the gating used by the existing context-menu
+// "delete" action (itemIndex <= index_in_buffer is reserved). When the
+// removed item is the currently-playing track, ask for confirmation;
+// otherwise remove silently and surface an undo toast.
+const onRemoveQueueItem = function (item: QueueItem) {
+  if (!store.activePlayerQueue) return;
+  const isCurrent = item.queue_item_id === store.curQueueItem?.queue_item_id;
+  if (isCurrent) {
+    if (!window.confirm($t("queue_remove_current_confirm"))) return;
+  }
+  // Backend already gates removals below index_in_buffer; we pass through
+  // and surface the undo toast for the common (non-current) case.
+  api.queueCommandDelete(store.activePlayerQueue.queue_id, item.queue_item_id);
+  if (!isCurrent) {
+    toast.info($t("queue_remove_undo"), {
+      action: {
+        label: $t("undo"),
+        // Best-effort undo: re-add the underlying media item to the queue
+        // tail. The backend has no per-item "undo delete" endpoint today,
+        // so the toast surfaces a sensible recovery rather than a true
+        // restore-in-place.
+        onClick: () => {
+          const media = item.media_item;
+          if (!media || !store.activePlayerQueue) return;
+          api.playMedia(media.uri, QueueOption.ADD);
+        },
+      },
+    });
+  }
+};
+
+const onClearQueue = function () {
+  if (!store.activePlayerQueue) return;
+  if (!window.confirm($t("queue_clear_confirm"))) return;
+  api.queueCommandClear(store.activePlayerQueue.queue_id);
+};
+
+const onSaveQueueAsPlaylist = function () {
+  if (!store.activePlayerQueue) return;
+  eventbus.emit("createPlaylist", {
+    queueId: store.activePlayerQueue.queue_id,
+  });
+};
+
 const virtualScrollRef = ref<InstanceType<
   typeof import("vuetify/components").VVirtualScroll
 > | null>(null);
@@ -1808,6 +1939,107 @@ watchEffect(() => {
 .queue-source-badge {
   margin-right: 6px;
   flex: 0 0 auto;
+}
+
+/* Streamloader-fork addition (queue UX polish): inline header actions
+   sit to the right of the v-tabs without disturbing tab layout. */
+.queue-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.queue-header-row :deep(.v-tabs) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.queue-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 0 0 auto;
+  padding-right: 4px;
+}
+.queue-header-action-btn {
+  opacity: 0.65;
+  transition:
+    opacity 160ms ease,
+    background-color 160ms ease;
+}
+.queue-header-action-btn:hover,
+.queue-header-action-btn:focus-visible {
+  opacity: 1;
+  background-color: rgba(45, 212, 191, 0.12);
+}
+
+/* Drag handle on the left of each queue row. Hidden by default;
+   revealed on row hover via .is-visible toggled by hoveredQueueIndex.
+   The handle currently signals "rows can be reordered" — actual
+   reordering is wired through the existing context-menu commands
+   (queue_move_up/down/end). Drag-to-reorder is a future enhancement;
+   this affordance is intentionally non-functional as a click target so
+   it doesn't hijack the row's existing context-menu open behaviour. */
+.queue-row-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  margin-right: 2px;
+  margin-left: -4px;
+  opacity: 0;
+  cursor: grab;
+  color: rgba(var(--v-theme-on-surface), 0.55);
+  transition: opacity 160ms ease;
+}
+.queue-row-drag-handle:active {
+  cursor: grabbing;
+}
+.queue-row-drag-handle.is-visible {
+  opacity: 1;
+}
+/* Touch devices don't get hover states — keep handle visible at low
+   opacity so the affordance is still discoverable on tap-and-hold. */
+@media (hover: none) {
+  .queue-row-drag-handle {
+    opacity: 0.55;
+  }
+}
+
+/* Inline X-remove button. Visible on row hover (desktop) or always on
+   touch devices so mobile users can swipe-or-tap to remove. */
+.queue-row-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-left: 4px;
+  border: none;
+  background: transparent;
+  color: rgba(var(--v-theme-on-surface), 0.6);
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+  flex: 0 0 auto;
+}
+.queue-row-remove-btn.is-visible {
+  opacity: 1;
+}
+.queue-row-remove-btn:hover,
+.queue-row-remove-btn:focus-visible {
+  opacity: 1;
+  outline: none;
+  background-color: rgba(244, 63, 94, 0.16);
+  color: rgb(244, 63, 94);
+}
+@media (hover: none) {
+  .queue-row-remove-btn {
+    opacity: 0.6;
+  }
 }
 
 .v-infinite-scroll--vertical {

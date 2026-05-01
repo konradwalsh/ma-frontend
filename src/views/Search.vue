@@ -1,18 +1,61 @@
 <template>
   <section>
     <Container variant="default" style="padding-top: 20px">
-      <v-text-field
-        id="searchInput"
-        v-model="store.globalSearchTerm"
-        class="streamloader-search-input"
-        clearable
-        prepend-inner-icon="mdi-magnify"
-        :label="$t('type_to_search')"
-        hide-details
-        variant="outlined"
-        @focus="searchHasFocus = true"
-        @blur="searchHasFocus = false"
-      />
+      <div class="streamloader-search-wrap">
+        <v-text-field
+          id="searchInput"
+          v-model="store.globalSearchTerm"
+          class="streamloader-search-input"
+          clearable
+          prepend-inner-icon="mdi-magnify"
+          :label="$t('type_to_search')"
+          hide-details
+          variant="outlined"
+          @focus="searchHasFocus = true"
+          @blur="onSearchBlur"
+          @keydown="onSearchKeydown"
+          @keydown.enter="commitRecentSearch"
+        />
+        <!-- inline spinner while a search is in flight -->
+        <div
+          v-if="loading"
+          class="streamloader-search-spinner"
+          aria-hidden="true"
+        >
+          <StreamloaderSpinner :size="20" label="Searching" />
+        </div>
+        <!-- recent-searches dropdown when input is focused but empty -->
+        <div
+          v-if="
+            searchHasFocus && !store.globalSearchTerm && recentSearches.length
+          "
+          class="streamloader-recent-dropdown"
+          role="listbox"
+          aria-label="Recent searches"
+        >
+          <div class="streamloader-recent-header">Recent searches</div>
+          <button
+            v-for="(term, idx) in recentSearches.slice(0, 5)"
+            :key="`${term}-${idx}`"
+            type="button"
+            class="streamloader-recent-item"
+            role="option"
+            @mousedown.prevent="reRunRecent(term)"
+          >
+            <v-icon size="16" class="streamloader-recent-icon"
+              >mdi-history</v-icon
+            >
+            <span class="streamloader-recent-term">{{ term }}</span>
+          </button>
+          <button
+            type="button"
+            class="streamloader-recent-clear"
+            @mousedown.prevent="clearRecentSearches"
+          >
+            Clear recent searches
+          </button>
+        </div>
+      </div>
 
       <v-chip-group
         v-model="selectedSearchType"
@@ -34,20 +77,17 @@
             MediaType.GENRE,
           ]"
           :key="item"
-          :text="$t(item === SEARCH_TYPE_ALL ? 'searchtype_all' : item + 's')"
           :value="item"
           filter
-        />
+        >
+          {{ $t(item === SEARCH_TYPE_ALL ? "searchtype_all" : item + "s") }}
+          <span
+            v-if="resultCountFor(item) !== null"
+            class="streamloader-chip-count"
+            >({{ resultCountFor(item) }})</span
+          >
+        </v-chip>
       </v-chip-group>
-
-      <v-progress-linear
-        v-if="loading"
-        color="primary"
-        height="3"
-        indeterminate
-        rounded
-        style="margin-top: 15px"
-      />
 
       <!-- empty state when no search term yet -->
       <StreamloaderEmptyState
@@ -177,6 +217,7 @@ import Container from "@/components/Container.vue";
 import GenreIcon from "@/components/icons/GenreIcon.vue";
 import ItemsListing from "@/components/ItemsListing.vue";
 import StreamloaderEmptyState from "@/components/StreamloaderEmptyState.vue";
+import StreamloaderSpinner from "@/components/StreamloaderSpinner.vue";
 import WidgetRow from "@/components/WidgetRow.vue";
 import { useUserPreferences } from "@/composables/userPreferences";
 import { api } from "@/plugins/api";
@@ -185,6 +226,8 @@ import { store } from "@/plugins/store";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 const SEARCH_TYPE_ALL = "all";
+const RECENT_SEARCHES_KEY = "streamloader-recent-searches";
+const RECENT_SEARCHES_MAX = 10;
 
 // True when the all-types search returned but every result bucket is empty.
 // Used to swap the WidgetRow stack out for a friendly no-results panel.
@@ -217,7 +260,127 @@ const searchHasFocus = ref(false);
 const searchResult = ref<SearchResults>();
 const loading = ref(false);
 const throttleId = ref();
+const recentSearches = ref<string[]>([]);
 const { getPreference, setPreference } = useUserPreferences();
+
+// Result-bucket counts for the chip badges. Returns null for the "all" chip
+// (we don't badge "All" — would just sum every bucket and add no signal) and
+// when no search has run yet (avoid showing "(0)" on every chip in the
+// empty/initial state).
+function resultCountFor(item: string): number | null {
+  if (!searchResult.value) return null;
+  if (item === SEARCH_TYPE_ALL) return null;
+  switch (item) {
+    case MediaType.TRACK:
+      return searchResult.value.tracks?.length ?? 0;
+    case MediaType.ARTIST:
+      return searchResult.value.artists?.length ?? 0;
+    case MediaType.ALBUM:
+      return searchResult.value.albums?.length ?? 0;
+    case MediaType.PLAYLIST:
+      return searchResult.value.playlists?.length ?? 0;
+    case MediaType.PODCAST:
+      return searchResult.value.podcasts?.length ?? 0;
+    case MediaType.AUDIOBOOK:
+      return searchResult.value.audiobooks?.length ?? 0;
+    case MediaType.RADIO:
+      return searchResult.value.radio?.length ?? 0;
+    case MediaType.GENRE:
+      return searchResult.value.genres?.length ?? 0;
+    default:
+      return null;
+  }
+}
+
+// --- Recent searches (localStorage-backed) ---
+// Stored as a JSON array of strings, MRU first, deduped, capped at
+// RECENT_SEARCHES_MAX. Read on mount, written every time a search produces
+// results. Defensive against corrupt JSON / non-string entries because
+// localStorage can be touched by other tabs or older app versions.
+function loadRecentSearches() {
+  try {
+    const raw = localStorage.getItem(RECENT_SEARCHES_KEY);
+    if (!raw) {
+      recentSearches.value = [];
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      recentSearches.value = parsed
+        .filter(
+          (x): x is string => typeof x === "string" && x.trim().length > 0,
+        )
+        .slice(0, RECENT_SEARCHES_MAX);
+    }
+  } catch {
+    recentSearches.value = [];
+  }
+}
+
+function persistRecentSearch(term: string) {
+  const trimmed = term.trim();
+  if (!trimmed) return;
+  const next = [trimmed, ...recentSearches.value.filter((t) => t !== trimmed)];
+  recentSearches.value = next.slice(0, RECENT_SEARCHES_MAX);
+  try {
+    localStorage.setItem(
+      RECENT_SEARCHES_KEY,
+      JSON.stringify(recentSearches.value),
+    );
+  } catch {
+    // Storage quota / private mode — non-fatal, in-memory copy still works.
+  }
+}
+
+function clearRecentSearches() {
+  recentSearches.value = [];
+  try {
+    localStorage.removeItem(RECENT_SEARCHES_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+function reRunRecent(term: string) {
+  store.globalSearchTerm = term;
+  // The watcher kicks off the search; we just need the input to lose focus
+  // so the dropdown closes (otherwise it lingers with the new term typed).
+  searchHasFocus.value = false;
+  const el = document.getElementById("searchInput") as HTMLInputElement | null;
+  el?.blur();
+}
+
+// Esc behavior: first press clears the input (if it has content), second press
+// blurs. Matches the Spotify/Apple Music pattern users already expect.
+function onSearchKeydown(e: KeyboardEvent) {
+  if (e.key !== "Escape") return;
+  if (store.globalSearchTerm) {
+    store.globalSearchTerm = "";
+    e.preventDefault();
+    e.stopPropagation();
+  } else {
+    const el = e.target as HTMLInputElement | null;
+    el?.blur();
+    e.preventDefault();
+    e.stopPropagation();
+  }
+}
+
+function onSearchBlur() {
+  // Delay slightly so a recent-item click (mousedown) registers before the
+  // dropdown unmounts. We also use @mousedown.prevent on the items, so this
+  // is belt-and-braces — if focus management ever changes upstream, the
+  // mousedown handlers still win.
+  setTimeout(() => {
+    searchHasFocus.value = false;
+  }, 120);
+}
+
+function commitRecentSearch() {
+  // Pressing Enter is the user's signal "yes, this is a real search" — persist
+  // it now even though the watcher already fired the API call on debounce.
+  if (store.globalSearchTerm) persistRecentSearch(store.globalSearchTerm);
+}
 
 // watchers
 watch(
@@ -290,9 +453,14 @@ const loadSearchResults = async function (
     searchResult.value = undefined;
   }
   loading.value = false;
+  // Persist to recent searches once the search has actually run. We do it
+  // here rather than in the input watcher so we don't pollute the list with
+  // every keystroke during typing.
+  if (searchTerm) persistRecentSearch(searchTerm);
 };
 
 onMounted(() => {
+  loadRecentSearches();
   if (!store.globalSearchTerm) {
     const savedSearch = getPreference<string>("globalSearch").value;
     if (savedSearch && savedSearch !== "null") {
@@ -383,5 +551,102 @@ const filteredItems = function (mediaType: MediaType) {
   border-radius: 2px;
   background: rgb(var(--v-theme-primary));
   opacity: 0.85;
+}
+
+/* count badge appended inside each chip — dim, not competing with the label */
+.streamloader-chip-count {
+  margin-left: 6px;
+  font-size: 0.78em;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}
+.streamloader-search-chips
+  :deep(.v-chip.text-primary)
+  .streamloader-chip-count {
+  opacity: 0.85;
+}
+
+/* wrap so the spinner + recent-searches dropdown can position over the input */
+.streamloader-search-wrap {
+  position: relative;
+}
+.streamloader-search-spinner {
+  position: absolute;
+  top: 50%;
+  right: 48px; /* clear of the v-text-field clear button */
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* recent-searches dropdown — Spotify-style suggestions panel */
+.streamloader-recent-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 6px 0;
+  z-index: 10;
+  overflow: hidden;
+}
+.streamloader-recent-header {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.55;
+  padding: 6px 14px 4px;
+}
+.streamloader-recent-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 14px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  transition: background 0.12s ease;
+}
+.streamloader-recent-item:hover,
+.streamloader-recent-item:focus-visible {
+  background: rgba(45, 212, 191, 0.08);
+  outline: none;
+}
+.streamloader-recent-icon {
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+.streamloader-recent-term {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.streamloader-recent-clear {
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  margin-top: 4px;
+  border: 0;
+  border-top: 1px solid rgba(var(--v-border-color), 0.12);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  font-size: 0.82rem;
+  color: rgb(var(--v-theme-primary));
+  transition: background 0.12s ease;
+}
+.streamloader-recent-clear:hover,
+.streamloader-recent-clear:focus-visible {
+  background: rgba(45, 212, 191, 0.08);
+  outline: none;
 }
 </style>
