@@ -18,7 +18,7 @@
       <Transition name="intro-fade">
         <div v-if="beforeFirstLyric" class="lyrics-intro">
           <div class="song-title" :style="{ color: textColor }">
-            {{ props.mediaItem?.name }}
+            {{ prettyMediaItemName }}
           </div>
           <div class="artist-name">{{ artistName }}</div>
           <div class="lyrics-coming-soon">
@@ -117,6 +117,7 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import { parseLrcLine } from "@/helpers/lrcParser";
+import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 import { MediaItemType, StreamDetails, Track } from "@/plugins/api/interfaces";
 import { $t } from "@/plugins/i18n";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
@@ -216,16 +217,29 @@ const artistName = computed(() => {
   ) {
     const track = props.mediaItem as Track;
     if (track.artists?.length) {
-      return track.artists.map((a) => a.name).join(", ");
+      // Streamloader-fork addition: per-name prettifier so filename-style
+      // artist tokens (`pearl_jam`) render cleanly. Display-layer only.
+      return track.artists.map((a) => prettifyMediaName(a.name)).join(", ");
     }
   }
   if (
     "media_type" in props.mediaItem &&
     props.mediaItem.media_type === "artist"
   ) {
-    return props.mediaItem.name;
+    return prettifyMediaName(props.mediaItem.name);
   }
   return "";
+});
+
+// Streamloader-fork addition: cosmetic prettifier for filename-derived
+// names. Display-layer only — see helpers/prettifyMediaName.ts.
+const prettyMediaItemName = computed(() => {
+  if (!props.mediaItem) return "";
+  const artistContext =
+    "artists" in props.mediaItem && props.mediaItem.artists?.length
+      ? props.mediaItem.artists[0].name
+      : undefined;
+  return prettifyMediaName(props.mediaItem.name, { artist: artistContext });
 });
 
 const getPlainLyrics = () => {

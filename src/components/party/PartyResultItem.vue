@@ -17,7 +17,7 @@
       </Avatar>
       <div class="result-text">
         <MarqueeText class="result-name">
-          {{ item.name }}
+          {{ prettyItemName }}
         </MarqueeText>
         <MarqueeText class="result-artist">
           {{ artistName }}
@@ -102,6 +102,7 @@ import { MediaType } from "@/plugins/api/interfaces";
 import { $t } from "@/plugins/i18n";
 import { CircleCheck, Coins, ListPlus, Music, Rocket } from "lucide-vue-next";
 import { computed } from "vue";
+import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 
 const props = defineProps<{
   item: Track | Artist;
@@ -155,9 +156,21 @@ const artistName = computed(() => {
     return $t("artist");
   }
   if ("artists" in props.item && props.item.artists.length > 0) {
-    return props.item.artists.map((a) => a.name).join(", ");
+    // Streamloader-fork addition: per-name prettifier so filename-style
+    // artist tokens render cleanly. Display-layer only.
+    return props.item.artists.map((a) => prettifyMediaName(a.name)).join(", ");
   }
   return $t("providers.party.guest_page.unknown_artist");
+});
+
+// Streamloader-fork addition: cosmetic prettifier for filename-derived
+// names. Display-layer only — see helpers/prettifyMediaName.ts.
+const prettyItemName = computed(() => {
+  const artistContext =
+    "artists" in props.item && props.item.artists?.length
+      ? props.item.artists[0].name
+      : undefined;
+  return prettifyMediaName(props.item.name, { artist: artistContext });
 });
 </script>
 

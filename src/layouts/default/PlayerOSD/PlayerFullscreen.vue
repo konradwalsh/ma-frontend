@@ -152,7 +152,11 @@
               @click="onTitleClick"
             >
               <MarqueeText :sync="playerMarqueeSync">
-                {{ store.activePlayer.current_media.title }}
+                {{
+                  prettifyMediaName(store.activePlayer.current_media.title, {
+                    artist: store.activePlayer.current_media.artist,
+                  })
+                }}
               </MarqueeText>
             </v-card-title>
             <!-- no player selected message -->
@@ -185,7 +189,11 @@
               @click="onAlbumClick"
             >
               <MarqueeText :sync="playerMarqueeSync">
-                {{ store.activePlayer.current_media.album }}
+                {{
+                  prettifyMediaName(store.activePlayer.current_media.album, {
+                    artist: store.activePlayer.current_media.artist,
+                  })
+                }}
               </MarqueeText>
             </v-card-subtitle>
 
@@ -196,7 +204,7 @@
               @click="onArtistClick"
             >
               <MarqueeText :sync="playerMarqueeSync">
-                {{ store.activePlayer.current_media.artist }}
+                {{ prettifyMediaName(store.activePlayer.current_media.artist) }}
               </MarqueeText>
             </v-card-subtitle>
 
@@ -320,7 +328,16 @@
                               store.curQueueItem?.queue_item_id,
                           }"
                         >
-                          {{ item.name }}
+                          {{
+                            prettifyMediaName(item.name, {
+                              artist:
+                                item.media_item &&
+                                "artists" in item.media_item &&
+                                item.media_item.artists?.length
+                                  ? item.media_item.artists[0].name
+                                  : undefined,
+                            })
+                          }}
                         </span>
                       </MarqueeText>
                     </div>
@@ -350,7 +367,15 @@
                             item.media_item.album
                           "
                         >
-                          {{ item.media_item.album.name }}
+                          {{
+                            prettifyMediaName(item.media_item.album.name, {
+                              artist:
+                                "artists" in item.media_item &&
+                                item.media_item.artists?.length
+                                  ? item.media_item.artists[0].name
+                                  : undefined,
+                            })
+                          }}
                         </span>
                       </MarqueeText>
                     </div>
@@ -636,6 +661,7 @@ import {
   getPlayerName,
   sleep,
 } from "@/helpers/utils";
+import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 import NextBtn from "@/layouts/default/PlayerOSD/PlayerControlBtn/NextBtn.vue";
 import PlayBtn from "@/layouts/default/PlayerOSD/PlayerControlBtn/PlayBtn.vue";
 import PreviousBtn from "@/layouts/default/PlayerOSD/PlayerControlBtn/PreviousBtn.vue";

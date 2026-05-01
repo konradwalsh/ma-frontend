@@ -82,7 +82,11 @@
           "
         >
           <div v-if="player.current_media?.title">
-            {{ player.current_media.title }}
+            {{
+              prettifyMediaName(player.current_media.title, {
+                artist: player.current_media.artist,
+              })
+            }}
           </div>
         </div>
       </template>
@@ -102,18 +106,26 @@
               player.current_media?.artist && player.current_media?.album
             "
           >
-            {{ player.current_media.artist }} •
-            {{ player.current_media.album }}
+            {{ prettifyMediaName(player.current_media.artist) }} •
+            {{
+              prettifyMediaName(player.current_media.album, {
+                artist: player.current_media.artist,
+              })
+            }}
           </div>
 
           <!-- artist only -->
           <div v-else-if="player.current_media?.artist">
-            {{ player.current_media.artist }}
+            {{ prettifyMediaName(player.current_media.artist) }}
           </div>
 
           <!-- album only -->
           <div v-else-if="player.current_media?.album">
-            {{ player.current_media.album }}
+            {{
+              prettifyMediaName(player.current_media.album, {
+                artist: player.current_media.artist,
+              })
+            }}
           </div>
           <!-- queue empty (hidden visually, announced by screen readers) -->
           <div
@@ -249,6 +261,7 @@ import {
   ImageColorPalette,
   isBuiltinPlayer,
 } from "@/helpers/utils";
+import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 import api from "@/plugins/api";
 import {
   PlaybackState,

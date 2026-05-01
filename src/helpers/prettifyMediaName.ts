@@ -62,7 +62,8 @@ function stripArtistPrefix(name: string, artist: string): string {
   // artist string can match any non-alphanumeric run (or none) in the
   // name. Case-insensitive throughout. This lets "Graham Coxon" match
   // "graham_coxon", "graham-coxon", "grahamcoxon", etc.
-  const escapeForRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escapeForRegex = (s: string) =>
+    s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const tokens = artist
     .split(/[^A-Za-z0-9]+/)
     .filter((t) => t.length > 0)
@@ -103,7 +104,9 @@ function titleCaseOutsideBrackets(input: string): string {
   const flushOutside = () => {
     if (!buf) return;
     const parts = buf.split(WORD_BOUNDARY_RE);
-    out += parts.map((p) => (WORD_BOUNDARY_RE.test(p) ? p : titleCaseWord(p))).join("");
+    out += parts
+      .map((p) => (WORD_BOUNDARY_RE.test(p) ? p : titleCaseWord(p)))
+      .join("");
     buf = "";
   };
 

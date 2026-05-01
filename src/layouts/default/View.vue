@@ -1,6 +1,7 @@
 <template>
   <v-main
     id="cont"
+    tabindex="-1"
     :class="['main-layout', { 'main-layout--mobile': store.mobileLayout }]"
   >
     <SidebarProvider>

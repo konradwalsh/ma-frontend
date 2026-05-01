@@ -60,7 +60,7 @@
             <span>{{ getBrowseFolderName(item as BrowseFolder, $t) }}</span>
           </span>
           <span v-else :class="{ 'is-playing': isPlaying }">{{
-            displayName
+            prettyDisplayName
           }}</span>
           <span
             v-if="'version' in item && item.version"
@@ -183,6 +183,7 @@ import {
   handlePlayBtnClick,
   parseBool,
 } from "@/helpers/utils";
+import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 import {
   BrowseFolder,
   ContentType,
@@ -235,6 +236,16 @@ const displayName = computed(() => {
     );
   }
   return compProps.item.name;
+});
+
+// Streamloader-fork addition: cosmetic prettifier for filename-derived
+// names. Display-layer only — see helpers/prettifyMediaName.ts.
+const prettyDisplayName = computed(() => {
+  const artistName =
+    "artists" in compProps.item && compProps.item.artists?.length
+      ? compProps.item.artists[0].name
+      : undefined;
+  return prettifyMediaName(displayName.value, { artist: artistName });
 });
 
 // computed properties

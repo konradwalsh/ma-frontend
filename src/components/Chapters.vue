@@ -30,7 +30,9 @@
           </template>
           <template #title>
             <div class="chapter-title-row">
-              <span class="chapter-title-text">{{ chapter.name }}</span>
+              <span class="chapter-title-text">{{
+                prettifyMediaName(chapter.name)
+              }}</span>
               <v-icon
                 v-if="isChapterPlayed(chapter) && !isCurrentChapter(chapter)"
                 size="x-small"
@@ -73,6 +75,7 @@
 import Container from "@/components/Container.vue";
 import Toolbar from "@/components/Toolbar.vue";
 import { formatDuration } from "@/helpers/utils";
+import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 import { api } from "@/plugins/api";
 import { itemIsAvailable } from "@/plugins/api/helpers";
 import { MediaItemChapter, type MediaItemType } from "@/plugins/api/interfaces";

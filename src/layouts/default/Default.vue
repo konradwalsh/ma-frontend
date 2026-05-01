@@ -71,7 +71,7 @@ import StreamloaderWelcomeTour from "@/components/StreamloaderWelcomeTour.vue";
 import { store } from "@/plugins/store";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import api from "@/plugins/api";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
 import { eventbus, type QueueItemsAddedEvent } from "@/plugins/eventbus";
 import { useStreamloaderPref } from "@/composables/streamloaderPrefs";
@@ -213,6 +213,38 @@ watch(
 );
 
 const route = useRoute();
+const router = useRouter();
+
+// a11y (batch 36): route-change focus reset. When the user navigates
+// between pages (Library tabs, sidebar links, etc.) the previously-focused
+// element (typically a sidebar item) often becomes detached or visually
+// recedes, leaving SR users without context about where they landed. We
+// move focus to the new page's main landmark on every route transition
+// *after* the initial load. The first navigation is silently primed so
+// boot doesn't snap focus away from whatever the user was doing.
+let initialRouteSettled = false;
+router.afterEach((to, from) => {
+  if (!initialRouteSettled) {
+    initialRouteSettled = true;
+    return;
+  }
+  // Same-path query-only changes (e.g. ?player=… or ?showFullscreenPlayer=)
+  // shouldn't yank focus — they're not real page changes.
+  if (to.path === from.path) return;
+  // Defer to next microtask + animation frame so the new view's mount has
+  // happened and the target element is in the DOM.
+  Promise.resolve().then(() => {
+    requestAnimationFrame(() => {
+      const target = document.querySelector<HTMLElement>(
+        "[data-page-heading], main h1, #cont",
+      );
+      if (target) {
+        target.focus({ preventScroll: false });
+      }
+    });
+  });
+});
+
 watch(
   // make sure it's retriggered when players array is populated
   [() => route.query.player, () => Object.keys(api.players).length],

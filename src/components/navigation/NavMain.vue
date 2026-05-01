@@ -152,10 +152,15 @@ const handleClick = (item: NavItem, event: Event) => {
   background-color: rgba(45, 212, 191, 0.1) !important;
 }
 
+/* a11y (batch 36): light-mode active text bumped from #0f766e to #0d6660
+   so 4.5:1 WCAG AA contrast holds against the rgba(15,118,110,0.12)
+   background (the original #0f766e on that tinted-white surface measured
+   ~4.24:1, just under AA). Border + icon stay at #0f766e — those are
+   non-text affordances and only need 3:1 (WCAG 1.4.11). */
 :deep(.nav-main-button--active) {
   border-left-color: #0f766e !important;
   background-color: rgba(15, 118, 110, 0.12) !important;
-  color: #0f766e !important;
+  color: #0d6660 !important;
 }
 
 :deep(.dark .nav-main-button--active),

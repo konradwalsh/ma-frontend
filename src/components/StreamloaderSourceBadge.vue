@@ -220,8 +220,13 @@ const classification = computed<Classification | null>(() => {
   color: #15803d;
   background: rgba(22, 163, 74, 0.12);
 }
+/* a11y (batch 36): light-mode cached label darkened from #0f766e to
+   #0d6660 to meet WCAG AA 4.5:1 against the tinted-white badge
+   background (#0f766e measured ~4.24:1, fractionally under). The
+   border stays at the original tone — it's non-text and only needs
+   3:1 (WCAG 1.4.11). */
 :global(.v-theme--light) .sl-source-badge--cached {
-  color: #0f766e;
+  color: #0d6660;
   background: rgba(15, 118, 110, 0.12);
   border-color: rgba(15, 118, 110, 0.35);
 }

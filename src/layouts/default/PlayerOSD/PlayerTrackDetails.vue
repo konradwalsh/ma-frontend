@@ -131,13 +131,17 @@
                   !props.showOnlyArtist
                 "
               >
-                {{ store.activePlayer?.current_media?.artist }}
+                {{
+                  prettifyMediaName(store.activePlayer?.current_media?.artist)
+                }}
                 <span class="track-sep">•</span>
                 <span class="track-album">{{ prettyTrackAlbum }}</span>
               </span>
               <!-- artists(s) only -->
               <span v-else-if="store.activePlayer?.current_media?.artist">
-                {{ store.activePlayer?.current_media?.artist }}
+                {{
+                  prettifyMediaName(store.activePlayer?.current_media?.artist)
+                }}
               </span>
               <!-- album only -->
               <span v-else-if="store.activePlayer?.current_media?.album">

@@ -69,6 +69,7 @@ import { Rocket, UserRound } from "lucide-vue-next";
 import { store } from "@/plugins/store";
 import api from "@/plugins/api";
 import computeElapsedTime from "@/helpers/elapsed";
+import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 
 const { config: partyConfig } = usePartyConfig();
 
@@ -159,18 +160,37 @@ const badgeText = computed(() => {
   return $t("providers.party.request");
 });
 
+// Streamloader-fork addition: helper to extract a usable artist context
+// for the prettifier (so `04-pearl_jam-corduroy` strips correctly when we
+// know the artist).
+const firstArtistName = computed<string | undefined>(() => {
+  if (
+    props.queueItem?.media_item &&
+    "artists" in props.queueItem.media_item &&
+    props.queueItem.media_item.artists?.length
+  ) {
+    return props.queueItem.media_item.artists[0].name;
+  }
+  return undefined;
+});
+
 // Computed track name - prefer media_item.name for proper track title
 const trackName = computed(() => {
   if (!props.queueItem) return "";
   // For radio streams, stream_metadata.title contains the current track
   const streamTitle = props.queueItem.streamdetails?.stream_metadata?.title;
-  if (streamTitle) return streamTitle;
+  if (streamTitle) return prettifyMediaName(streamTitle);
   // Use media_item.name for proper track title (not "Artist - Title" format)
   if (props.queueItem.media_item && "name" in props.queueItem.media_item) {
-    return props.queueItem.media_item.name;
+    // Streamloader-fork addition: prettifier (artist context if known).
+    return prettifyMediaName(props.queueItem.media_item.name, {
+      artist: firstArtistName.value,
+    });
   }
   // Fallback to queue item name
-  return props.queueItem.name;
+  return prettifyMediaName(props.queueItem.name, {
+    artist: firstArtistName.value,
+  });
 });
 
 // Computed subtitle - shows "Artist - Album" or just artist for streams
@@ -179,7 +199,7 @@ const artistName = computed(() => {
 
   // For radio streams, just show the artist
   const streamArtist = props.queueItem.streamdetails?.stream_metadata?.artist;
-  if (streamArtist) return streamArtist;
+  if (streamArtist) return prettifyMediaName(streamArtist);
 
   // Build "Artist - Album" format for regular tracks
   const parts: string[] = [];
@@ -190,8 +210,10 @@ const artistName = computed(() => {
     "artists" in props.queueItem.media_item &&
     props.queueItem.media_item.artists?.length
   ) {
+    // Streamloader-fork addition: per-name prettifier so filename-style
+    // artist tokens render cleanly. Display-layer only.
     const artistStr = props.queueItem.media_item.artists
-      .map((a: { name: string }) => a.name)
+      .map((a: { name: string }) => prettifyMediaName(a.name))
       .join(", ");
     parts.push(artistStr);
   }
@@ -202,7 +224,12 @@ const artistName = computed(() => {
     "album" in props.queueItem.media_item &&
     props.queueItem.media_item.album?.name
   ) {
-    parts.push(props.queueItem.media_item.album.name);
+    // Streamloader-fork addition: prettifier with artist context.
+    parts.push(
+      prettifyMediaName(props.queueItem.media_item.album.name, {
+        artist: firstArtistName.value,
+      }),
+    );
   }
 
   return parts.join(" • ");

@@ -220,7 +220,7 @@
                   :key="artist.item_id"
                 >
                   <a style="color: accent" @click="artistClick(artist)">{{
-                    artist.name
+                    prettifyMediaName(artist.name)
                   }}</a>
                   <span
                     v-if="artistindex + 1 < item.artists.length"
@@ -532,6 +532,39 @@
                 @keydown.enter.prevent="openEditArtwork"
                 @keydown.space.prevent="openEditArtwork"
               />
+              <!-- Streamloader-fork addition: re-trigger upstream metadata
+                   extraction. The frontend prettifier (batch 34) only
+                   masks filename-bleeding bugs at display time — the real
+                   fix is to re-run streamloader's metadata pipeline so the
+                   cleaned name persists to the underlying record. Same
+                   media-type gating as Replace artwork. Wraps MA's
+                   existing `music/refresh_item` command (api.refreshItem);
+                   on success we listen for the matching MEDIA_ITEM_UPDATED
+                   WebSocket event and surface a "complete" toast. -->
+              <v-tooltip v-if="canEditArtwork" location="bottom">
+                <template #activator="{ props: tooltipProps }">
+                  <span
+                    v-bind="tooltipProps"
+                    class="sl-rescan-btn cursor-pointer ml-2"
+                    :class="{
+                      'sl-rescan-btn--disabled':
+                        rescanInFlight || rescanCooldownActive,
+                    }"
+                    role="button"
+                    tabindex="0"
+                    aria-label="Rescan metadata"
+                    @click="triggerRescanMetadata"
+                    @keydown.enter.prevent="triggerRescanMetadata"
+                    @keydown.space.prevent="triggerRescanMetadata"
+                  >
+                    <RefreshCw
+                      :size="22"
+                      :class="{ 'sl-rescan-spin': rescanInFlight }"
+                    />
+                  </span>
+                </template>
+                <span>Rescan metadata</span>
+              </v-tooltip>
             </div>
           </div>
           <div
@@ -630,11 +663,13 @@ import type {
   Album,
   Artist,
   Audiobook,
+  EventMessage,
   Genre,
   ItemMapping,
   MediaItemType,
 } from "@/plugins/api/interfaces";
 import {
+  EventType,
   ImageType,
   MediaType,
   PlaybackState,
@@ -644,8 +679,9 @@ import { authManager } from "@/plugins/auth";
 import { eventbus } from "@/plugins/eventbus";
 import { store } from "@/plugins/store";
 import { IconHeart, IconHeartFilled } from "@tabler/icons-vue";
-import { ArrowLeft, ImagePlus, Merge, Trash2 } from "lucide-vue-next";
-import { computed, ref, watch } from "vue";
+import { ArrowLeft, ImagePlus, Merge, RefreshCw, Trash2 } from "lucide-vue-next";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { toast } from "vue-sonner";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
@@ -964,6 +1000,120 @@ const openEditArtwork = () => {
   if (!canEditArtwork.value) return;
   showEditArtwork.value = true;
 };
+
+// ─── Streamloader-fork addition: Rescan-metadata button ──────────────
+//
+// Re-triggers MA's `music/refresh_item` WebSocket command so streamloader
+// re-runs its metadata extraction pipeline against the original source
+// (the real fix for the filename-bleeding bugs that batch 34's frontend
+// prettifier only papers over at display time).
+//
+// We also queue the requested item_ids in localStorage under
+// `streamloader-metadata-rescan-queue` so that, if a future batch ships
+// a dedicated streamloader-side rescan endpoint, we can replay the queue
+// to re-extract previously-affected items in bulk.
+//
+// Backend endpoint pending: streamloader/rescan_metadata?item_id=...
+//
+// UX:
+//   - Spin the lucide RefreshCw icon while the WS round-trip is in flight.
+//   - 5-second debounce after a click — guards against rapid-fire users
+//     and against the inevitable "I'll click it twenty times to make sure"
+//     pattern.
+//   - Success toast on click acknowledges the queue; a second toast fires
+//     when the matching MEDIA_ITEM_UPDATED WS event arrives so the user
+//     knows the backend actually completed the rescan.
+const RESCAN_QUEUE_KEY = "streamloader-metadata-rescan-queue";
+const RESCAN_DEBOUNCE_MS = 5000;
+const rescanInFlight = ref(false);
+const rescanCooldownActive = ref(false);
+let rescanCooldownTimer: ReturnType<typeof setTimeout> | null = null;
+let rescanPendingUri: string | null = null;
+let unsubRescanWatcher: (() => void) | null = null;
+
+const queueRescanItemId = (itemId: string) => {
+  // Persist into a local queue so a future backend endpoint can replay
+  // the rescan request server-side. De-dupes; survives reload.
+  try {
+    const raw = localStorage.getItem(RESCAN_QUEUE_KEY);
+    const queue: string[] = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(queue)) {
+      localStorage.setItem(RESCAN_QUEUE_KEY, JSON.stringify([itemId]));
+      return;
+    }
+    if (!queue.includes(itemId)) queue.push(itemId);
+    localStorage.setItem(RESCAN_QUEUE_KEY, JSON.stringify(queue));
+  } catch {
+    // Quota exceeded / disabled storage → silently ignore; the live
+    // refresh still happens via the WS command.
+  }
+};
+
+const triggerRescanMetadata = async () => {
+  if (!compProps.item) return;
+  if (!canEditArtwork.value) return;
+  if (rescanInFlight.value || rescanCooldownActive.value) return;
+
+  const target = compProps.item;
+  const displayName = headerTitle.value || target.name || "this item";
+  rescanInFlight.value = true;
+  rescanCooldownActive.value = true;
+  rescanPendingUri = target.uri;
+  queueRescanItemId(target.item_id);
+
+  toast.info(
+    `Rescanning metadata for ${displayName}… this may take a moment.`,
+  );
+
+  try {
+    const updated = await api.refreshItem(target);
+    // Mirror ItemContextMenu's "refresh_item" flow so the rest of the UI
+    // (track listings under albums, etc.) re-renders off the same WS
+    // signal pattern even when MA's backend doesn't broadcast on its own.
+    if (updated) {
+      api.signalEvent({
+        event: EventType.MEDIA_ITEM_UPDATED,
+        object_id: updated.uri,
+        data: updated,
+      });
+    }
+  } catch (err) {
+    toast.error(`Rescan failed for ${displayName}.`);
+    // eslint-disable-next-line no-console
+    console.warn("[streamloader] rescan_metadata error", err);
+    rescanPendingUri = null;
+  } finally {
+    rescanInFlight.value = false;
+    if (rescanCooldownTimer) clearTimeout(rescanCooldownTimer);
+    rescanCooldownTimer = setTimeout(() => {
+      rescanCooldownActive.value = false;
+      rescanCooldownTimer = null;
+    }, RESCAN_DEBOUNCE_MS);
+  }
+};
+
+onMounted(() => {
+  // Watch for the matching MEDIA_ITEM_UPDATED so we can confirm the
+  // rescan landed. Filter by uri set when the user clicked Rescan;
+  // ignore the unrelated UPDATED events that fly past constantly.
+  unsubRescanWatcher = api.subscribe(
+    EventType.MEDIA_ITEM_UPDATED,
+    (evt: EventMessage) => {
+      if (!rescanPendingUri) return;
+      const updated = evt.data as MediaItemType | undefined;
+      if (!updated) return;
+      if (updated.uri !== rescanPendingUri) return;
+      const displayName = updated.name || "item";
+      toast.success(`Metadata rescan complete for ${displayName}.`);
+      rescanPendingUri = null;
+    },
+  );
+});
+
+onBeforeUnmount(() => {
+  if (unsubRescanWatcher) unsubRescanWatcher();
+  if (rescanCooldownTimer) clearTimeout(rescanCooldownTimer);
+});
 
 const mergeGenre = () => {
   if (!compProps.item) return;
@@ -1360,5 +1510,51 @@ const deleteGenre = () => {
   text-transform: none;
   letter-spacing: 0.02em;
   font-weight: 600;
+}
+
+/* ─── Streamloader-fork addition: rescan-metadata icon button.
+       Inline-flex wrapper keeps the lucide RefreshCw icon visually
+       aligned with the sibling ImagePlus / Heart icons (which all live
+       in the same `flex items-center gap-2` row). The wrapper, not the
+       SVG itself, is the click target so keyboard focus + tooltip
+       binding stay consistent with the other icon-buttons in this row. */
+.sl-rescan-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  color: inherit;
+  border-radius: 4px;
+}
+
+.sl-rescan-btn:focus-visible {
+  outline: 2px solid #2dd4bf;
+  outline-offset: 2px;
+}
+
+.sl-rescan-btn--disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+/* Spin while a rescan WS round-trip is in flight. Pure CSS keeps the
+   feedback snappy without coupling to any animation library. */
+.sl-rescan-spin {
+  animation: sl-rescan-spin 900ms linear infinite;
+}
+
+@keyframes sl-rescan-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-rescan-spin {
+    animation: none;
+  }
 }
 </style>

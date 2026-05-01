@@ -174,7 +174,11 @@
         <v-btn
           class="sl-eaw-apply"
           :disabled="!canApply"
-          :aria-label="applyLabel === 'Apply' ? 'Apply artwork override' : 'Replace existing artwork override'"
+          :aria-label="
+            applyLabel === 'Apply'
+              ? 'Apply artwork override'
+              : 'Replace existing artwork override'
+          "
           @click="apply"
         >
           {{ applyLabel }}
@@ -217,9 +221,7 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 const urlInputRef = ref<HTMLInputElement | null>(null);
 // Vuetify v-btn refs are component instances; we only need .focus() so the
 // loose ComponentPublicInstance shape is enough.
-const resetBtnRef = ref<{ $el?: HTMLElement; focus?: () => void } | null>(
-  null,
-);
+const resetBtnRef = ref<{ $el?: HTMLElement; focus?: () => void } | null>(null);
 
 // Reactive snapshot of any override that already exists for this item.
 // Recomputes whenever the dialog opens for a new item OR when the user resets.

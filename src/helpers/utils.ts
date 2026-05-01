@@ -26,6 +26,7 @@ import { itemIsAvailable } from "@/plugins/api/helpers";
 import router from "@/plugins/router";
 import { store } from "@/plugins/store";
 import { webPlayer } from "@/plugins/web_player";
+import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 import Color from "color";
 import { getPaletteSync } from "colorthief";
 import { Volume, Volume1, Volume2, VolumeX } from "lucide-vue-next";
@@ -194,16 +195,21 @@ export const getArtistsString = function (
   size?: number,
 ) {
   if (!artists) return "";
+  // Streamloader-fork addition: cosmetic prettifier for filename-derived
+  // artist names (e.g. `pearl_jam`, `04-graham_coxon`). Applied at the
+  // display layer ONLY — does NOT mutate the underlying artist objects,
+  // so search/sort/filter logic that reads `.name` directly is unaffected.
+  // No `context.artist` is passed because the name IS the artist.
   if (size)
     return artists
       .slice(0, size)
       .map((x) => {
-        return x.name;
+        return prettifyMediaName(x.name);
       })
       .join(" | ");
   return artists
     .map((x) => {
-      return x.name;
+      return prettifyMediaName(x.name);
     })
     .join(" | ");
 };
