@@ -46,6 +46,18 @@ export type ImportPlaylistEvent = {
   playlistName: string;
 };
 
+// Streamloader-fork addition: per-action queue announcement payload.
+// Emitted by api.playMedia / api.addPlaylistTracks so the global aria-live
+// region in Default.vue can speak intent ("Added 3 songs to queue",
+// "Playing next", "Added to playlist") instead of only the post-hoc
+// length delta. `count` may be undefined when the action expands to an
+// unknown number of tracks server-side (e.g. play-album).
+export type QueueItemsAddedEvent = {
+  count?: number;
+  optionType: "add" | "next" | "play" | "replace" | "replace_next" | "playlist";
+  targetName?: string;
+};
+
 export type Events = {
   contextmenu: ContextMenuDialogEvent;
   playlistdialog: PlaylistDialogEvent;
@@ -59,6 +71,7 @@ export type Events = {
   genreExcluded: void;
   "homescreen-edit-toggle": void;
   "mobile-sidebar-open": void;
+  "queue:items-added": QueueItemsAddedEvent;
 };
 
 export const eventbus: Emitter<Events> = mitt<Events>();

@@ -323,6 +323,22 @@
                     </div>
                   </template>
                   <template #append>
+                    <!-- Streamloader source badge: tracks only, compact dot
+                         to keep the dense queue row quiet. Same gating as
+                         ListviewItem (media_type TRACK + has provider_mappings).
+                         Sits left of the existing badges so the now-playing
+                         badge keeps its rightmost prominence. -->
+                    <StreamloaderSourceBadge
+                      v-if="
+                        item.media_item &&
+                        item.media_item.media_type === MediaType.TRACK &&
+                        'provider_mappings' in item.media_item &&
+                        item.media_item.provider_mappings?.length
+                      "
+                      :item="item.media_item"
+                      compact
+                      class="queue-source-badge"
+                    />
                     <PartyRequestBadge
                       v-if="item.extra_attributes?.party_guest === true"
                       :type="
@@ -553,6 +569,7 @@ import MediaItemThumb from "@/components/MediaItemThumb.vue";
 import NowPlayingBadge from "@/components/NowPlayingBadge.vue";
 import PartyRequestBadge from "@/components/party/PartyRequestBadge.vue";
 import QualityDetailsBtn from "@/components/QualityDetailsBtn.vue";
+import StreamloaderSourceBadge from "@/components/StreamloaderSourceBadge.vue";
 import { useLyricsElapsedTime } from "@/composables/useLyricsElapsedTime";
 import { usePartyConfig } from "@/composables/usePartyConfig";
 import { MarqueeTextSync } from "@/helpers/marquee_text_sync";
@@ -1590,6 +1607,14 @@ watchEffect(() => {
 
 .queue-items-scroll-box :deep(.v-list-item-subtitle) {
   font-size: var(--queue-subtitle-size, 0.875rem);
+}
+
+/* Streamloader source badge in queue rows: small right margin so the
+   compact dot doesn't crowd the now-playing badge. flex-shrink:0 keeps
+   the dot intact on narrow ~280px queue panels. */
+.queue-source-badge {
+  margin-right: 6px;
+  flex: 0 0 auto;
 }
 
 .v-infinite-scroll--vertical {

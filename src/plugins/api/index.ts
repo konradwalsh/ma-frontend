@@ -762,6 +762,19 @@ export class MusicAssistantApi {
       },
     ).then((task) => {
       this._notifyBackgroundTaskStarted(task);
+      // Streamloader-fork a11y: announce additions to a playlist via the
+      // global aria-live region (Default.vue). Lazy import to dodge the
+      // init-time cycle through eventbus.ts -> ItemContextMenu.vue.
+      import("../eventbus")
+        .then(({ eventbus }) => {
+          eventbus.emit("queue:items-added", {
+            count: uris.length,
+            optionType: "playlist",
+          });
+        })
+        .catch(() => {
+          /* eventbus unavailable — silent (a11y only) */
+        });
       return task;
     });
   }
@@ -1765,7 +1778,7 @@ export class MusicAssistantApi {
     } else if (!queue_id) {
       queue_id = store.activePlayer?.player_id;
     }
-    return this.sendCommand("player_queues/play_media", {
+    const result = this.sendCommand<void>("player_queues/play_media", {
       queue_id,
       media,
       option,
@@ -1773,6 +1786,52 @@ export class MusicAssistantApi {
       start_item,
       sort_by,
     });
+    // Streamloader-fork a11y: emit per-action queue announcement so the
+    // global aria-live region in Default.vue can speak intent (e.g.
+    // "Added 3 songs to queue", "Playing next") rather than only the
+    // post-hoc length delta. We compute count from the media argument
+    // when it's an array; for single items count is 1; for opaque
+    // collections (album/playlist URI strings, radio_mode) count stays
+    // undefined and the listener falls back to a generic phrasing. We
+    // emit via lazy import to avoid an init-time cycle through
+    // eventbus.ts -> ItemContextMenu.vue -> @/plugins/api.
+    const optionType = (option ?? QueueOption.PLAY) as
+      | QueueOption.PLAY
+      | QueueOption.REPLACE
+      | QueueOption.NEXT
+      | QueueOption.REPLACE_NEXT
+      | QueueOption.ADD;
+    let count: number | undefined;
+    if (Array.isArray(media)) count = media.length;
+    else if (
+      typeof media === "object" &&
+      !radio_mode &&
+      ("media_type" in media ? media.media_type === "track" : false)
+    )
+      count = 1;
+    void result.then(
+      () => {
+        import("../eventbus")
+          .then(({ eventbus }) => {
+            eventbus.emit("queue:items-added", {
+              count,
+              optionType: optionType as
+                | "add"
+                | "next"
+                | "play"
+                | "replace"
+                | "replace_next",
+            });
+          })
+          .catch(() => {
+            /* eventbus unavailable — silent (a11y only) */
+          });
+      },
+      () => {
+        /* play failure — don't announce */
+      },
+    );
+    return result;
   }
 
   // ProviderConfig related functions

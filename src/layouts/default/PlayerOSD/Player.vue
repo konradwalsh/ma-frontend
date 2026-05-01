@@ -257,6 +257,48 @@ $sl-teal-track: rgba(45, 212, 191, 0.28);
   line-height: 1.25;
 }
 
+// streamloader: mobile-only — tighten the now-playing title typography on the
+// floating mini-player. Slightly smaller, tighter tracking, and clamp to a
+// single line so long titles don't wrap and squeeze the controls. The
+// subtitle (artist) gets a touch less weight so the title reads first.
+@media (max-width: 700px) {
+  .mediacontrols[data-mobile="true"]
+    .mediacontrols-left
+    :deep(.mediadetails-title),
+  .mediacontrols[data-mobile="true"] .mediacontrols-left :deep(.title) {
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mediacontrols[data-mobile="true"]
+    .mediacontrols-left
+    :deep(.mediadetails-subtitle),
+  .mediacontrols[data-mobile="true"] .mediacontrols-left :deep(.subtitle) {
+    font-size: 0.78rem;
+    font-weight: 400;
+    opacity: 0.78;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // ensure a comfortable ≥44px hit target for the mobile play/pause button
+  // (WCAG 2.5.5). The 44px icon is wrapped by .play-btn-wrapper inside the
+  // PlayerControls component; pad it slightly so finger-presses land on the
+  // halo rather than skimming the icon edge.
+  .mediacontrols[data-mobile="true"] :deep(.play-btn-wrapper) {
+    min-width: 48px;
+    min-height: 48px;
+    padding: 2px;
+  }
+}
+
 // streamloader: teal fill for the timeline (track-scrubbing) slider rendered
 // by the nested PlayerTimeline component. Targets Vuetify v-slider internals.
 .mediacontrols-bottom-center :deep(.v-slider-track__fill) {

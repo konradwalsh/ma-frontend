@@ -29,9 +29,30 @@
         class="sl-empty__vinyl"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" stroke-width="0.6" />
-        <circle cx="50" cy="50" r="36" fill="none" stroke="currentColor" stroke-width="0.4" />
-        <circle cx="50" cy="50" r="24" fill="none" stroke="currentColor" stroke-width="0.4" />
+        <circle
+          cx="50"
+          cy="50"
+          r="48"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="0.6"
+        />
+        <circle
+          cx="50"
+          cy="50"
+          r="36"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="0.4"
+        />
+        <circle
+          cx="50"
+          cy="50"
+          r="24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="0.4"
+        />
         <circle cx="50" cy="50" r="6" fill="currentColor" />
       </svg>
     </div>
@@ -44,7 +65,11 @@
           :size="36"
           class="sl-empty__icon"
         />
-        <v-icon v-else-if="typeof icon === 'string'" size="40" class="sl-empty__icon">
+        <v-icon
+          v-else-if="typeof icon === 'string'"
+          size="40"
+          class="sl-empty__icon"
+        >
           {{ icon }}
         </v-icon>
       </div>
@@ -175,7 +200,9 @@ const onCtaClick = () => {
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: none;
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .sl-empty__cta:hover {

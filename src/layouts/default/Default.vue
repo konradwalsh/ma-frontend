@@ -53,10 +53,11 @@ import StreamloaderHealthPill from "@/components/StreamloaderHealthPill.vue";
 import StreamloaderActivityPulse from "@/components/StreamloaderActivityPulse.vue";
 import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
 import { store } from "@/plugins/store";
-import { computed, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import api from "@/plugins/api";
 import { useRoute } from "vue-router";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";
+import { eventbus, type QueueItemsAddedEvent } from "@/plugins/eventbus";
 
 // Streamloader-fork addition: register global music-player keyboard shortcuts
 // (Space/arrows/M/F/Esc). Composable handles input-bail + cleanup.
@@ -79,6 +80,71 @@ const queueSignature = computed(() => {
 let queueAnnounceTimer: ReturnType<typeof setTimeout> | undefined;
 let lastAnnouncedShuffle: boolean | undefined;
 let lastAnnouncedLength: number | undefined;
+// a11y: per-action announcements (emitted by api.playMedia /
+// addPlaylistTracks) are *intent-rich* and should preempt the post-hoc
+// length-delta watcher to avoid double-announcing the same mutation.
+// We stamp the time of the most-recent per-action announcement; the
+// signature watcher then suppresses any length change that arrives
+// within SUPPRESS_LENGTH_AFTER_PER_ACTION_MS of it. Shuffle changes
+// still announce normally (they are independent of length).
+const PER_ACTION_SUPPRESS_MS = 2000;
+let lastPerActionAt = 0;
+// Coalesce bursts of per-action emissions (e.g. multiple AddToPlaylist
+// clicks in quick succession) into a single SR announcement.
+let perActionDebounce: ReturnType<typeof setTimeout> | undefined;
+let pendingPerAction: QueueItemsAddedEvent[] = [];
+
+const speak = (msg: string) => {
+  // Toggle to empty first so SR re-announces even if string is identical
+  // to the previous announcement (some SRs suppress duplicates).
+  queueAnnouncement.value = "";
+  Promise.resolve().then(() => {
+    queueAnnouncement.value = msg;
+  });
+};
+
+const flushPerAction = () => {
+  if (pendingPerAction.length === 0) return;
+  // Group by optionType so "added 2 + added 3" → "Added 5 songs to queue"
+  // rather than two separate sentences. Unknown counts contribute "items".
+  const totals: Record<string, { count: number; unknown: boolean }> = {};
+  for (const ev of pendingPerAction) {
+    const bucket = totals[ev.optionType] || { count: 0, unknown: false };
+    if (ev.count === undefined) bucket.unknown = true;
+    else bucket.count += ev.count;
+    totals[ev.optionType] = bucket;
+  }
+  pendingPerAction = [];
+  const phrases: string[] = [];
+  for (const [type, { count, unknown }] of Object.entries(totals)) {
+    const noun = count === 1 && !unknown ? "song" : "songs";
+    const qty = unknown ? "items" : `${count} ${noun}`;
+    if (type === "add") phrases.push(`Added ${qty} to queue`);
+    else if (type === "next") phrases.push(`Playing ${qty} next`);
+    else if (type === "playlist") phrases.push(`Added ${qty} to playlist`);
+    else if (type === "replace_next") phrases.push(`Up next: ${qty}`);
+    else if (type === "play" || type === "replace") phrases.push(`Playing ${qty}`);
+  }
+  if (phrases.length === 0) return;
+  lastPerActionAt = Date.now();
+  speak(phrases.join(". "));
+  // Re-baseline the length tracker so the signature watcher's pending
+  // tick (if any) sees no delta and stays silent.
+  const sig = queueSignature.value;
+  if (sig) lastAnnouncedLength = sig.itemsLength;
+};
+
+const onQueueItemsAdded = (ev: QueueItemsAddedEvent) => {
+  pendingPerAction.push(ev);
+  if (perActionDebounce) clearTimeout(perActionDebounce);
+  // Shorter debounce than the signature watcher (300ms vs 700ms) so the
+  // intent-rich announcement wins when both fire for the same mutation.
+  perActionDebounce = setTimeout(flushPerAction, 300);
+};
+
+onMounted(() => eventbus.on("queue:items-added", onQueueItemsAdded));
+onBeforeUnmount(() => eventbus.off("queue:items-added", onQueueItemsAdded));
+
 watch(
   queueSignature,
   (next) => {
@@ -99,7 +165,10 @@ watch(
       if (next.shuffle !== lastAnnouncedShuffle) {
         parts.push(next.shuffle ? "Shuffle on" : "Shuffle off");
       }
-      if (next.itemsLength !== lastAnnouncedLength) {
+      const lengthChanged = next.itemsLength !== lastAnnouncedLength;
+      const recentPerAction =
+        Date.now() - lastPerActionAt < PER_ACTION_SUPPRESS_MS;
+      if (lengthChanged && !recentPerAction) {
         if (next.itemsLength === 0) {
           parts.push("Queue cleared");
         } else {
@@ -109,13 +178,7 @@ watch(
       lastAnnouncedLength = next.itemsLength;
       lastAnnouncedShuffle = next.shuffle;
       if (parts.length > 0) {
-        // Toggle to empty first so SR re-announces even if string is identical
-        // to the previous announcement (some SRs suppress duplicates).
-        queueAnnouncement.value = "";
-        // microtask gap so DOM mutation is observed
-        Promise.resolve().then(() => {
-          queueAnnouncement.value = parts.join(". ");
-        });
+        speak(parts.join(". "));
       }
     }, 700);
   },

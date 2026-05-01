@@ -2,11 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RepeatMode } from "@/plugins/api/interfaces";
 
 // Hoisted mocks shared between vi.mock factories and test cases.
-const {
-  apiMock,
-  storeMock,
-  resetStore,
-} = vi.hoisted(() => {
+const { apiMock, storeMock, resetStore } = vi.hoisted(() => {
   const apiMock = {
     players: {} as Record<string, { volume_level?: number; muted?: boolean }>,
     playerCommandPlayPause: vi.fn(),

@@ -1,12 +1,14 @@
 import ArtistIcon from "@/components/icons/ArtistIcon.vue";
 import GenreIcon from "@/components/icons/GenreIcon.vue";
 import { DEFAULT_MENU_ITEMS } from "@/constants";
+import api from "@/plugins/api";
 import { store } from "@/plugins/store";
 import {
   BookAudio,
   Compass,
   Disc3,
   Folder,
+  HardDrive,
   ListMusic,
   Music2,
   PartyPopper,
@@ -16,6 +18,30 @@ import {
   Settings,
 } from "lucide-vue-next";
 import { Component } from "vue";
+
+const STREAMLOADER_DOMAIN = "streamloader";
+
+/**
+ * Resolve the deep-link target for the sidebar "streamloader" item.
+ *
+ * If a streamloader provider is configured, jump straight to its
+ * edit page (`/settings/editprovider/{instanceId}` — see plugins/router.ts).
+ * Otherwise fall back to the generic providers list so users can add one.
+ * We read `api.providers` (a reactive map) so the URL recomputes whenever
+ * the provider set changes — getMenuItems() is invoked inside a `computed`
+ * in AppSidebar.vue, which establishes the reactive dependency.
+ */
+const getStreamloaderUrl = (): string => {
+  if (api.providers && Object.keys(api.providers).length > 0) {
+    const streamloader = Object.values(api.providers).find(
+      (provider) => provider.domain === STREAMLOADER_DOMAIN,
+    );
+    if (streamloader) {
+      return `/settings/editprovider/${streamloader.instance_id}`;
+    }
+  }
+  return "/settings/providers";
+};
 
 export interface MenuItem {
   label: string;
@@ -137,6 +163,22 @@ export const getMenuItems = function () {
       });
     }
     if (enabledMenuItemStr === "settings") {
+      // Streamloader deep-link sits directly above "settings" so it acts as
+      // the streamloader-aware shortcut into Settings → Providers. Hidden
+      // when no providers are configured at all (cold install) — surfacing
+      // a link to an empty providers list would be confusing. Always shown
+      // once any provider exists (streamloader or not), with the URL
+      // resolving to the streamloader provider edit page if present, else
+      // the generic providers list so the user can add one.
+      const hasAnyProviders =
+        !!api.providers && Object.keys(api.providers).length > 0;
+      items.push({
+        label: "streamloader",
+        icon: HardDrive,
+        path: getStreamloaderUrl(),
+        isLibraryNode: false,
+        hidden: !hasAnyProviders,
+      });
       items.push({
         label: "settings.settings",
         icon: Settings,

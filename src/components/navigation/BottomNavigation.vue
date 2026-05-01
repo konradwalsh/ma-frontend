@@ -132,7 +132,9 @@ function closePlayersMenu() {
 /* Brand teal: #2dd4bf (dark) / #0f766e (light) */
 .menuButton {
   font-weight: 350;
-  font-size: x-small;
+  font-size: 11px;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
   font-stretch: condensed;
   text-transform: none;
   margin-top: 5px;
@@ -141,7 +143,17 @@ function closePlayersMenu() {
 
 .menuButton--active {
   font-weight: 600;
+  letter-spacing: 0.02em;
   color: #0f766e;
+}
+
+/* streamloader: ensure each tab button presents at least a 44x44 hit target
+   on touch devices (WCAG 2.5.5). Vuetify's v-btn defaults to ~36px height
+   inside v-bottom-navigation; we promote the inner button surface only —
+   nav height itself is set on the parent wrapper. */
+.streamloader-bottom-nav .bn-btn {
+  min-height: 44px;
+  min-width: 44px;
 }
 
 .v-theme--dark .menuButton--active,
@@ -164,11 +176,44 @@ function closePlayersMenu() {
   border-radius: 2px;
   background: #0f766e;
   transition: background-color 150ms ease;
+  /* streamloader: subtle pulsing teal glow on the active-tab stripe so the
+     mobile nav's selected route reads at a glance. Pulse is gentle (3s,
+     ease-in-out) and respects users who prefer reduced motion. */
+  box-shadow: 0 0 6px rgba(15, 118, 110, 0.55);
+  animation: sl-bn-pulse 3s ease-in-out infinite;
 }
 
 .v-theme--dark .streamloader-bottom-nav .bn-btn--active::after,
 .v-theme--ma-dark .streamloader-bottom-nav .bn-btn--active::after {
   background: #2dd4bf;
+  box-shadow: 0 0 6px rgba(45, 212, 191, 0.55);
+  animation: sl-bn-pulse-dark 3s ease-in-out infinite;
+}
+
+@keyframes sl-bn-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(15, 118, 110, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(15, 118, 110, 0.7);
+  }
+}
+
+@keyframes sl-bn-pulse-dark {
+  0%,
+  100% {
+    box-shadow: 0 0 4px rgba(45, 212, 191, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(45, 212, 191, 0.75);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streamloader-bottom-nav .bn-btn--active::after {
+    animation: none !important;
+  }
 }
 
 /* Icon teal when active */

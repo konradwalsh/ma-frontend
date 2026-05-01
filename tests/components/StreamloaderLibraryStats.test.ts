@@ -39,9 +39,7 @@ describe("StreamloaderLibraryStats.vue", () => {
     storeMock.libraryArtistsCount = 100;
     storeMock.libraryAlbumsCount = 200;
     const wrapper = mount(StreamloaderLibraryStats);
-    const values = wrapper
-      .findAll(".sl-lib-stats__value")
-      .map((n) => n.text());
+    const values = wrapper.findAll(".sl-lib-stats__value").map((n) => n.text());
     expect(values[0]).toBe("12k");
     // Sanity: actual rendering of "tracks" unit follows the value.
     expect(wrapper.text()).toContain("tracks");
@@ -52,9 +50,7 @@ describe("StreamloaderLibraryStats.vue", () => {
     storeMock.libraryArtistsCount = 5;
     storeMock.libraryAlbumsCount = 5;
     const wrapper = mount(StreamloaderLibraryStats);
-    const values = wrapper
-      .findAll(".sl-lib-stats__value")
-      .map((n) => n.text());
+    const values = wrapper.findAll(".sl-lib-stats__value").map((n) => n.text());
     expect(values[0]).toBe("1.2M");
   });
 
@@ -63,9 +59,7 @@ describe("StreamloaderLibraryStats.vue", () => {
     storeMock.libraryArtistsCount = 7;
     storeMock.libraryAlbumsCount = 3;
     const wrapper = mount(StreamloaderLibraryStats);
-    const values = wrapper
-      .findAll(".sl-lib-stats__value")
-      .map((n) => n.text());
+    const values = wrapper.findAll(".sl-lib-stats__value").map((n) => n.text());
     expect(values).toEqual(["42", "7", "3"]);
   });
 
@@ -74,9 +68,7 @@ describe("StreamloaderLibraryStats.vue", () => {
     storeMock.libraryArtistsCount = 1500;
     storeMock.libraryAlbumsCount = 1;
     const wrapper = mount(StreamloaderLibraryStats);
-    const values = wrapper
-      .findAll(".sl-lib-stats__value")
-      .map((n) => n.text());
+    const values = wrapper.findAll(".sl-lib-stats__value").map((n) => n.text());
     expect(values[0]).toBe("10k");
     // 1500 -> "1.5k"
     expect(values[1]).toBe("1.5k");

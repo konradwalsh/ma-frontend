@@ -22,7 +22,11 @@
 -->
 <template>
   <div v-if="visibleItems.length > 0" class="sl-recent-row">
-    <v-toolbar class="sl-recent-row__header" color="transparent" density="compact">
+    <v-toolbar
+      class="sl-recent-row__header"
+      color="transparent"
+      density="compact"
+    >
       <template #title>
         <div class="sl-recent-row__title-wrap">
           <span class="sl-recent-row__title">{{ title }}</span>
@@ -32,10 +36,7 @@
     </v-toolbar>
 
     <div class="sl-recent-row__carousel-wrapper">
-      <Carousel
-        :items="visibleItems"
-        :item-key="(item: Track) => item.uri"
-      >
+      <Carousel :items="visibleItems" :item-key="(item: Track) => item.uri">
         <template #default="{ item }">
           <PanelviewItemCompact
             :item="item"
@@ -52,7 +53,11 @@ import Carousel from "@/components/Carousel.vue";
 import PanelviewItemCompact from "@/components/PanelviewItemCompact.vue";
 import api from "@/plugins/api";
 import { itemIsAvailable } from "@/plugins/api/helpers";
-import { EventType, type EventMessage, type Track } from "@/plugins/api/interfaces";
+import {
+  EventType,
+  type EventMessage,
+  type Track,
+} from "@/plugins/api/interfaces";
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
 const STREAMLOADER_DOMAIN = "streamloader";
@@ -93,8 +98,7 @@ const loadData = async () => {
 
     // Fall back to plain recent-added if the streamloader filter wipes
     // everything out (e.g. brand-new install, no cached items yet).
-    const chosen =
-      streamloaderOnly.length > 0 ? streamloaderOnly : tracks;
+    const chosen = streamloaderOnly.length > 0 ? streamloaderOnly : tracks;
 
     visibleItems.value = chosen.slice(0, DISPLAY_LIMIT);
   } catch {

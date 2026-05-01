@@ -16,7 +16,12 @@ import { store } from '@/plugins/store';
 
   <!-- bottom navigation for mobile layout -->
   <!-- add a tiny bit of bottom-padding to avoid overlap with (iOS) bottom bar -->
-  <BottomNavigation v-if="store.mobileLayout" app style="height: 60px" />
+  <BottomNavigation
+    v-if="store.mobileLayout"
+    app
+    class="streamloader-bottom-nav-wrap"
+    style="height: 60px"
+  />
 
   <v-footer
     app
@@ -90,6 +95,17 @@ import Player from "./PlayerOSD/Player.vue";
 .v-bottom-navigation--active {
   box-shadow: none;
   z-index: 2000 !important;
+}
+
+/* streamloader: respect iOS home-indicator / notch on the mobile bottom nav.
+   The wrapper class is applied in the template above; we extend the rendered
+   height with the safe-area inset and add a hairline teal top border + soft
+   glow so the nav reads as a separated chrome layer above the page content. */
+.streamloader-bottom-nav-wrap.v-bottom-navigation {
+  height: calc(60px + env(safe-area-inset-bottom, 0px)) !important;
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  border-top: 1px solid rgba(45, 212, 191, 0.18) !important;
+  box-shadow: 0 -2px 14px rgba(45, 212, 191, 0.08) !important;
 }
 
 .v-footer {
