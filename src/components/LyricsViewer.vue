@@ -12,7 +12,11 @@
       <!-- Animated equalizer placeholder. Decorative only; honors
            prefers-reduced-motion via CSS. -->
       <div class="lyrics-empty__equalizer" aria-hidden="true">
-        <span v-for="n in 5" :key="n" :style="{ animationDelay: `${n * 0.12}s` }" />
+        <span
+          v-for="n in 5"
+          :key="n"
+          :style="{ animationDelay: `${n * 0.12}s` }"
+        ></span>
       </div>
     </div>
     <!-- Synced lyrics: always mounted when timestamps exist so DOM is ready for transition -->
@@ -38,7 +42,7 @@
            decorative: a soft teal radial wash anchored to the auto-scroll
            anchor point so the active line always sits inside the glow.
            Disabled under prefers-reduced-motion via CSS. -->
-      <div class="synced-halo" aria-hidden="true" />
+      <div class="synced-halo" aria-hidden="true"></div>
       <div
         class="synced-content"
         :style="{

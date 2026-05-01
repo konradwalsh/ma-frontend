@@ -80,9 +80,11 @@
       <div class="volume-prepend" @touchstart.stop @touchend.stop>
         <button
           class="volume-icon-btn"
+          :class="{ 'is-muted': isMuted }"
           :disabled="muteDisabled"
           :title="muteTooltipLabel"
           :aria-label="muteTooltipLabel"
+          :aria-pressed="isMuted"
           :aria-keyshortcuts="muteShortcutKey || undefined"
           @click.stop="onMuteToggle"
         >
@@ -90,16 +92,30 @@
         </button>
       </div>
 
-      <Slider
-        :model-value="[displayValue]"
-        :disabled="isSliderDisabled"
-        :min="0"
-        :max="100"
-        :step="step"
-        class="volume-slider"
-        :class="cn('w-full', props.class)"
-        @update:model-value="onSliderUpdate"
-      />
+      <div class="volume-slider-wrap">
+        <Slider
+          :model-value="[displayValue]"
+          :disabled="isSliderDisabled"
+          :min="0"
+          :max="100"
+          :step="step"
+          class="volume-slider"
+          :class="cn('w-full', props.class)"
+          :style="sliderFillStyle"
+          @update:model-value="onSliderUpdate"
+        />
+        <!-- Floating value bubble -->
+        <Transition name="vol-bubble">
+          <div
+            v-if="showValueBubble"
+            class="volume-bubble"
+            :style="{ left: `${displayValue}%` }"
+            aria-hidden="true"
+          >
+            {{ Math.round(displayValue) }}
+          </div>
+        </Transition>
+      </div>
 
       <!-- Volume level display -->
       <div
@@ -379,9 +395,63 @@ let dragEndTimeout: ReturnType<typeof setTimeout> | null = null;
 let sliderUpdateDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 const SLIDER_UPDATE_DEBOUNCE_MS = 100;
 
+// --- Floating value bubble ---
+const showValueBubble = ref(false);
+let bubbleHideTimeout: ReturnType<typeof setTimeout> | null = null;
+const BUBBLE_HIDE_DELAY_MS = 600;
+
+const showBubble = () => {
+  showValueBubble.value = true;
+  if (bubbleHideTimeout) {
+    clearTimeout(bubbleHideTimeout);
+    bubbleHideTimeout = null;
+  }
+};
+
+const scheduleBubbleHide = () => {
+  if (bubbleHideTimeout) clearTimeout(bubbleHideTimeout);
+  bubbleHideTimeout = setTimeout(() => {
+    showValueBubble.value = false;
+    bubbleHideTimeout = null;
+  }, BUBBLE_HIDE_DELAY_MS);
+};
+
+// --- Snap-to-50/100 helpers ---
+const SNAP_THRESHOLD = 2;
+const SNAP_TARGETS = [50, 100];
+// Track last snap to avoid re-vibrating when value stays in the snapped zone
+let lastSnappedValue: number | null = null;
+
+const applySnap = (value: number): number => {
+  for (const target of SNAP_TARGETS) {
+    if (Math.abs(value - target) <= SNAP_THRESHOLD) {
+      if (lastSnappedValue !== target) {
+        // Mobile haptic feedback at snap point
+        if (
+          store.isTouchscreen &&
+          "vibrate" in navigator &&
+          navigator.vibrate
+        ) {
+          navigator.vibrate(20);
+        }
+        lastSnappedValue = target;
+      }
+      return target;
+    }
+  }
+  lastSnappedValue = null;
+  return value;
+};
+
+// Background fill style on the slider track for the teal-tinted gradient
+const sliderFillStyle = computed(() => ({
+  "--vol-fill": `${displayValue.value}%`,
+}));
+
 onUnmounted(() => {
   if (dragEndTimeout) clearTimeout(dragEndTimeout);
   if (sliderUpdateDebounceTimeout) clearTimeout(sliderUpdateDebounceTimeout);
+  if (bubbleHideTimeout) clearTimeout(bubbleHideTimeout);
 });
 
 const clamp = (value: number, min: number, max: number) =>
@@ -512,11 +582,13 @@ const onTouchMove = (event: TouchEvent) => {
   if (isDrag.value) {
     event.preventDefault();
 
-    const newValue = getPercentageFromX(touch.clientX);
+    const rawValue = getPercentageFromX(touch.clientX);
+    const newValue = applySnap(rawValue);
     const valueChanged = newValue !== displayValue.value;
 
     displayValue.value = newValue;
     emit("update:local-value", newValue);
+    showBubble();
 
     if (valueChanged) {
       vibrate(5);
@@ -556,15 +628,15 @@ const onTouchEnd = (event: TouchEvent) => {
   } else {
     // Drag end: send the final absolute value to the server
     const touch = event.changedTouches[0];
-    const finalValue = clamp(
-      roundToStep(getPercentageFromX(touch.clientX)),
-      0,
-      100,
+    const finalValue = applySnap(
+      clamp(roundToStep(getPercentageFromX(touch.clientX)), 0, 100),
     );
     displayValue.value = finalValue;
     emit("update:local-value", finalValue);
     setVolume(finalValue);
     stopDragging();
+    scheduleBubbleHide();
+    lastSnappedValue = null;
   }
 
   isDrag.value = false;
@@ -585,6 +657,8 @@ const onTouchCancel = () => {
     dragEndTimeout = null;
   }
   isTouching.value = false;
+  scheduleBubbleHide();
+  lastSnappedValue = null;
 };
 
 const onWheel = (event: WheelEvent) => {
@@ -606,10 +680,12 @@ const onSliderUpdate = (values: number[] | undefined) => {
   )
     return;
 
-  const newValue = values[0] ?? displayValue.value;
+  const rawValue = values[0] ?? displayValue.value;
+  const newValue = applySnap(rawValue);
   startDragging();
   displayValue.value = newValue;
   emit("update:local-value", newValue);
+  showBubble();
 
   if (sliderUpdateDebounceTimeout) {
     clearTimeout(sliderUpdateDebounceTimeout);
@@ -620,6 +696,8 @@ const onSliderUpdate = (values: number[] | undefined) => {
     setVolume(newValue);
     sliderUpdateDebounceTimeout = null;
     stopDragging();
+    scheduleBubbleHide();
+    lastSnappedValue = null;
   }, SLIDER_UPDATE_DEBOUNCE_MS);
 };
 
@@ -730,25 +808,141 @@ watch(
   color: inherit;
 }
 
+/* Active state when player is muted: subtle teal-tinted bg */
+.volume-icon-btn.is-muted {
+  background-color: color-mix(in srgb, var(--primary) 16%, transparent);
+  color: var(--primary);
+  opacity: 1;
+}
+
+.volume-icon-btn.is-muted:hover {
+  background-color: color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+/* Slider wrapper hosts the floating value bubble */
+.volume-slider-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
 /*
  * Tint the underlying reka-ui Slider with the brand teal (--primary).
  * The shared Slider component uses surface-variant; we override here via
  * :deep() so we don't touch the shared component (other agents own it).
  */
+
+/* Track: subtle teal-tinted gradient (transparent -> teal-soft) up to the
+ * current fill position, then a faint base track for the unfilled remainder.
+ * --vol-fill is set inline via :style on the slider. */
+.volume-slider :deep([data-slot="slider-track"])::before {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--primary) 6%, transparent) 0%,
+    color-mix(in srgb, var(--primary) 22%, transparent) var(--vol-fill, 0%),
+    rgba(var(--v-theme-on-surface), 0.18) var(--vol-fill, 0%),
+    rgba(var(--v-theme-on-surface), 0.18) 100%
+  );
+  transition: background 120ms ease;
+}
+
 .volume-slider :deep([data-slot="slider-range"]) {
   background-color: var(--primary);
 }
 
 .volume-slider :deep([data-slot="slider-thumb"])::before {
   background-color: var(--primary);
+  transition:
+    transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 160ms ease,
+    background-color 160ms ease;
 }
 
 .volume-slider :deep([data-slot="slider-thumb"]:hover)::before {
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 18%, transparent);
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, var(--primary) 18%, transparent),
+    0 0 12px color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
 .volume-slider :deep([data-slot="slider-thumb"]:focus-visible)::before {
-  box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 28%, transparent);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 32%, transparent);
+}
+
+/* Active drag: thumb scales 1.15 with overshoot easing */
+.volume-slider :deep([data-slot="slider-thumb"]:active)::before,
+.volume-slider :deep([data-slot="slider-thumb"][data-state="active"])::before {
+  transform: scale(1.15);
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--primary) 22%, transparent),
+    0 0 14px color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+/* Floating value bubble shown while dragging */
+.volume-bubble {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  padding: 2px 7px;
+  border-radius: 6px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  z-index: 5;
+  min-width: 22px;
+  text-align: center;
+}
+
+.volume-bubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--primary);
+}
+
+.vol-bubble-enter-active,
+.vol-bubble-leave-active {
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease;
+}
+
+.vol-bubble-enter-from,
+.vol-bubble-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(4px);
+}
+
+.vol-bubble-enter-to,
+.vol-bubble-leave-from {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .volume-icon-btn,
+  .volume-slider :deep([data-slot="slider-thumb"])::before,
+  .volume-slider :deep([data-slot="slider-track"])::before,
+  .vol-bubble-enter-active,
+  .vol-bubble-leave-active {
+    transition: none !important;
+  }
+
+  .volume-slider :deep([data-slot="slider-thumb"]:active)::before,
+  .volume-slider
+    :deep([data-slot="slider-thumb"][data-state="active"])::before {
+    transform: none;
+  }
 }
 
 .volume-level-text {

@@ -96,7 +96,11 @@ const VDialogStub = defineComponent({
   setup(props, { slots }) {
     return () =>
       props.modelValue
-        ? h("div", { class: "v-dialog-stub", role: "dialog" }, slots.default?.())
+        ? h(
+            "div",
+            { class: "v-dialog-stub", role: "dialog" },
+            slots.default?.(),
+          )
         : null;
   },
 });
@@ -193,9 +197,7 @@ describe("StreamloaderSourceDiagnostic.vue", () => {
 
   it("renders nothing when item has a local (non-streaming) provider", () => {
     const wrapper = mountDiag(
-      buildItem([
-        { provider_domain: "plex", provider_instance: "plex_inst" },
-      ]),
+      buildItem([{ provider_domain: "plex", provider_instance: "plex_inst" }]),
     );
     expect(wrapper.find(".sl-src-diag__btn").exists()).toBe(false);
     expect(wrapper.find(".v-dialog-stub").exists()).toBe(false);

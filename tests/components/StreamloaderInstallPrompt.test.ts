@@ -30,8 +30,11 @@ class FakeBeforeInstallPromptEvent extends Event {
 import StreamloaderInstallPrompt from "@/components/StreamloaderInstallPrompt.vue";
 
 const getStore = () =>
-  (globalThis as unknown as { __slStore__: { activePlayerQueue?: { state: string } } })
-    .__slStore__;
+  (
+    globalThis as unknown as {
+      __slStore__: { activePlayerQueue?: { state: string } };
+    }
+  ).__slStore__;
 
 const mountPrompt = () =>
   mount(StreamloaderInstallPrompt, {
@@ -67,7 +70,9 @@ describe("StreamloaderInstallPrompt.vue", () => {
     const wrapper = mountPrompt();
     await nextTick();
 
-    window.dispatchEvent(new FakeBeforeInstallPromptEvent("beforeinstallprompt"));
+    window.dispatchEvent(
+      new FakeBeforeInstallPromptEvent("beforeinstallprompt"),
+    );
     await nextTick();
     expect(wrapper.find(".sl-install-toast").exists()).toBe(false);
 
@@ -107,7 +112,9 @@ describe("StreamloaderInstallPrompt.vue", () => {
     const wrapper = mountPrompt();
     await nextTick();
 
-    window.dispatchEvent(new FakeBeforeInstallPromptEvent("beforeinstallprompt"));
+    window.dispatchEvent(
+      new FakeBeforeInstallPromptEvent("beforeinstallprompt"),
+    );
     getStore().activePlayerQueue = { state: PlaybackState.PLAYING };
     await nextTick();
     await nextTick();

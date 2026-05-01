@@ -27,7 +27,62 @@
         JavaScript enabled. Please enable it to continue.</strong
       >
     </noscript>
-    <div id="app"></div>
+    <!--
+      Initial paint splash. Lives inside #app so Vue's mount() will replace
+      it atomically once the bundle is ready. Inline CSS + inline SVG keep
+      this render-blocking-free; no extra HTTP requests, no FOUC.
+    -->
+    <div id="app">
+      <div class="sl-splash" role="status" aria-live="polite" aria-label="Loading streamloader">
+        <style>
+          /* Scoped to the splash; removed entirely when Vue replaces #app. */
+          .sl-splash {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            /* Deep navy matches the app shell gradient base. */
+            background: radial-gradient(ellipse at center, #0b1626 0%, #050a13 100%);
+            color: #94d6cd;
+            font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            z-index: 9999;
+          }
+          .sl-splash__mark {
+            width: 96px;
+            height: 96px;
+            filter: drop-shadow(0 0 18px rgba(45, 212, 191, 0.45))
+                    drop-shadow(0 0 4px rgba(45, 212, 191, 0.6));
+            animation: sl-splash-pulse 1.5s ease-in-out infinite;
+          }
+          .sl-splash__tag {
+            font-size: 14px;
+            font-weight: 400;
+            letter-spacing: 0.18em;
+            text-transform: lowercase;
+            opacity: 0.75;
+          }
+          @keyframes sl-splash-pulse {
+            0%, 100% { opacity: 0.7; }
+            50%      { opacity: 1; }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .sl-splash__mark { animation: none; opacity: 0.9; }
+          }
+        </style>
+        <svg class="sl-splash__mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" aria-hidden="true">
+          <circle cx="16" cy="16" r="15" fill="#0f766e"/>
+          <rect x="6" y="11" width="3" height="10" rx="1.5" fill="#fff" opacity="0.9"/>
+          <rect x="11" y="8" width="3" height="16" rx="1.5" fill="#fff" opacity="0.9"/>
+          <rect x="16" y="10" width="3" height="12" rx="1.5" fill="#fff" opacity="0.9"/>
+          <rect x="22" y="8" width="3" height="9" rx="1" fill="#fff" opacity="0.9"/>
+          <path d="M21 16 L23.5 22 L26 16" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+        </svg>
+        <div class="sl-splash__tag">streamloader</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

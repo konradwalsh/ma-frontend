@@ -75,7 +75,7 @@
     </div>
   </div>
   <template v-else>
-    <slot :key="resetKey" />
+    <slot :key="resetKey"></slot>
   </template>
 </template>
 

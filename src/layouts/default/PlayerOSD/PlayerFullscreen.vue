@@ -385,26 +385,50 @@
                   link
                   :show-menu-btn="true"
                   :disabled="!item.available"
+                  :class="{
+                    'queue-row-drop-above':
+                      dragSourceIndex !== -1 &&
+                      dragOverIndex === index &&
+                      dropPosition === 'above',
+                    'queue-row-drop-below':
+                      dragSourceIndex !== -1 &&
+                      dragOverIndex === index &&
+                      dropPosition === 'below',
+                    'queue-row-dragging': dragSourceIndex === index,
+                  }"
                   @click.stop="(e: Event) => openQueueItemMenu(e, item)"
                   @menu.stop="(e: Event) => openQueueItemMenu(e, item)"
                   @mouseenter="hoveredQueueIndex = index"
                   @mouseleave="hoveredQueueIndex = -1"
+                  @dragover.prevent="
+                    (e: DragEvent) => onQueueRowDragOver(e, index)
+                  "
+                  @drop.prevent="(e: DragEvent) => onQueueRowDrop(e, index)"
+                  @dragleave="(e: DragEvent) => onQueueRowDragLeave(e, index)"
                 >
                   <template #prepend>
                     <!-- Streamloader-fork addition (queue UX polish): drag
                          handle on the left of each row, visible on hover.
-                         Reordering is handled today via the context menu
-                         (queue_move_up/down/end) — drag-to-reorder is a
-                         future enhancement; the handle is a discoverability
-                         affordance and shows the grab cursor. -->
+                         The handle is the drag source for HTML5 native
+                         drag-and-drop reordering. The existing context-menu
+                         actions (queue_move_up/down/end) remain available as
+                         a fallback (and as the only path on touch devices,
+                         where HTML5 drag is not supported natively). -->
                     <div
                       v-if="activeQueuePanel == 0"
                       class="queue-row-drag-handle"
-                      :class="{ 'is-visible': hoveredQueueIndex == index }"
-                      :title="
-                        $t('queue_move_up') + ' / ' + $t('queue_move_down')
-                      "
+                      :class="{
+                        'is-visible':
+                          hoveredQueueIndex == index ||
+                          dragSourceIndex !== -1,
+                      }"
+                      :title="$t('queue_move_up') + ' / ' + $t('queue_move_down')"
+                      :draggable="activeQueuePanel == 0"
                       @click.stop
+                      @dragstart="
+                        (e: DragEvent) => onQueueRowDragStart(e, index)
+                      "
+                      @dragend="onQueueRowDragEnd"
                     >
                       <GripVertical :size="16" />
                     </div>
@@ -1737,6 +1761,154 @@ const onRemoveQueueItem = function (item: QueueItem) {
   }
 };
 
+// Streamloader-fork addition (batch 39 / GGG7): native HTML5 drag-and-drop
+// reordering on the upcoming queue. We deliberately avoid pulling in
+// sortablejs / vuedraggable so the bundle stays slim and v-virtual-scroll's
+// virtualization isn't disturbed (third-party DnD libs frequently fight
+// virtual lists by mutating DOM order or cloning rows).
+//
+// Indices below are positions inside `nextItems` (the slice of queueItems
+// from current_index onward). Since `queueCommandMoveItem` takes a relative
+// `pos_shift`, source/target both being in the same slice means the delta
+// is identical regardless of the slice offset.
+//
+// Touch devices: HTML5 drag-and-drop is not supported natively without a
+// polyfill. We deliberately do NOT polyfill — the existing context-menu
+// reorder (queue_move_up/down/end/next) remains the path on touch.
+const dragSourceIndex = ref(-1);
+const dragOverIndex = ref(-1);
+const dropPosition = ref<"above" | "below">("above");
+const dragAutoScrollRaf = ref<number | null>(null);
+const dragLastClientY = ref<number | null>(null);
+
+// `prefersReducedMotion()` is already declared above (used by the mobile
+// gesture code) — reused here to honor reduced-motion during auto-scroll.
+
+const stopDragAutoScroll = () => {
+  if (dragAutoScrollRaf.value != null) {
+    cancelAnimationFrame(dragAutoScrollRaf.value);
+    dragAutoScrollRaf.value = null;
+  }
+};
+
+const tickDragAutoScroll = () => {
+  dragAutoScrollRaf.value = null;
+  if (dragSourceIndex.value === -1 || dragLastClientY.value == null) return;
+  // Find the actual scrolling element rendered by v-virtual-scroll. The
+  // wrapper has class .v-virtual-scroll which is the element that owns
+  // the scroll position.
+  const root = (virtualScrollRef.value as unknown as { $el?: HTMLElement })
+    ?.$el;
+  const scroller =
+    (root?.classList?.contains("v-virtual-scroll")
+      ? root
+      : root?.querySelector(".v-virtual-scroll")) ?? null;
+  if (!scroller) return;
+  const rect = scroller.getBoundingClientRect();
+  const edge = 48;
+  const maxStep = 18;
+  const y = dragLastClientY.value;
+  let delta = 0;
+  if (y < rect.top + edge) {
+    const ratio = Math.min(1, (rect.top + edge - y) / edge);
+    delta = -Math.ceil(maxStep * ratio);
+  } else if (y > rect.bottom - edge) {
+    const ratio = Math.min(1, (y - (rect.bottom - edge)) / edge);
+    delta = Math.ceil(maxStep * ratio);
+  }
+  if (delta !== 0) {
+    if (prefersReducedMotion()) {
+      scroller.scrollTop += delta;
+    } else {
+      scroller.scrollBy({ top: delta, behavior: "auto" });
+    }
+  }
+  dragAutoScrollRaf.value = requestAnimationFrame(tickDragAutoScroll);
+};
+
+const onQueueRowDragStart = function (e: DragEvent, index: number) {
+  if (!e.dataTransfer) return;
+  dragSourceIndex.value = index;
+  dragOverIndex.value = -1;
+  dropPosition.value = "above";
+  e.dataTransfer.effectAllowed = "move";
+  // Some browsers require a payload for drag to actually fire dragover.
+  try {
+    e.dataTransfer.setData("text/plain", String(index));
+  } catch {
+    // ignore — Firefox occasionally throws on cross-origin contexts
+  }
+};
+
+const onQueueRowDragOver = function (e: DragEvent, index: number) {
+  if (dragSourceIndex.value === -1) return;
+  if (e.dataTransfer) e.dataTransfer.dropEffect = "move";
+  // Determine above/below based on cursor's vertical position within the row.
+  const target = e.currentTarget as HTMLElement | null;
+  if (target) {
+    const rect = target.getBoundingClientRect();
+    dropPosition.value = e.clientY < rect.top + rect.height / 2 ? "above" : "below";
+  }
+  dragOverIndex.value = index;
+  dragLastClientY.value = e.clientY;
+  if (dragAutoScrollRaf.value == null) {
+    dragAutoScrollRaf.value = requestAnimationFrame(tickDragAutoScroll);
+  }
+};
+
+const onQueueRowDragLeave = function (e: DragEvent, index: number) {
+  // Only clear if leaving the row entirely (relatedTarget outside row).
+  const related = e.relatedTarget as Node | null;
+  const current = e.currentTarget as HTMLElement | null;
+  if (current && related && current.contains(related)) return;
+  if (dragOverIndex.value === index) {
+    dragOverIndex.value = -1;
+  }
+};
+
+const resetDragState = () => {
+  dragSourceIndex.value = -1;
+  dragOverIndex.value = -1;
+  dragLastClientY.value = null;
+  stopDragAutoScroll();
+};
+
+const onQueueRowDragEnd = function () {
+  resetDragState();
+};
+
+const onQueueRowDrop = function (e: DragEvent, index: number) {
+  const source = dragSourceIndex.value;
+  if (source === -1 || !store.activePlayerQueue) {
+    resetDragState();
+    return;
+  }
+  // Compute the visual drop slot inside nextItems.
+  let targetSlot = index + (dropPosition.value === "below" ? 1 : 0);
+  // Translate the visual slot to the resulting index of the moved item.
+  // When moving downward across other rows, the source removal shifts
+  // subsequent rows up by one — account for that so pos_shift matches the
+  // user's intended drop position.
+  const finalIndex =
+    targetSlot > source ? targetSlot - 1 : targetSlot;
+  const posShift = finalIndex - source;
+  if (posShift === 0) {
+    resetDragState();
+    return;
+  }
+  const sourceItem = nextItems.value[source];
+  if (!sourceItem) {
+    resetDragState();
+    return;
+  }
+  api.queueCommandMoveItem(
+    store.activePlayerQueue.queue_id,
+    sourceItem.queue_item_id,
+    posShift,
+  );
+  resetDragState();
+};
+
 const onClearQueue = function () {
   if (!store.activePlayerQueue) return;
   if (!window.confirm($t("queue_clear_confirm"))) return;
@@ -1862,6 +2034,10 @@ onMounted(() => {
   window.addEventListener("keydown", onKeydown);
   onBeforeUnmount(() => {
     window.removeEventListener("keydown", onKeydown);
+    // Streamloader-fork addition (batch 39 / GGG7): ensure the drag
+    // auto-scroll RAF loop doesn't outlive the component if the user
+    // closes fullscreen mid-drag.
+    stopDragAutoScroll();
   });
 });
 
@@ -2167,6 +2343,21 @@ watchEffect(() => {
   .queue-row-drag-handle {
     opacity: 0.55;
   }
+}
+
+/* Streamloader-fork addition (batch 39 / GGG7): drag-and-drop drop
+   indicator. A 2px teal line painted via box-shadow on the top or bottom
+   edge of the hovered row, indicating where the dragged item will land
+   on drop. Box-shadow is preferred over border so the row's metrics stay
+   identical (which matters for v-virtual-scroll's fixed item-height). */
+.queue-row-drop-above {
+  box-shadow: inset 0 2px 0 0 rgb(45, 212, 191) !important;
+}
+.queue-row-drop-below {
+  box-shadow: inset 0 -2px 0 0 rgb(45, 212, 191) !important;
+}
+.queue-row-dragging {
+  opacity: 0.45;
 }
 
 /* Inline X-remove button. Visible on row hover (desktop) or always on
