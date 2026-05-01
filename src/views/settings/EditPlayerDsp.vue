@@ -241,7 +241,7 @@
             variant="flat"
             @click="performRemovePreset"
           >
-            {{ $t("settings.dsp.presets.remove") || $t("delete") }}
+            {{ $t("delete") }}
           </v-btn>
         </v-card-actions>
       </v-card>

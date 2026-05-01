@@ -52,8 +52,7 @@ const isActive = (url: string) => {
     (other) =>
       other.url !== url &&
       other.url.length > url.length &&
-      (other.url === route.path ||
-        route.path.startsWith(other.url + "/")),
+      (other.url === route.path || route.path.startsWith(other.url + "/")),
   );
 };
 

@@ -5,7 +5,15 @@
       <div>{{ $t("loading_lyrics") }}</div>
     </div>
     <div v-else-if="!displayLines.length" class="lyrics-empty">
-      {{ $t("no_lyrics_available") }}
+      <StreamloaderEmptyState
+        :icon="MicVocal"
+        :title="$t('no_lyrics_available')"
+      />
+      <!-- Animated equalizer placeholder. Decorative only; honors
+           prefers-reduced-motion via CSS. -->
+      <div class="lyrics-empty__equalizer" aria-hidden="true">
+        <span v-for="n in 5" :key="n" :style="{ animationDelay: `${n * 0.12}s` }" />
+      </div>
     </div>
     <!-- Synced lyrics: always mounted when timestamps exist so DOM is ready for transition -->
     <div
@@ -26,6 +34,11 @@
           </div>
         </div>
       </Transition>
+      <!-- Cinematic ambience halo behind the active line area. Purely
+           decorative: a soft teal radial wash anchored to the auto-scroll
+           anchor point so the active line always sits inside the glow.
+           Disabled under prefers-reduced-motion via CSS. -->
+      <div class="synced-halo" aria-hidden="true" />
       <div
         class="synced-content"
         :style="{
@@ -41,6 +54,10 @@
             'lyrics-line',
             {
               active: activeLyricIndex === index,
+              'lyrics-line--past':
+                activeLyricIndex >= 0 && index < activeLyricIndex,
+              'lyrics-line--next':
+                activeLyricIndex >= 0 && index === activeLyricIndex + 1,
               'lyrics-line--far':
                 activeLyricIndex >= 0 &&
                 (index === activeLyricIndex + 2 ||
@@ -114,12 +131,14 @@
 </template>
 
 <script setup lang="ts">
+import StreamloaderEmptyState from "@/components/StreamloaderEmptyState.vue";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/ui/spinner";
 import { parseLrcLine } from "@/helpers/lrcParser";
 import { prettifyMediaName } from "@/helpers/prettifyMediaName";
 import { MediaItemType, StreamDetails, Track } from "@/plugins/api/interfaces";
 import { $t } from "@/plugins/i18n";
+import { MicVocal } from "lucide-vue-next";
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 
 interface DisplayLine {
@@ -544,8 +563,47 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  opacity: 0.7;
+  opacity: 0.85;
   gap: 20px;
+}
+
+/* Animated equalizer placeholder for the no-lyrics state. Subtle
+   bouncing teal bars that suggest "audio is playing, just no words".
+   Static under prefers-reduced-motion. */
+.lyrics-empty__equalizer {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 28px;
+  margin-top: -8px;
+}
+.lyrics-empty__equalizer span {
+  display: inline-block;
+  width: 4px;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(45, 212, 191, 0.85),
+    rgba(45, 212, 191, 0.35)
+  );
+  transform-origin: bottom;
+  animation: lyrics-eq-bounce 1.1s ease-in-out infinite;
+}
+@keyframes lyrics-eq-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lyrics-empty__equalizer span {
+    animation: none;
+    transform: scaleY(0.7);
+  }
 }
 
 .lyrics-intro {
@@ -585,7 +643,42 @@ onBeforeUnmount(() => {
   position: relative;
 }
 
+/* Cinematic ambience: a soft teal radial halo behind the active line
+   anchor. Sits under the content but above the container background
+   for a subtle "spotlight" effect. */
+.synced-halo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 60% 28% at 50% 38%,
+    rgba(45, 212, 191, 0.14) 0%,
+    rgba(45, 212, 191, 0.06) 40%,
+    transparent 75%
+  );
+  opacity: 0.85;
+  transition: opacity 600ms ease;
+}
+@media (prefers-color-scheme: light) {
+  .synced-halo {
+    background: radial-gradient(
+      ellipse 60% 28% at 50% 38%,
+      rgba(15, 118, 110, 0.1) 0%,
+      rgba(15, 118, 110, 0.04) 40%,
+      transparent 75%
+    );
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .synced-halo {
+    transition: none;
+  }
+}
+
 .synced-content {
+  position: relative;
+  z-index: 1;
   text-align: center;
   will-change: transform;
   /* Subtle overshoot easing — gives the active-line repositioning a
@@ -607,22 +700,37 @@ onBeforeUnmount(() => {
 }
 
 .lyrics-line {
+  position: relative;
   padding: 10px 4px;
   font-size: clamp(2rem, 4vw, 4rem);
   font-weight: 600;
   opacity: 0.35;
   margin: 8px 0;
   letter-spacing: -0.005em;
-  will-change: opacity, transform, text-shadow;
+  will-change: opacity, transform, text-shadow, filter;
   transition:
     opacity v-bind(transitionDuration) ease,
     transform v-bind(transitionDuration) cubic-bezier(0.34, 1.36, 0.64, 1),
     text-shadow v-bind(transitionDuration) ease,
-    font-weight v-bind(transitionDuration) ease;
+    font-weight v-bind(transitionDuration) ease,
+    filter v-bind(transitionDuration) ease;
+}
+
+/* Past lines: receded with a sub-pixel blur so the eye stops at the
+   active line. Blur is intentionally tiny — readable, just less crisp. */
+.lyrics-line.lyrics-line--past {
+  opacity: 0.28;
+  filter: blur(0.5px);
+}
+
+/* Next line: brightest of the upcoming lines. Hints the singer at
+   what's coming without competing with the active line. */
+.lyrics-line.lyrics-line--next {
+  opacity: 0.55;
 }
 
 .lyrics-line.lyrics-line--far {
-  opacity: 0.15;
+  opacity: 0.32;
 }
 
 .lyrics-line.lyrics-line--hidden {
@@ -633,11 +741,48 @@ onBeforeUnmount(() => {
   opacity: 1;
   color: v-bind(textColor);
   font-weight: 800;
-  /* Subtle teal glow + slight scale — high-visibility, on-brand. */
-  transform: scale(1.04);
+  /* Cinematic active-line treatment: bumped scale + overshoot easing
+     defined on .lyrics-line transition above gives a gentle settle. */
+  transform: scale(1.08);
+  filter: none;
   text-shadow:
     0 0 18px rgba(45, 212, 191, 0.45),
     0 0 36px rgba(45, 212, 191, 0.18);
+}
+
+/* Animated teal underline that scales in when the line activates.
+   Sits below the text, anchored to the inline content's baseline area. */
+.lyrics-line.active::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 56%;
+  max-width: 360px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(45, 212, 191, 0.85) 50%,
+    transparent 100%
+  );
+  transform: translateX(-50%) scaleX(1);
+  transform-origin: center;
+  opacity: 0.9;
+  animation: lyrics-underline-in v-bind(transitionDuration)
+    cubic-bezier(0.34, 1.36, 0.64, 1) both;
+  pointer-events: none;
+}
+@keyframes lyrics-underline-in {
+  from {
+    transform: translateX(-50%) scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) scaleX(1);
+    opacity: 0.9;
+  }
 }
 
 @media (prefers-color-scheme: light) {
@@ -645,6 +790,14 @@ onBeforeUnmount(() => {
     text-shadow:
       0 0 18px rgba(15, 118, 110, 0.4),
       0 0 36px rgba(15, 118, 110, 0.15);
+  }
+  .lyrics-line.active::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(15, 118, 110, 0.8) 50%,
+      transparent 100%
+    );
   }
 }
 
@@ -721,6 +874,18 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: reduce) {
   .lyrics-line.active {
     transform: none;
+  }
+  /* Drop the underline reveal animation but keep the static underline
+     so the active-line affordance is preserved. */
+  .lyrics-line.active::after {
+    animation: none;
+    transform: translateX(-50%) scaleX(1);
+    opacity: 0.9;
+  }
+  /* Drop the recede blur — sustained CSS blur can be heavy and the
+     opacity ramp alone is enough cue for reduced-motion users. */
+  .lyrics-line.lyrics-line--past {
+    filter: none;
   }
   .synced-content,
   .lyrics-line {

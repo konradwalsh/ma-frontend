@@ -649,12 +649,16 @@
       </v-layout>
     </v-card>
     <!-- Streamloader-fork addition: artwork-override dialog (stub UI;
-         see StreamloaderEditArtworkDialog.vue header comment). -->
-    <StreamloaderEditArtworkDialog
-      v-if="item && canEditArtwork"
-      v-model="showEditArtwork"
-      :item-id="item.item_id"
-    />
+         see StreamloaderEditArtworkDialog.vue header comment).
+         Wrapped in error boundary — the dialog has its own form/upload
+         logic that's a reasonable place for a render error to land. -->
+    <StreamloaderErrorBoundary>
+      <StreamloaderEditArtworkDialog
+        v-if="item && canEditArtwork"
+        v-model="showEditArtwork"
+        :item-id="item.item_id"
+      />
+    </StreamloaderErrorBoundary>
     <v-dialog v-model="showFullInfo" max-width="975" width="auto">
       <v-card>
         <!-- eslint-disable vue/no-v-html -->
@@ -729,6 +733,7 @@ import MediaItemThumb from "./MediaItemThumb.vue";
 import MenuButton from "./MenuButton.vue";
 import ProviderIcon from "./ProviderIcon.vue";
 import StreamloaderEditArtworkDialog from "./StreamloaderEditArtworkDialog.vue";
+import StreamloaderErrorBoundary from "./StreamloaderErrorBoundary.vue";
 import StreamloaderFanart from "./StreamloaderFanart.vue";
 
 // properties

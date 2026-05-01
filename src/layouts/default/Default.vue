@@ -31,8 +31,12 @@
     <StreamloaderActivityPulse v-if="!store.frameless" />
     <!-- Streamloader-fork addition: keyboard-shortcut help dialog.
          Triggered by "?" (Shift+/) — see useKeyboardShortcuts.ts.
-         Mounted at v-app root so it's reachable from every route. -->
-    <KeyboardShortcutsDialog v-model="store.showKeyboardShortcuts" />
+         Mounted at v-app root so it's reachable from every route.
+         Wrapped in error boundary so a dialog crash never blanks the
+         whole v-app shell underneath. -->
+    <StreamloaderErrorBoundary>
+      <KeyboardShortcutsDialog v-model="store.showKeyboardShortcuts" />
+    </StreamloaderErrorBoundary>
     <!-- Streamloader-fork (batch 33): tasteful in-app install prompt
          that triggers only after the user has played at least one
          track. Replaces the browser-native infobar with a brand-styled
@@ -90,6 +94,7 @@ import ReloadPrompt from "./ReloadPrompt.vue";
 import StreamloaderHealthPill from "@/components/StreamloaderHealthPill.vue";
 import StreamloaderActivityPulse from "@/components/StreamloaderActivityPulse.vue";
 import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
+import StreamloaderErrorBoundary from "@/components/StreamloaderErrorBoundary.vue";
 import StreamloaderInstallPrompt from "@/components/StreamloaderInstallPrompt.vue";
 import StreamloaderShortcutsHint from "@/components/StreamloaderShortcutsHint.vue";
 import StreamloaderWelcomeTour from "@/components/StreamloaderWelcomeTour.vue";

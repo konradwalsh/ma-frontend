@@ -22,18 +22,32 @@
             happen correctly; <Transition> just animates the swap.
             prefers-reduced-motion is honored in CSS (opacity-only fade).
           -->
-          <router-view v-slot="{ Component, route }">
-            <Transition name="sl-route" mode="out-in">
-              <component :is="Component" :key="route.fullPath" />
-            </Transition>
-          </router-view>
+          <!-- Streamloader-fork: branded error boundary around the route
+               component. Catches render/setup errors from any descendant
+               of <router-view> and shows a friendly fallback instead of
+               leaving the user staring at a blank Vuetify shell. The
+               :key="route.fullPath" reactivity from batch 27 is preserved
+               on the inner <component> below — the boundary only wraps,
+               it doesn't intercept the per-route remount key. -->
+          <StreamloaderErrorBoundary>
+            <router-view v-slot="{ Component, route }">
+              <Transition name="sl-route" mode="out-in">
+                <component :is="Component" :key="route.fullPath" />
+              </Transition>
+            </router-view>
+          </StreamloaderErrorBoundary>
           <add-to-playlist-dialog />
           <create-playlist-dialog />
           <import-playlist-dialog />
           <merge-genre-dialog />
           <delete-genre-dialog />
           <link-genre-dialog />
-          <item-context-menu />
+          <!-- Wrap the global context-menu — it's reachable from every
+               page via long-press / right-click, so a crash here would
+               brick item-actions across the app. -->
+          <StreamloaderErrorBoundary>
+            <item-context-menu />
+          </StreamloaderErrorBoundary>
           <AddManualLink
             v-model="showEditItemDialog"
             :type="editItemType"
@@ -48,6 +62,7 @@
 
 <script lang="ts" setup>
 import AppSidebar from "@/components/navigation/AppSidebar.vue";
+import StreamloaderErrorBoundary from "@/components/StreamloaderErrorBoundary.vue";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { store } from "@/plugins/store";
 import PlayerSelect from "./PlayerSelect.vue";
