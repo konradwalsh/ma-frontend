@@ -303,6 +303,18 @@ const routes: RouteRecordRaw[] = [
         ],
       },
       {
+        // Streamloader-fork addition: top-level "Recently Played" view.
+        // Surfaces the global play-history (api.getRecentlyPlayedItems)
+        // that's otherwise buried inside PlayerFullscreen → PLAYED tab,
+        // so heavy re-listeners get a one-click shortcut from the sidebar.
+        path: "/recently-played",
+        name: "recentlyplayed",
+        component: () =>
+          import(
+            /* webpackChunkName: "recentlyplayed" */ "@/views/StreamloaderRecentlyPlayed.vue"
+          ),
+      },
+      {
         path: "/settings",
         name: "settings",
         component: () =>

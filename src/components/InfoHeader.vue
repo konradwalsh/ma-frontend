@@ -10,6 +10,12 @@
     >
       <!-- loading animation -->
       <v-progress-linear v-if="!item" indeterminate />
+      <!-- Streamloader-fork addition: heavy-blur fanart wash sitting
+           BEHIND the existing solid-gradient background image. Adds
+           atmosphere without competing with foreground content. The
+           overlying v-img below keeps its dark gradient so text
+           contrast is preserved against the blurred cover-art. -->
+      <StreamloaderFanart :src="fanartImage" />
       <v-img
         width="100%"
         height="100%"
@@ -18,8 +24,8 @@
         :src="fanartImage"
         :gradient="
           $vuetify.theme.current.dark
-            ? 'to bottom, rgba(0,0,0,.90), rgba(0,0,0,.75)'
-            : 'to bottom, rgba(255,255,255,.90), rgba(255,255,255,.75)'
+            ? 'to bottom, rgba(0,0,0,.78), rgba(0,0,0,.62)'
+            : 'to bottom, rgba(255,255,255,.82), rgba(255,255,255,.68)'
         "
         :transition="false"
         eager
@@ -112,8 +118,18 @@
                      spin wrapper's rotation, so it stays anchored to
                      the spindle. Brand-teal ring keeps the streamloader
                      identity even with arbitrary covers. -->
+                <!-- Streamloader-fork fix (batch MMM5): defensive @error
+                     fallback so a broken cover URL still leaves the
+                     teal-ringed center label visible (was rendering as
+                     a plain black disc when getImageThumbForItem 404'd
+                     against legacy items). -->
                 <div v-if="vinylLabelImage" class="sl-vinyl-label">
-                  <img :src="vinylLabelImage" alt="" />
+                  <img
+                    :key="vinylLabelImage"
+                    :src="vinylLabelImage"
+                    alt=""
+                    @error="onVinylLabelError"
+                  />
                 </div>
               </div>
               <!-- Streamloader-fork addition (batch MMM3): fixed
@@ -713,6 +729,7 @@ import MediaItemThumb from "./MediaItemThumb.vue";
 import MenuButton from "./MenuButton.vue";
 import ProviderIcon from "./ProviderIcon.vue";
 import StreamloaderEditArtworkDialog from "./StreamloaderEditArtworkDialog.vue";
+import StreamloaderFanart from "./StreamloaderFanart.vue";
 
 // properties
 export interface Props {
@@ -735,6 +752,22 @@ const imgGradient = new URL("../assets/info_gradient.jpg", import.meta.url)
 // Streamloader-fork addition: vinyl asset for the ALACarte-style
 // album-cover hover reveal (sl-vinyl-* classes below).
 const vinylSvg = new URL("../assets/vinyl.svg", import.meta.url).href;
+
+// Streamloader-fork fix (batch MMM5): brand-mark fallback for the
+// vinyl center label image when the cover thumbnail fails to load —
+// matches the defensive pattern used by the fullscreen player so the
+// disc never collapses to the bare black SVG (which was the symptom
+// the user reported on "The Weight of the Woods").
+const vinylLabelFallback = new URL(
+  "../assets/streamloader-mark.svg",
+  import.meta.url,
+).href;
+const onVinylLabelError = (evt: Event) => {
+  const el = evt.target as HTMLImageElement | null;
+  if (!el) return;
+  if (el.src === vinylLabelFallback) return;
+  el.src = vinylLabelFallback;
+};
 
 // Streamloader-fork addition: user-configurable vinyl display mode.
 // Read once at component setup — FrontendConfig.vue forces a window
@@ -1308,16 +1341,27 @@ const deleteGenre = () => {
   transform: translate(40%, -50%);
 }
 
-/* Mode 3: continuous slow spin — 8s per revolution. Animation is
-   applied to the spin wrapper (NOT the protrude wrapper), so the
-   rotation happens around the disc's own center. The pause class
+/* Mode 3: continuous spin. Streamloader-fork tweak (batch MMM5):
+   sped from 8s → 6s per revolution so the rotation is actually
+   visible — at 8s the cover-art label barely moved between glances.
+   Animation lives on the spin wrapper (NOT the protrude wrapper), so
+   the rotation happens around the disc's own center. The pause class
    freezes the spin without resetting the angle. */
 .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-spin {
-  animation: sl-vinyl-spin 8s linear infinite;
+  animation: sl-vinyl-spin 6s linear infinite;
 }
 .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning
   .sl-vinyl-disc-spin.sl-vinyl-spinning--paused {
   animation-play-state: paused;
+}
+
+/* Streamloader-fork tweak (batch MMM5): in hover-mode, kick off the
+   spin while the user is hovering — the protrude pop-out is the cue
+   that the disc just slid out of the sleeve, and a stationary disc
+   reads as "stuck". Fires only while :hover is held; on un-hover the
+   transition rewinds the protrude AND drops the rotation. */
+.sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc-spin {
+  animation: sl-vinyl-spin 6s linear infinite;
 }
 
 @keyframes sl-vinyl-spin {
@@ -1405,7 +1449,8 @@ const deleteGenre = () => {
 
 /* Respect users who've asked the OS to reduce motion. */
 @media (prefers-reduced-motion: reduce) {
-  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-spin {
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-spin,
+  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc-spin {
     animation: none;
   }
   .sl-vinyl-wrapper.sl-track-pulse-host .sl-vinyl-cover,

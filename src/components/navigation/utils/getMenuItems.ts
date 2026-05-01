@@ -9,6 +9,7 @@ import {
   Disc3,
   Folder,
   HardDrive,
+  History,
   ListMusic,
   Music2,
   PartyPopper,
@@ -155,6 +156,17 @@ export const getMenuItems = function () {
         icon: Folder,
         path: "/browse",
         isLibraryNode: true,
+      });
+    }
+    if (enabledMenuItemStr === "recentlyplayed") {
+      // Streamloader-fork addition: sidebar entry between Library nodes
+      // and Settings. Uses the existing "recently_played" translation key
+      // (already shipped in en.json + every locale via upstream).
+      items.push({
+        label: "recently_played",
+        icon: History,
+        path: "/recently-played",
+        isLibraryNode: false,
       });
     }
     if (enabledMenuItemStr === "settings") {

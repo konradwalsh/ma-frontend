@@ -45,7 +45,7 @@
                 icon="mdi-delete"
                 variant="text"
                 density="compact"
-                @click.stop="removePreset(preset.preset_id)"
+                @click.stop="confirmRemovePreset(preset.preset_id)"
               />
             </template>
           </v-list-item>
@@ -215,6 +215,33 @@
             @click="savePreset"
           >
             {{ $t("settings.dsp.presets.save") }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Remove Preset Confirm Dialog (warm amber, not raw red — keeps teal palette) -->
+    <v-dialog v-model="showRemovePresetDialog" max-width="360">
+      <v-card>
+        <v-card-title class="d-flex align-center">
+          <v-icon color="amber-darken-2" class="mr-2">mdi-alert-circle</v-icon>
+          {{ $t("settings.dsp.presets.remove_confirm") }}
+        </v-card-title>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            variant="text"
+            color="primary"
+            @click="showRemovePresetDialog = false"
+          >
+            {{ $t("cancel") }}
+          </v-btn>
+          <v-btn
+            color="amber-darken-2"
+            variant="flat"
+            @click="performRemovePreset"
+          >
+            {{ $t("settings.dsp.presets.remove") || $t("delete") }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -403,9 +430,20 @@ const savePreset = async () => {
   }
 };
 
-const removePreset = async (presetId: string | undefined) => {
-  if (!presetId || !confirm(t("settings.dsp.presets.remove_confirm"))) return;
+const showRemovePresetDialog = ref(false);
+const presetIdToRemove = ref<string | undefined>(undefined);
 
+const confirmRemovePreset = (presetId: string | undefined) => {
+  if (!presetId) return;
+  presetIdToRemove.value = presetId;
+  showRemovePresetDialog.value = true;
+};
+
+const performRemovePreset = async () => {
+  const presetId = presetIdToRemove.value;
+  showRemovePresetDialog.value = false;
+  presetIdToRemove.value = undefined;
+  if (!presetId) return;
   await api.removeDSPPreset(presetId);
   dspPresets.value = dspPresets.value.filter((p) => p.preset_id !== presetId);
 };

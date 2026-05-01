@@ -49,7 +49,39 @@
     <!-- Frequency Response Graph with Dark Theme Support -->
     <v-card elevation="0" color="transparent">
       <div ref="graphContainer" class="graph-container">
-        <canvas ref="canvas" class="frequency-graph"></canvas>
+        <canvas
+          ref="canvas"
+          class="frequency-graph"
+          @mousemove="onCanvasHover"
+          @mouseleave="hoverInfo = null"
+        ></canvas>
+        <div
+          v-if="hoverInfo"
+          class="eq-tooltip"
+          :style="{
+            left: hoverInfo.x + 'px',
+            top: hoverInfo.y + 'px',
+          }"
+        >
+          <div class="eq-tooltip__title">
+            {{
+              hoverInfo.label ??
+              $t("settings.dsp.parametric_eq.band", {
+                index: hoverInfo.index + 1,
+              })
+            }}
+          </div>
+          <div class="eq-tooltip__row">
+            <span>Freq</span><b>{{ formatFreq(hoverInfo.freq) }}</b>
+          </div>
+          <div v-if="hoverInfo.showGain" class="eq-tooltip__row">
+            <span>Gain</span
+            ><b>{{ hoverInfo.gain.toFixed(1) }}&nbsp;dB</b>
+          </div>
+          <div class="eq-tooltip__row">
+            <span>Q</span><b>{{ hoverInfo.q.toFixed(2) }}</b>
+          </div>
+        </div>
       </div>
     </v-card>
 
@@ -512,6 +544,12 @@ const drawGraph = () => {
   // Clear canvas
   ctx.clearRect(0, 0, canvas.value.width, canvas.value.height);
 
+  // Crisper, smoother strokes (rounded line joins for the EQ curves)
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
+
   // Draw frequency grid
   drawGrid(ctx, viewport.value);
 
@@ -746,6 +784,66 @@ const showMultiChannelControls = ref(false);
 
 const selectedBandIndex = ref(-1);
 
+interface HoverInfo {
+  x: number;
+  y: number;
+  index: number;
+  freq: number;
+  gain: number;
+  q: number;
+  showGain: boolean;
+  label?: string;
+}
+const hoverInfo = ref<HoverInfo | null>(null);
+
+const formatFreq = (freq: number): string => {
+  if (freq >= 1000) return `${(freq / 1000).toFixed(freq >= 10000 ? 0 : 1)} kHz`;
+  return `${Math.round(freq)} Hz`;
+};
+
+const onCanvasHover = (evt: MouseEvent) => {
+  if (!canvas.value) return;
+  const rect = canvas.value.getBoundingClientRect();
+  const px = evt.clientX - rect.left;
+  const py = evt.clientY - rect.top;
+
+  // Find the nearest band handle (in CSS pixels) within a hit radius.
+  let bestIdx = -1;
+  let bestDist = 18; // px hit radius
+  peq.value.bands.forEach((band, idx) => {
+    if (!band.enabled) return;
+    if (
+      band.channel !== AudioChannel.ALL &&
+      editedChannel.value !== AudioChannel.ALL &&
+      band.channel !== editedChannel.value
+    )
+      return;
+    const hx = freqToX(band.frequency, viewport.value);
+    const hy = gainToY(band.gain, viewport.value);
+    const d = Math.hypot(hx - px, hy - py);
+    if (d < bestDist) {
+      bestDist = d;
+      bestIdx = idx;
+    }
+  });
+
+  if (bestIdx === -1) {
+    hoverInfo.value = null;
+    return;
+  }
+
+  const band = peq.value.bands[bestIdx];
+  hoverInfo.value = {
+    x: px + 12,
+    y: py + 12,
+    index: bestIdx,
+    freq: band.frequency,
+    gain: band.gain,
+    q: band.q,
+    showGain: showGainParameter(band.type),
+  };
+};
+
 const editedChannel = ref(AudioChannel.ALL);
 
 // Computed property for the selected band
@@ -866,17 +964,40 @@ const drawGrid = (ctx: CanvasRenderingContext2D, viewport: Viewport) => {
   const height = ctx.canvas.height / 2;
   const isDark = theme.global.current.value.dark;
 
+  // Gradient background — subtle vertical wash to give the canvas depth
+  // without obscuring the curves drawn over it.
+  const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
   if (isDark) {
-    ctx.fillStyle = "#eee";
-    ctx.strokeStyle = "#eee";
+    bgGradient.addColorStop(0, "rgba(45, 212, 191, 0.06)");
+    bgGradient.addColorStop(0.5, "rgba(255, 255, 255, 0.015)");
+    bgGradient.addColorStop(1, "rgba(15, 118, 110, 0.05)");
   } else {
-    ctx.fillStyle = "#222";
-    ctx.strokeStyle = "#666";
+    bgGradient.addColorStop(0, "rgba(45, 212, 191, 0.05)");
+    bgGradient.addColorStop(0.5, "rgba(0, 0, 0, 0.01)");
+    bgGradient.addColorStop(1, "rgba(15, 118, 110, 0.04)");
   }
+  ctx.fillStyle = bgGradient;
+  ctx.fillRect(0, 0, width, height);
+
+  const labelColor = isDark
+    ? "rgba(230, 230, 230, 0.78)"
+    : "rgba(40, 40, 40, 0.72)";
+  const gridColor = isDark
+    ? "rgba(255, 255, 255, 0.08)"
+    : "rgba(0, 0, 0, 0.08)";
+  const zeroLineColor = isDark
+    ? "rgba(45, 212, 191, 0.45)"
+    : "rgba(15, 118, 110, 0.45)";
+
   ctx.lineWidth = 1;
+  ctx.strokeStyle = gridColor;
 
   // Draw frequency lines
   const frequencies = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
+  ctx.font =
+    "10px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace";
+  ctx.fillStyle = labelColor;
+  ctx.textAlign = "center";
   frequencies.forEach((freq) => {
     const x = freqToX(freq, viewport);
     ctx.beginPath();
@@ -884,39 +1005,45 @@ const drawGrid = (ctx: CanvasRenderingContext2D, viewport: Viewport) => {
     ctx.lineTo(x, height - viewport.padding_tb);
     ctx.stroke();
 
-    // Draw frequency labels
-    ctx.font =
-      "10px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace";
-    ctx.textAlign = "center";
     ctx.fillText(
       freq >= 1000 ? `${freq / 1000}k` : freq.toString(),
       x,
-      height - 5,
+      height - 4,
     );
   });
 
   // Draw gain lines
-  const gains = [];
   const gainRange = viewport.max_gain - viewport.min_gain;
   const gainStep = Math.ceil(gainRange / (viewport.height / 30));
 
+  ctx.textAlign = "right";
   for (
     let gain = viewport.min_gain;
     gain <= viewport.max_gain;
     gain += gainStep
   ) {
     const y = gainToY(gain, viewport);
+    // Emphasise the 0 dB reference line in brand teal
+    if (gain === 0) {
+      ctx.strokeStyle = zeroLineColor;
+      ctx.lineWidth = 1.25;
+    } else {
+      ctx.strokeStyle = gridColor;
+      ctx.lineWidth = 1;
+    }
     ctx.beginPath();
     ctx.moveTo(viewport.padding_lr, y);
     ctx.lineTo(width - viewport.padding_lr, y);
     ctx.stroke();
 
-    // Draw gain labels
-    ctx.font =
-      "10px ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace";
-    ctx.textAlign = "right";
-    ctx.fillText(`${gain}dB`, viewport.padding_lr - 3, y + 3);
+    ctx.fillStyle = labelColor;
+    ctx.fillText(`${gain}`, viewport.padding_lr - 4, y + 3);
   }
+
+  // dB unit hint at top of axis column
+  ctx.textAlign = "right";
+  ctx.fillStyle = labelColor;
+  ctx.fillText("dB", viewport.padding_lr - 4, viewport.padding_tb - 4);
 };
 
 // Add resize observer
@@ -948,6 +1075,51 @@ onMounted(() => {
 .frequency-graph {
   width: 100%;
   height: 100%;
+  cursor: crosshair;
+}
+
+/* Floating tooltip showing the hovered band's freq / gain / Q */
+.eq-tooltip {
+  position: absolute;
+  pointer-events: none;
+  z-index: 5;
+  min-width: 110px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  background: rgba(20, 30, 30, 0.92);
+  color: #f0fdfa;
+  border: 1px solid rgba(45, 212, 191, 0.55);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  transform: translate(0, 0);
+  white-space: nowrap;
+}
+
+.v-theme--light .eq-tooltip {
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f172a;
+  border-color: rgba(15, 118, 110, 0.55);
+}
+
+.eq-tooltip__title {
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: rgb(45, 212, 191);
+}
+
+.v-theme--light .eq-tooltip__title {
+  color: rgb(15, 118, 110);
+}
+
+.eq-tooltip__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.eq-tooltip__row b {
+  font-weight: 600;
 }
 
 /* Tabular numerals on the band chips so frequency/index numbers don't dance */

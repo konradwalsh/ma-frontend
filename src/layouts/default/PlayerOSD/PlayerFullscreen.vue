@@ -2635,15 +2635,25 @@ button {
   transform: translate(40%, -50%);
 }
 
-/* Mode 3: continuous slow spin — 8s per revolution. Animation lives
-   on the spin wrapper so rotation is around the disc center. The
-   pause class freezes the spin without resetting the angle. */
+/* Mode 3: continuous spin. Streamloader-fork tweak (batch MMM5):
+   8s → 6s per revolution so the rotation reads as motion at a glance
+   on a large fullscreen disc — at 8s the cover-art label was barely
+   moving on first impression. Animation lives on the spin wrapper so
+   rotation is around the disc center. The pause class freezes the
+   spin without resetting the angle. */
 .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-spin {
-  animation: sl-vinyl-spin 8s linear infinite;
+  animation: sl-vinyl-spin 6s linear infinite;
 }
 .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning
   .sl-vinyl-disc-spin.sl-vinyl-spinning--paused {
   animation-play-state: paused;
+}
+
+/* Streamloader-fork tweak (batch MMM5): hover-mode also kicks the
+   spin while the user is hovering — gives the protruded LP something
+   to do, otherwise it reads as a static prop instead of a record. */
+.sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc-spin {
+  animation: sl-vinyl-spin 6s linear infinite;
 }
 
 @keyframes sl-vinyl-spin {
@@ -2722,7 +2732,8 @@ button {
 
 /* Respect users who've asked the OS to reduce motion. */
 @media (prefers-reduced-motion: reduce) {
-  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-spin {
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-spin,
+  .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc-spin {
     animation: none;
   }
   .sl-vinyl-cover.sl-track-pulse {
