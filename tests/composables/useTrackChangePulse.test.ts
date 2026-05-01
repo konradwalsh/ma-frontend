@@ -39,18 +39,16 @@ afterEach(() => {
 describe("useTrackChangePulse", () => {
   it("does NOT pulse on the very first track observation (mount-time snapshot)", async () => {
     storeMock.curQueueItem.queue_item_id = "track-1";
-    const { useTrackChangePulse } = await import(
-      "@/composables/useTrackChangePulse"
-    );
+    const { useTrackChangePulse } =
+      await import("@/composables/useTrackChangePulse");
     const { pulseActive } = useTrackChangePulse();
     await nextTick();
     expect(pulseActive.value).toBe(false);
   });
 
   it("flips pulseActive=true on a real track transition", async () => {
-    const { useTrackChangePulse } = await import(
-      "@/composables/useTrackChangePulse"
-    );
+    const { useTrackChangePulse } =
+      await import("@/composables/useTrackChangePulse");
     const { pulseActive } = useTrackChangePulse();
     await nextTick();
     expect(pulseActive.value).toBe(false);
@@ -66,9 +64,8 @@ describe("useTrackChangePulse", () => {
   });
 
   it("auto-clears pulseActive back to false after 420ms", async () => {
-    const { useTrackChangePulse } = await import(
-      "@/composables/useTrackChangePulse"
-    );
+    const { useTrackChangePulse } =
+      await import("@/composables/useTrackChangePulse");
     const { pulseActive } = useTrackChangePulse();
     await nextTick();
 
@@ -83,9 +80,8 @@ describe("useTrackChangePulse", () => {
   });
 
   it("debounces rapid changes within 500ms — only the first transition pulses", async () => {
-    const { useTrackChangePulse } = await import(
-      "@/composables/useTrackChangePulse"
-    );
+    const { useTrackChangePulse } =
+      await import("@/composables/useTrackChangePulse");
     const { pulseActive } = useTrackChangePulse();
     await nextTick();
 

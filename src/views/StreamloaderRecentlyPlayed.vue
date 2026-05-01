@@ -29,7 +29,11 @@
 -->
 <template>
   <div class="sl-recently-played">
-    <Toolbar :icon="History" color="background" :title="$t('recently_played')" />
+    <Toolbar
+      :icon="History"
+      color="background"
+      :title="$t('recently_played')"
+    />
 
     <Container variant="comfortable" class="sl-rp-container">
       <!-- Page header with brand-teal underline -->

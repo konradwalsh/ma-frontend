@@ -75,8 +75,7 @@
             <span>Freq</span><b>{{ formatFreq(hoverInfo.freq) }}</b>
           </div>
           <div v-if="hoverInfo.showGain" class="eq-tooltip__row">
-            <span>Gain</span
-            ><b>{{ hoverInfo.gain.toFixed(1) }}&nbsp;dB</b>
+            <span>Gain</span><b>{{ hoverInfo.gain.toFixed(1) }}&nbsp;dB</b>
           </div>
           <div class="eq-tooltip__row">
             <span>Q</span><b>{{ hoverInfo.q.toFixed(2) }}</b>
@@ -797,7 +796,8 @@ interface HoverInfo {
 const hoverInfo = ref<HoverInfo | null>(null);
 
 const formatFreq = (freq: number): string => {
-  if (freq >= 1000) return `${(freq / 1000).toFixed(freq >= 10000 ? 0 : 1)} kHz`;
+  if (freq >= 1000)
+    return `${(freq / 1000).toFixed(freq >= 10000 ? 0 : 1)} kHz`;
   return `${Math.round(freq)} Hz`;
 };
 
