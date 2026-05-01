@@ -131,6 +131,22 @@
 
     <!-- actions -->
     <template #append>
+      <!-- Streamloader source badge: tracks only. Compact dot to keep
+           the action row visually quiet; full label shown on hover via
+           the badge's title tooltip. Hidden below bp2 to match the
+           provider-icon pattern (mobile rows are space-constrained). -->
+      <div
+        v-if="
+          !hideSourceBadge &&
+          item.media_type === MediaType.TRACK &&
+          'provider_mappings' in item &&
+          getBreakpointValue('bp2')
+        "
+        class="source-badge-cell"
+      >
+        <StreamloaderSourceBadge :item="item" compact />
+      </div>
+
       <!-- Now Playing Badge -->
       <NowPlayingBadge
         v-if="isPlaying"
@@ -224,6 +240,7 @@ import { useI18n } from "vue-i18n";
 import { VTooltip } from "vuetify/components";
 import MediaItemThumb from "./MediaItemThumb.vue";
 import ProviderIcon from "./ProviderIcon.vue";
+import StreamloaderSourceBadge from "./StreamloaderSourceBadge.vue";
 import { iconHiRes } from "./QualityDetailsBtn.vue";
 
 import { Checkbox } from "@/components/ui/checkbox";
@@ -250,6 +267,7 @@ export interface Props {
   disablePlayButton?: boolean;
   parentItem?: MediaItemType;
   sortBy?: string;
+  hideSourceBadge?: boolean;
 }
 
 // global refs
@@ -282,6 +300,7 @@ const compProps = withDefaults(defineProps<Props>(), {
   isDisabled: false,
   isAvailable: true,
   parentItem: undefined,
+  hideSourceBadge: false,
 });
 
 // computed properties
@@ -388,5 +407,13 @@ const onPlayClick = function (evt: PointerEvent) {
 
 .listitem-media-thumb {
   position: relative;
+}
+
+/* Compact source badge cell in the action row. Vertically centered with
+   the other action icons (HiRes, provider, favorite, play). */
+.source-badge-cell {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
 }
 </style>

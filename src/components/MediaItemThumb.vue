@@ -28,6 +28,24 @@
         >mdi-bookmark-check</v-icon
       >
     </div>
+
+    <!-- Streamloader source dot (compact). Tracks only — albums/artists
+         have heterogeneous mappings that wouldn't classify cleanly. Sits
+         bottom-LEFT to avoid colliding with the in-library bookmark dot
+         that lives bottom-right. Hover/long-press reveals "Local /
+         Streamloader / Streaming" via the badge's own title tooltip. -->
+    <div
+      v-if="
+        !hideSourceBadge &&
+        item &&
+        'media_type' in item &&
+        item.media_type === MediaType.TRACK &&
+        'provider_mappings' in item
+      "
+      class="source-badge-overlay"
+    >
+      <StreamloaderSourceBadge :item="item as any" compact />
+    </div>
   </div>
 </template>
 
@@ -46,6 +64,7 @@ import {
   iconFolder,
 } from "@/components/QualityDetailsBtn.vue";
 import { getImageThumbForItem } from "@/helpers/utils";
+import StreamloaderSourceBadge from "@/components/StreamloaderSourceBadge.vue";
 
 export interface Props {
   item?: MediaItemType | ItemMapping | QueueItem;
@@ -54,6 +73,7 @@ export interface Props {
   rounded?: boolean;
   thumbnail?: boolean;
   hideInLibraryBadge?: boolean;
+  hideSourceBadge?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -63,6 +83,7 @@ const props = withDefaults(defineProps<Props>(), {
   rounded: true,
   thumbnail: true,
   hideInLibraryBadge: false,
+  hideSourceBadge: false,
 });
 
 const theme = useTheme();
@@ -150,5 +171,17 @@ export const getAvatarImage = function (
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
   pointer-events: none;
   z-index: 2;
+}
+
+/* Source-badge overlay: bottom-LEFT corner so it doesn't collide with the
+   in-library bookmark on the right. Drop shadow lifts the dot off bright
+   covers; pointer-events left enabled so the title tooltip works on
+   hover. Tracks only — gated in template. */
+.source-badge-overlay {
+  position: absolute;
+  bottom: -2px;
+  left: -2px;
+  z-index: 2;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
 }
 </style>

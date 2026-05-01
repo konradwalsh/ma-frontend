@@ -117,6 +117,12 @@ const handleClick = (item: NavItem, event: Event) => {
   position: relative;
   border-left: 3px solid transparent;
   border-radius: 0 0.5rem 0.5rem 0;
+  /* a11y/WCAG 2.5.5: ensure sidebar nav items meet the 44x44 CSS-pixel
+     touch-target minimum. Default sidebarMenuButtonVariants size="default"
+     uses h-8 (32px) which is below WCAG; bump to 44px without altering
+     visual width/padding. Use min-height (not height) so the underlying
+     h-8 utility doesn't clip — min-height wins. */
+  min-height: 44px !important;
   transition:
     background-color 150ms ease,
     color 150ms ease,

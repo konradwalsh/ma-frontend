@@ -235,9 +235,7 @@ const currentTrackAnnouncement = computed(() => {
   if (player.playback_state !== PlaybackState.PLAYING) return "";
   const media = player.current_media;
   if (!media?.title) return "";
-  return media.artist
-    ? `${media.title} by ${media.artist}`
-    : media.title;
+  return media.artist ? `${media.title} by ${media.artist}` : media.title;
 });
 watch(
   currentTrackAnnouncement,

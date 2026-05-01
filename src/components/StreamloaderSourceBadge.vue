@@ -28,13 +28,18 @@
   <div
     v-if="classification"
     class="sl-source-badge"
-    :class="`sl-source-badge--${classification.tone}`"
-    :title="classification.tooltip"
+    :class="[
+      `sl-source-badge--${classification.tone}`,
+      { 'sl-source-badge--compact': compact },
+    ]"
+    :title="`${classification.label} — ${classification.tooltip}`"
     role="status"
     :aria-label="`Source: ${classification.label}`"
   >
     <span class="sl-source-badge__dot" aria-hidden="true"></span>
-    <span class="sl-source-badge__label">{{ classification.label }}</span>
+    <span v-if="!compact" class="sl-source-badge__label">{{
+      classification.label
+    }}</span>
   </div>
 </template>
 
@@ -53,9 +58,21 @@ interface Classification {
 
 const STREAMLOADER_DOMAIN = "streamloader";
 
-const props = defineProps<{
-  item?: MediaItem | null;
-}>();
+const props = withDefaults(
+  defineProps<{
+    item?: MediaItem | null;
+    /**
+     * Compact mode renders a colored dot only (with the full label exposed
+     * via the title tooltip and aria-label). Use this on dense surfaces
+     * like grid cards / list rows where a full pill would be too noisy.
+     */
+    compact?: boolean;
+  }>(),
+  {
+    item: null,
+    compact: false,
+  },
+);
 
 const classification = computed<Classification | null>(() => {
   const mappings = props.item?.provider_mappings;
@@ -158,6 +175,23 @@ const classification = computed<Classification | null>(() => {
   border-radius: 50%;
   background: currentColor;
   flex: 0 0 auto;
+}
+
+/* Compact mode: just the colored dot, no text. Used on dense card/row
+   surfaces where the full pill would compete for attention. The label
+   is still exposed via the title tooltip + aria-label for a11y. */
+.sl-source-badge--compact {
+  height: 14px;
+  width: 14px;
+  padding: 0;
+  gap: 0;
+  border-width: 1px;
+  justify-content: center;
+}
+
+.sl-source-badge--compact .sl-source-badge__dot {
+  width: 8px;
+  height: 8px;
 }
 
 /* Local = library green (matches MA's existing "library" affordances) */
