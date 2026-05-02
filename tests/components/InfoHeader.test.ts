@@ -17,8 +17,8 @@ import { defineComponent, h, nextTick, ref } from "vue";
 // hermetic.
 
 // ── Hoisted shared state ─────────────────────────────────────────────
-const { apiMock, storeMock, eventbusMock, authMock, routerMock } =
-  vi.hoisted(() => ({
+const { apiMock, storeMock, eventbusMock, authMock, routerMock } = vi.hoisted(
+  () => ({
     apiMock: {
       toggleFavorite: vi.fn(),
       getGenresForMediaItem: vi.fn(() => Promise.resolve([])),
@@ -40,7 +40,8 @@ const { apiMock, storeMock, eventbusMock, authMock, routerMock } =
       back: vi.fn(),
       currentRoute: { value: { name: "album" } },
     },
-  }));
+  }),
+);
 
 vi.mock("@/plugins/api", () => ({ api: apiMock, default: apiMock }));
 vi.mock("@/plugins/store", () => ({ store: storeMock }));
@@ -142,7 +143,8 @@ vi.mock("vuetify/lib/components/VImg/index.mjs", async () => {
     dc({
       name,
       setup(_, { slots }) {
-        return () => hh("div", { class: name.toLowerCase() }, slots.default?.());
+        return () =>
+          hh("div", { class: name.toLowerCase() }, slots.default?.());
       },
     });
   return { VImg: make("VImg"), default: make("VImg") };
@@ -153,7 +155,8 @@ vi.mock("vuetify/lib/components/VAvatar/index.mjs", async () => {
     dc({
       name,
       setup(_, { slots }) {
-        return () => hh("div", { class: name.toLowerCase() }, slots.default?.());
+        return () =>
+          hh("div", { class: name.toLowerCase() }, slots.default?.());
       },
     });
   return { VAvatar: make("VAvatar"), default: make("VAvatar") };
@@ -164,7 +167,8 @@ vi.mock("vuetify/lib/components/VLayout/index.mjs", async () => {
     dc({
       name,
       setup(_, { slots }) {
-        return () => hh("div", { class: name.toLowerCase() }, slots.default?.());
+        return () =>
+          hh("div", { class: name.toLowerCase() }, slots.default?.());
       },
     });
   return { VLayout: make("VLayout"), default: make("VLayout") };
@@ -289,8 +293,7 @@ vi.mock("@/components/MarqueeText.vue", () => ({
   default: defineComponent({
     name: "MarqueeText",
     setup(_, { slots }) {
-      return () =>
-        h("span", { class: "marquee-stub" }, slots.default?.());
+      return () => h("span", { class: "marquee-stub" }, slots.default?.());
     },
   }),
 }));
@@ -370,7 +373,10 @@ import { translate } from "../i18n-mock";
 // Minimum-viable shapes so the component's reactive watchers don't
 // crash. Only the fields touched by the action cluster + watch(item)
 // callback path matter.
-const baseItem = (mediaType: MediaType, overrides: Record<string, unknown> = {}) => ({
+const baseItem = (
+  mediaType: MediaType,
+  overrides: Record<string, unknown> = {},
+) => ({
   item_id: "id-1",
   uri: `library://${mediaType}/id-1`,
   name: "Test Item",
@@ -451,7 +457,11 @@ describe("InfoHeader.vue (streamloader action cluster)", () => {
       ).toBe(true);
     }
     // Negative cases — the rest must NOT render the affordance.
-    for (const type of [MediaType.ARTIST, MediaType.PLAYLIST, MediaType.RADIO]) {
+    for (const type of [
+      MediaType.ARTIST,
+      MediaType.PLAYLIST,
+      MediaType.RADIO,
+    ]) {
       const w = mountHeader(baseItem(type));
       await nextTick();
       expect(

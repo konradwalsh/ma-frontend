@@ -437,7 +437,9 @@
                     activeQueuePanel == 0 ? onRemoveQueueItem(item) : null
                   "
                   @keydown.enter.stop.prevent="
-                    activeQueuePanel == 0 ? queueCommand(item, 'play_now') : null
+                    activeQueuePanel == 0
+                      ? queueCommand(item, 'play_now')
+                      : null
                   "
                   @dragover.prevent="
                     (e: DragEvent) => onQueueRowDragOver(e, index)

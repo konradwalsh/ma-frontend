@@ -88,6 +88,26 @@ describe("prettifyMediaName", () => {
     expect(prettifyMediaName("中文 専輯")).toBe("中文 専輯");
   });
 
+  it("coerces non-string input to a string and returns it (defensive type-guard branch)", () => {
+    // Production code is typed `string | undefined | null`, but the
+    // typeof-string guard exists to defend against runtime callers that
+    // ignore the type signature. A number arriving here should round-trip
+    // through String() rather than crash on regex .test() calls. Pinning
+    // the contract so a future "trust the types" cleanup surfaces here.
+    expect(prettifyMediaName(42 as unknown as string)).toBe("42");
+  });
+
+  it("returns original name when artist-prefix strip would leave nothing behind", () => {
+    // If the entire name IS the artist (no track-name remainder), the
+    // stripper bails to the original rather than emitting an empty title.
+    // The composable then continues through the underscore/title-case
+    // pipeline on the unstripped value, so the artist name itself is
+    // returned in cleaned form rather than dropped to "".
+    expect(
+      prettifyMediaName("graham_coxon", { artist: "Graham Coxon" }),
+    ).toBe("Graham Coxon");
+  });
+
   it("retains Cyrillic + CJK segments when title-casing a mixed Latin name", () => {
     // Mixed-script name with an underscore triggers the full pipeline:
     // underscores → spaces, then title-case (because the working string

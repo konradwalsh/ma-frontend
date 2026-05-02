@@ -490,8 +490,18 @@ const streamloaderLastUpdate = computed(() => {
   const [, year, month] = match;
   const monthIndex = Math.max(0, Math.min(11, parseInt(month, 10) - 1));
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
   return `${monthNames[monthIndex]} ${year}`;
 });
@@ -619,7 +629,10 @@ onMounted(async () => {
   background: rgba(45, 212, 191, 0.08);
   color: rgb(15, 118, 110);
   text-decoration: none;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
 }
 
 .sl-fork-link:hover {
@@ -653,7 +666,10 @@ onMounted(async () => {
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
 }
 
 .sl-whats-new-btn:hover {

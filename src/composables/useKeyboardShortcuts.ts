@@ -223,14 +223,20 @@ function handleKeydown(e: KeyboardEvent) {
       break;
     case "ArrowUp": {
       const cur = player.volume_level ?? 0;
-      const next = Math.min(VOLUME_MAX, Math.max(VOLUME_MIN, cur + VOLUME_STEP));
+      const next = Math.min(
+        VOLUME_MAX,
+        Math.max(VOLUME_MIN, cur + VOLUME_STEP),
+      );
       api.playerCommandVolumeSet(playerId, next);
       e.preventDefault();
       break;
     }
     case "ArrowDown": {
       const cur = player.volume_level ?? 0;
-      const next = Math.min(VOLUME_MAX, Math.max(VOLUME_MIN, cur - VOLUME_STEP));
+      const next = Math.min(
+        VOLUME_MAX,
+        Math.max(VOLUME_MIN, cur - VOLUME_STEP),
+      );
       api.playerCommandVolumeSet(playerId, next);
       e.preventDefault();
       break;

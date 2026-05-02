@@ -45,7 +45,10 @@
           <li class="sl-crumbs__sep" aria-hidden="true">
             {{ $t("streamloader.chrome.breadcrumb_separator") }}
           </li>
-          <li class="sl-crumbs__item sl-crumbs__item--current" aria-current="page">
+          <li
+            class="sl-crumbs__item sl-crumbs__item--current"
+            aria-current="page"
+          >
             {{ $t("streamloader.stats.page_title") }}
           </li>
         </ol>
