@@ -66,7 +66,57 @@
         </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
-        <!-- Vinyl display mode (mirrors FrontendConfig) -->
+        <!-- Streamloader-fork addition (media-kind chooser): which
+             physical-media companion to render alongside the album cover.
+             Sits ABOVE the legacy vinyl-display-mode chooser because it
+             gates which kind that mode applies to. Visual previews use
+             the same SVG assets the actual hero renders, so the choice
+             is unambiguous. -->
+        <div class="sl-field sl-field--media-kind">
+          <div class="sl-field__text">
+            <div class="sl-field__label">
+              {{ t("streamloader.media_display.kind_label") }}
+            </div>
+            <div class="sl-field__desc">
+              {{ t("streamloader.media_display.kind_description") }}
+            </div>
+          </div>
+          <div
+            class="sl-media-kind-chooser"
+            role="radiogroup"
+            :aria-label="t('streamloader.media_display.kind_label')"
+          >
+            <button
+              v-for="opt in mediaKindOptions"
+              :key="opt.value"
+              type="button"
+              role="radio"
+              :aria-checked="mediaDisplayKindSel === opt.value"
+              :class="[
+                'sl-media-kind-chip',
+                { 'sl-media-kind-chip--active': mediaDisplayKindSel === opt.value },
+              ]"
+              @click="mediaDisplayKindSel = opt.value"
+            >
+              <img
+                v-if="opt.preview"
+                :src="opt.preview"
+                alt=""
+                class="sl-media-kind-chip__img"
+              />
+              <span v-else class="sl-media-kind-chip__none" aria-hidden="true">
+                <v-icon icon="mdi-image-off-outline" size="20" />
+              </span>
+              <span class="sl-media-kind-chip__label">{{ opt.label }}</span>
+            </button>
+          </div>
+        </div>
+
+        <v-divider />
+
+        <!-- Vinyl display mode (mirrors FrontendConfig) — applies to the
+             chosen kind for vinyl + cd. Greyed out for cassette + none
+             since neither has a hover/always axis. -->
         <div class="sl-field">
           <div class="sl-field__text">
             <div class="sl-field__label">
@@ -82,6 +132,7 @@
             density="compact"
             variant="outlined"
             hide-details
+            :disabled="!displayModeAppliesToKind"
             class="sl-field__control"
           />
         </div>
@@ -309,6 +360,13 @@ import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 
 import streamloaderMark from "@/assets/streamloader-mark.svg";
+// Streamloader-fork addition (media-kind chooser): inline SVG previews
+// for the kind-chooser chips. Imported as URL strings so they render
+// the same asset the InfoHeader / PlayerFullscreen actually use — the
+// preview never drifts from the rendered hero.
+import vinylPreview from "@/assets/vinyl.svg";
+import cdPreview from "@/assets/cd.svg";
+import cassettePreview from "@/assets/cassette.svg";
 import Container from "@/components/Container.vue";
 
 const { t } = useI18n();
@@ -323,6 +381,9 @@ import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import {
   useStreamloaderPref,
   setStreamloaderPref,
+  useMediaDisplayKind,
+  setMediaDisplayKind,
+  type MediaDisplayKind,
   type StreamloaderPrefDefaults,
 } from "@/composables/streamloaderPrefs";
 import api from "@/plugins/api";
@@ -382,6 +443,49 @@ watch(vinylDisplayMode, (next) => {
     localStorage.removeItem(VINYL_STORAGE_KEY);
   }
 });
+
+// Streamloader-fork addition (media-kind chooser): which physical-media
+// companion to render alongside the album cover. Backed by the same
+// reactive composable that InfoHeader + PlayerFullscreen consume, so a
+// click here updates both surfaces immediately without a reload.
+const mediaDisplayKindRef = useMediaDisplayKind();
+const mediaDisplayKindSel = computed<MediaDisplayKind>({
+  get: () => mediaDisplayKindRef.value,
+  set: (next) => setMediaDisplayKind(next),
+});
+const mediaKindOptions = computed<
+  Array<{ value: MediaDisplayKind; label: string; preview: string | null }>
+>(() => [
+  {
+    value: "vinyl",
+    label: t("streamloader.media_display.kind_vinyl"),
+    preview: vinylPreview,
+  },
+  {
+    value: "cd",
+    label: t("streamloader.media_display.kind_cd"),
+    preview: cdPreview,
+  },
+  {
+    value: "cassette",
+    label: t("streamloader.media_display.kind_cassette"),
+    preview: cassettePreview,
+  },
+  {
+    value: "none",
+    label: t("streamloader.media_display.kind_none"),
+    preview: null,
+  },
+]);
+// Mode (hover / always / spinning) only makes sense for the round-disc
+// kinds. Cassette has its own implicit "always-visible + spin while
+// playing" behaviour and "none" has no companion at all, so we grey
+// out the mode chooser for those two options.
+const displayModeAppliesToKind = computed(
+  () =>
+    mediaDisplayKindSel.value === "vinyl" ||
+    mediaDisplayKindSel.value === "cd",
+);
 
 // Boolean toggles. Each call to useStreamloaderPref() registers its own
 // window listeners (cleaned up on unmount); we bind one ref per key and
@@ -502,6 +606,88 @@ const providerState = computed<{ tone: Tone; label: string; title: string }>(
   flex: 0 0 auto;
   width: 240px;
   max-width: 50%;
+}
+
+/* Streamloader-fork addition (media-kind chooser). Chips show the same
+   SVG asset the actual hero uses, so the preview never drifts from
+   what's rendered on the album page / fullscreen player. */
+.sl-field--media-kind {
+  /* Allow the chooser strip to wrap below the label on narrow widths
+     instead of clipping. */
+  flex-wrap: wrap;
+}
+
+.sl-media-kind-chooser {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.sl-media-kind-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 76px;
+  padding: 10px 6px 8px;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.18);
+  border-radius: 12px;
+  background: rgba(var(--v-theme-on-surface), 0.03);
+  color: rgb(var(--v-theme-on-surface));
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+@media (hover: hover) {
+  .sl-media-kind-chip:hover {
+    background: rgba(45, 212, 191, 0.08);
+    border-color: rgba(45, 212, 191, 0.45);
+  }
+}
+
+.sl-media-kind-chip:focus-visible {
+  outline: 2px solid #2dd4bf;
+  outline-offset: 2px;
+}
+
+.sl-media-kind-chip--active {
+  background: rgba(45, 212, 191, 0.16);
+  border-color: #2dd4bf;
+}
+
+.sl-media-kind-chip__img {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.sl-media-kind-chip__none {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: rgba(var(--v-theme-on-surface), 0.05);
+  color: rgba(var(--v-theme-on-surface), 0.55);
+}
+
+.sl-media-kind-chip__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-media-kind-chip {
+    transition: none;
+  }
 }
 
 .sl-prov-item {

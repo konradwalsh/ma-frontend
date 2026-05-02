@@ -126,3 +126,116 @@ export function readStreamloaderPref(
 ): boolean {
   return readBool(key, DEFAULT_STREAMLOADER_PREFS[key]);
 }
+
+/* ──────────────────────────────────────────────────────────────────────
+   String-valued preferences
+   ──────────────────────────────────────────────────────────────────────
+   Boolean toggles cover most of the streamloader UX knobs, but a few
+   features need an enum — e.g. `media_display_kind` (vinyl / cd /
+   cassette / none) — so the album-cover companion can be swapped from
+   the streamloader settings page WITHOUT a window reload. Same custom-
+   event broadcast pattern as the boolean helper above keeps consumers
+   in lockstep across the same tab. */
+
+export type MediaDisplayKind = "vinyl" | "cd" | "cassette" | "none";
+
+export interface StreamloaderStringPrefDefaults {
+  media_display_kind: MediaDisplayKind;
+}
+
+export const DEFAULT_STREAMLOADER_STRING_PREFS: StreamloaderStringPrefDefaults =
+  {
+    // Default to vinyl so the existing visual + behaviour is preserved
+    // for everyone who hasn't explicitly picked a different kind. The
+    // existing `vinyl_display_mode` (hover / always / spinning) still
+    // applies — kind is the *what*, mode is the *how*.
+    media_display_kind: "vinyl",
+  };
+
+const stringStorageKey = (
+  key: keyof StreamloaderStringPrefDefaults,
+): string => `${PREFIX}${key}`;
+
+const readString = <K extends keyof StreamloaderStringPrefDefaults>(
+  key: K,
+  fallback: StreamloaderStringPrefDefaults[K],
+  validValues: ReadonlyArray<StreamloaderStringPrefDefaults[K]>,
+): StreamloaderStringPrefDefaults[K] => {
+  const raw = localStorage.getItem(stringStorageKey(key));
+  if (raw === null) return fallback;
+  // Defensive cast through unknown — allows the runtime-validated string
+  // to satisfy the narrowed enum type without `any`.
+  return (validValues as ReadonlyArray<string>).includes(raw)
+    ? (raw as unknown as StreamloaderStringPrefDefaults[K])
+    : fallback;
+};
+
+const MEDIA_DISPLAY_KIND_VALUES: ReadonlyArray<MediaDisplayKind> = [
+  "vinyl",
+  "cd",
+  "cassette",
+  "none",
+];
+
+/**
+ * Reactive Ref<MediaDisplayKind> that stays in sync across components in
+ * the same tab and across tabs. Same lifecycle pattern as
+ * `useStreamloaderPref` — listens for both the `storage` event (cross-
+ * tab) and the synthetic `streamloader-prefs:changed` event (same-tab).
+ */
+export function useMediaDisplayKind(): Ref<MediaDisplayKind> {
+  const fallback = DEFAULT_STREAMLOADER_STRING_PREFS.media_display_kind;
+  const valueRef = ref<MediaDisplayKind>(
+    readString("media_display_kind", fallback, MEDIA_DISPLAY_KIND_VALUES),
+  );
+
+  const refresh = () => {
+    const next = readString(
+      "media_display_kind",
+      fallback,
+      MEDIA_DISPLAY_KIND_VALUES,
+    );
+    if (next !== valueRef.value) valueRef.value = next;
+  };
+
+  const onStorage = (ev: StorageEvent) => {
+    if (ev.key === stringStorageKey("media_display_kind")) refresh();
+  };
+  const onLocalChange = (ev: Event) => {
+    const detail = (ev as CustomEvent<{ key: string }>).detail;
+    if (!detail || detail.key === stringStorageKey("media_display_kind"))
+      refresh();
+  };
+
+  onMounted(() => {
+    window.addEventListener("storage", onStorage);
+    window.addEventListener(CHANGE_EVENT, onLocalChange);
+  });
+  onBeforeUnmount(() => {
+    window.removeEventListener("storage", onStorage);
+    window.removeEventListener(CHANGE_EVENT, onLocalChange);
+  });
+
+  return valueRef;
+}
+
+export function setMediaDisplayKind(next: MediaDisplayKind): void {
+  localStorage.setItem(stringStorageKey("media_display_kind"), next);
+  window.dispatchEvent(
+    new CustomEvent(CHANGE_EVENT, {
+      detail: { key: stringStorageKey("media_display_kind") },
+    }),
+  );
+}
+
+/**
+ * Synchronous read for non-reactive call sites (e.g. mounting-time
+ * snapshots in InfoHeader / PlayerFullscreen).
+ */
+export function readMediaDisplayKind(): MediaDisplayKind {
+  return readString(
+    "media_display_kind",
+    DEFAULT_STREAMLOADER_STRING_PREFS.media_display_kind,
+    MEDIA_DISPLAY_KIND_VALUES,
+  );
+}

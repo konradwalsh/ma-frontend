@@ -98,9 +98,17 @@
             </v-avatar>
           </div>
           <div
-            v-else-if="item.media_type === MediaType.ALBUM"
+            v-else-if="
+              item.media_type === MediaType.ALBUM &&
+              (mediaDisplayKind === 'vinyl' ||
+                mediaDisplayKind === 'cd')
+            "
             class="sl-vinyl-wrapper"
-            :class="[vinylWrapperClasses, { 'sl-track-pulse-host': showPulse }]"
+            :class="[
+              vinylWrapperClasses,
+              `sl-media-kind--${mediaDisplayKind}`,
+              { 'sl-track-pulse-host': showPulse },
+            ]"
           >
             <!-- Streamloader-fork addition: ALACarte-style vinyl-emerging-
                  from-cover hero, scoped to ALBUM only (other media types
@@ -111,6 +119,14 @@
                  PlaybackState.PLAYING so a paused queue freezes the disc.
                  Vinyl SVG self-contained, lifted from the streamloader
                  web UI's /static/vinyl.svg.
+
+                 Streamloader-fork addition (media-kind chooser): the
+                 same circular protrude+spin pipeline now also renders
+                 a CD when `media_display_kind === 'cd'` — both are
+                 round physical objects so the geometry is identical;
+                 only the asset src changes. The cassette case lives in
+                 a sibling v-else-if below because it's rectangular and
+                 needs different layout / animation.
 
                  Streamloader-fork fix (batch MMM4): split the protrude
                  translate from the spin rotate onto separate wrappers.
@@ -129,7 +145,7 @@
                 class="sl-vinyl-disc-spin"
                 :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
               >
-                <img :src="vinylSvg" alt="" class="sl-vinyl-disc" />
+                <img :src="discSvg" alt="" class="sl-vinyl-disc" />
                 <!-- Streamloader-fork addition (batch MMM3 / MMM4):
                      album-cover thumbnail printed onto the vinyl's
                      center label. Centered on the disc and inherits the
@@ -195,6 +211,82 @@
                 style="max-height: 256px"
               />
             </div>
+          </div>
+          <!-- Streamloader-fork addition (media-kind chooser): cassette
+               variant. Rectangular footprint, so we deliberately do NOT
+               reuse the vinyl protrude/spin pipeline (a half-hidden
+               cassette looks broken). The cassette body stays still; the
+               two reels each spin in opposite directions when the active
+               player is playing. Lives BESIDE the cover, not orbiting it. -->
+          <div
+            v-else-if="
+              item.media_type === MediaType.ALBUM &&
+              mediaDisplayKind === 'cassette'
+            "
+            class="sl-cassette-wrapper"
+            :class="{ 'sl-track-pulse-host': showPulse }"
+          >
+            <div class="sl-vinyl-cover">
+              <img
+                v-if="heroCoverUrl"
+                :key="heroCoverUrl"
+                :src="heroCoverUrl"
+                alt=""
+                class="sl-vinyl-cover-img rounded"
+                style="
+                  width: 100%;
+                  height: 100%;
+                  max-height: 256px;
+                  object-fit: cover;
+                  display: block;
+                "
+                @error="onHeroCoverError"
+              />
+              <MediaItemThumb
+                v-else
+                :item="item"
+                size="calc(100%)"
+                style="max-height: 256px"
+              />
+            </div>
+            <div
+              class="sl-cassette-body"
+              :class="{ 'sl-cassette--paused': !cassetteShouldSpin }"
+              aria-hidden="true"
+            >
+              <img :src="cassetteSvg" alt="" class="sl-cassette-img" />
+            </div>
+          </div>
+          <!-- Streamloader-fork addition (media-kind chooser): "none"
+               kind — render only the album cover, no companion media. -->
+          <div
+            v-else-if="
+              item.media_type === MediaType.ALBUM &&
+              mediaDisplayKind === 'none'
+            "
+            :class="{ 'sl-track-pulse': showPulse }"
+          >
+            <img
+              v-if="heroCoverUrl"
+              :key="heroCoverUrl"
+              :src="heroCoverUrl"
+              alt=""
+              class="sl-vinyl-cover-img rounded"
+              style="
+                width: 100%;
+                height: 100%;
+                max-height: 256px;
+                object-fit: cover;
+                display: block;
+              "
+              @error="onHeroCoverError"
+            />
+            <MediaItemThumb
+              v-else
+              :item="item"
+              size="calc(100%)"
+              style="max-height: 256px"
+            />
           </div>
           <div v-else :class="{ 'sl-track-pulse': showPulse }">
             <MediaItemThumb
@@ -779,6 +871,7 @@ import { authManager } from "@/plugins/auth";
 import { eventbus } from "@/plugins/eventbus";
 import { store } from "@/plugins/store";
 import { useArtworkOverrideUrl } from "@/composables/useArtworkOverrides";
+import { useMediaDisplayKind } from "@/composables/streamloaderPrefs";
 import { useTrackChangePulse } from "@/composables/useTrackChangePulse";
 import { IconHeart, IconHeartFilled } from "@tabler/icons-vue";
 import {
@@ -823,6 +916,12 @@ const imgGradient = new URL("../assets/info_gradient.jpg", import.meta.url)
 // Streamloader-fork addition: vinyl asset for the ALACarte-style
 // album-cover hover reveal (sl-vinyl-* classes below).
 const vinylSvg = new URL("../assets/vinyl.svg", import.meta.url).href;
+// Streamloader-fork addition (media-kind chooser): companion variants
+// of the round disc and a cassette-tape rectangle. The active asset is
+// chosen reactively below via `discSvg` based on the user's saved
+// `media_display_kind`.
+const cdSvg = new URL("../assets/cd.svg", import.meta.url).href;
+const cassetteSvg = new URL("../assets/cassette.svg", import.meta.url).href;
 
 // Streamloader-fork fix (batch MMM5): brand-mark fallback for the
 // vinyl center label image when the cover thumbnail fails to load —
@@ -855,6 +954,30 @@ const vinylWrapperClasses = computed(() => ({
   "vinyl-mode--always-visible-spinning":
     vinylDisplayMode === "always-visible-spinning",
 }));
+
+// Streamloader-fork addition (media-kind chooser): which physical-media
+// companion to render alongside the album cover. Reactive — flipping
+// the choice in the streamloader settings page (StreamloaderSettings.vue)
+// updates this hero immediately without a reload, mirroring how the
+// boolean toggles already behave.
+const mediaDisplayKind = useMediaDisplayKind();
+// `discSvg` switches the active asset for the round-disc pipeline. CD
+// and vinyl share geometry (round, protrudes, spins) so the same
+// .sl-vinyl-disc-* wrappers apply to both — only the underlying art
+// changes. Cassette renders in a sibling branch entirely.
+const discSvg = computed(() =>
+  mediaDisplayKind.value === "cd" ? cdSvg : vinylSvg,
+);
+
+// Cassette spin gating mirrors `vinylShouldSpin` but is independent of
+// `vinyl_display_mode` (the cassette has no "hover/always" axis — it
+// either shows + spins on play, or sits still). Same prefers-reduced-
+// motion guard provided in CSS keeps things accessible.
+const cassetteShouldSpin = computed(() => {
+  const ps = store.activePlayer?.playback_state;
+  if (ps === undefined) return true;
+  return ps === PlaybackState.PLAYING;
+});
 
 // Streamloader-fork addition (batch MMM3): URL for the small album
 // cover that gets printed onto the vinyl's center label. Reuses the
@@ -1477,21 +1600,16 @@ const deleteGenre = () => {
   transform: translate(50%, -50%);
 }
 
-/* Streamloader-fork addition (batch MMM6): hover ALSO pops the disc
-   further out in the always-visible modes. User reported the hover
-   pop-out wasn't working — that's because the original hover rule
-   only targeted vinyl-mode--hover. With always-visible-spinning being
-   the default, the rule never fired. Push to 65% on hover so there's
-   visible feedback regardless of which display mode is active. */
-.sl-vinyl-wrapper.vinyl-mode--always-visible:hover .sl-vinyl-disc-protrude,
-.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning:hover
-  .sl-vinyl-disc-protrude {
-  transform: translate(65%, -50%);
-}
-.sl-vinyl-wrapper.vinyl-mode--always-visible:hover,
-.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning:hover {
-  transform: rotate(-3deg) scale(1.03);
-}
+/* Streamloader-fork tweak (batch MMM7): in InfoHeader the dramatic
+   hover-pop (translate 65% + rotate/scale) introduced in MMM6 overlapped
+   the album title, artist and play button sitting immediately right of
+   the cover. The big pop-out is fullscreen-only delight — InfoHeader is
+   a static info panel, so the always-visible modes here just keep the
+   base 50% protrude with NO hover escalation. PlayerFullscreen still
+   has the dramatic version where there's real estate for it. The
+   .vinyl-mode--hover:hover rule above is preserved (it's the explicit
+   hover-only display mode that the user opts into, and only that mode
+   needs a reveal animation). */
 
 /* Mode 3: continuous spin. Streamloader-fork tweak (batch MMM6):
    6s → 5s per revolution paired with the new asymmetric edge tick on
@@ -1608,6 +1726,94 @@ const deleteGenre = () => {
   :not(.sl-vinyl-wrapper) > .sl-track-pulse {
     animation: none;
   }
+}
+
+/* ─── Streamloader-fork addition (media-kind chooser): cassette layout.
+
+   Cassettes are rectangular, so we don't reuse the round-disc protrude
+   pipeline (a half-hidden cassette looks broken). Instead the cassette
+   sits inline beside the cover and its TWO REELS spin in opposite
+   directions when the active player is playing. The body itself never
+   rotates — only the inner reel groups, targeted via the SVG's
+   `data-reel` attribute. */
+.sl-cassette-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.sl-cassette-body {
+  display: block;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.45));
+  /* Match the cover's max-width so the cassette looks paired with it,
+     not floating off to the side. */
+  max-width: 256px;
+}
+
+.sl-cassette-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+/* Opposite-direction reel spin. The two reels are differentiated only
+   by their `data-reel` attribute on the inline SVG, so we target each
+   independently. 4s/rev — slightly faster than vinyl's 5s because
+   cassette reels spin visibly faster in real life. */
+.sl-cassette-img :deep([data-reel="reel-left"]) {
+  animation: sl-cassette-reel-cw 4s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.sl-cassette-img :deep([data-reel="reel-right"]) {
+  animation: sl-cassette-reel-cw 4s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.sl-cassette-body.sl-cassette--paused
+  .sl-cassette-img
+  :deep([data-reel="reel-left"]),
+.sl-cassette-body.sl-cassette--paused
+  .sl-cassette-img
+  :deep([data-reel="reel-right"]) {
+  animation-play-state: paused;
+}
+
+@keyframes sl-cassette-reel-cw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* Right reel runs the opposite direction so the tape "feeds" between
+   them realistically. Targets the right reel specifically. */
+.sl-cassette-img :deep([data-reel="reel-right"]) {
+  animation-name: sl-cassette-reel-ccw;
+}
+@keyframes sl-cassette-reel-ccw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-cassette-img :deep([data-reel="reel-left"]),
+  .sl-cassette-img :deep([data-reel="reel-right"]) {
+    animation: none;
+  }
+}
+@media (hover: none) {
+  /* Touch devices: keep reels animating, no hover affordances on
+     cassette anyway. Block here intentionally empty to document
+     parity with the vinyl-mode hover guards above. */
 }
 
 /* Touch devices: disable the hover-mode reveal entirely. The reveal is

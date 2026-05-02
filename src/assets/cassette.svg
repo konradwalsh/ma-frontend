@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Streamloader-fork addition: cassette tape companion. Sibling to vinyl.svg
+  + cd.svg but with a deliberately rectangular footprint — cassettes are
+  wider than tall, so consumers must NOT apply the protrude+rotate vinyl
+  treatment (rectangular shape looks broken half-hidden behind the cover).
+
+  ViewBox 600x400 = 3:2 ratio. The two reels each carry a `data-reel`
+  attribute (`reel-left` / `reel-right`) so the consumer can target them
+  with CSS to spin them in opposite directions while the body stays still.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" role="img" aria-hidden="true">
+  <defs>
+    <linearGradient id="cassetteBody" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2a2a2e"/>
+      <stop offset="100%" stop-color="#0e0e10"/>
+    </linearGradient>
+    <linearGradient id="cassetteLabel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fafafa"/>
+      <stop offset="100%" stop-color="#dfe3e8"/>
+    </linearGradient>
+    <radialGradient id="reelBody" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#404048"/>
+      <stop offset="100%" stop-color="#1a1a1d"/>
+    </radialGradient>
+    <linearGradient id="cassetteSheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="40%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Body shell -->
+  <rect x="10" y="20" width="580" height="360" rx="16" ry="16" fill="url(#cassetteBody)"/>
+  <!-- Subtle top highlight -->
+  <rect x="10" y="20" width="580" height="180" rx="16" ry="16" fill="url(#cassetteSheen)"/>
+  <!-- Outer brand-teal accent stripe -->
+  <rect x="10" y="20" width="580" height="360" rx="16" ry="16" fill="none"
+        stroke="#2bd9ba" stroke-opacity="0.55" stroke-width="2"/>
+
+  <!-- Top label area (white sticker) -->
+  <rect x="50" y="50" width="500" height="130" rx="6" ry="6" fill="url(#cassetteLabel)"/>
+  <!-- Two faint label lines suggest where someone wrote "Side A". -->
+  <line x1="70" y1="90" x2="530" y2="90" stroke="#a0a8b4" stroke-width="1.5" stroke-opacity="0.6"/>
+  <line x1="70" y1="120" x2="430" y2="120" stroke="#a0a8b4" stroke-width="1.5" stroke-opacity="0.6"/>
+  <line x1="70" y1="150" x2="380" y2="150" stroke="#a0a8b4" stroke-width="1.5" stroke-opacity="0.6"/>
+
+  <!-- Tape window strip -->
+  <rect x="50" y="210" width="500" height="100" rx="8" ry="8" fill="#0a0a0c"
+        stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+  <!-- Left reel -->
+  <g data-reel="reel-left" transform="translate(180 260)" style="transform-box: fill-box; transform-origin: center;">
+    <circle cx="0" cy="0" r="55" fill="url(#reelBody)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <!-- Six spokes -->
+    <g stroke="#2bd9ba" stroke-opacity="0.7" stroke-width="3" stroke-linecap="round">
+      <line x1="0" y1="-40" x2="0" y2="40"/>
+      <line x1="-40" y1="0" x2="40" y2="0"/>
+      <line x1="-28" y1="-28" x2="28" y2="28"/>
+      <line x1="-28" y1="28" x2="28" y2="-28"/>
+    </g>
+    <circle cx="0" cy="0" r="12" fill="#0a0a0c" stroke="#2bd9ba" stroke-opacity="0.6" stroke-width="1.5"/>
+    <!-- Hub teeth dots -->
+    <circle cx="-7" cy="0" r="2" fill="#2bd9ba" opacity="0.75"/>
+    <circle cx="7" cy="0" r="2" fill="#2bd9ba" opacity="0.75"/>
+    <circle cx="0" cy="-7" r="2" fill="#2bd9ba" opacity="0.75"/>
+    <circle cx="0" cy="7" r="2" fill="#2bd9ba" opacity="0.75"/>
+  </g>
+
+  <!-- Right reel -->
+  <g data-reel="reel-right" transform="translate(420 260)" style="transform-box: fill-box; transform-origin: center;">
+    <circle cx="0" cy="0" r="55" fill="url(#reelBody)" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+    <g stroke="#2bd9ba" stroke-opacity="0.7" stroke-width="3" stroke-linecap="round">
+      <line x1="0" y1="-40" x2="0" y2="40"/>
+      <line x1="-40" y1="0" x2="40" y2="0"/>
+      <line x1="-28" y1="-28" x2="28" y2="28"/>
+      <line x1="-28" y1="28" x2="28" y2="-28"/>
+    </g>
+    <circle cx="0" cy="0" r="12" fill="#0a0a0c" stroke="#2bd9ba" stroke-opacity="0.6" stroke-width="1.5"/>
+    <circle cx="-7" cy="0" r="2" fill="#2bd9ba" opacity="0.75"/>
+    <circle cx="7" cy="0" r="2" fill="#2bd9ba" opacity="0.75"/>
+    <circle cx="0" cy="-7" r="2" fill="#2bd9ba" opacity="0.75"/>
+    <circle cx="0" cy="7" r="2" fill="#2bd9ba" opacity="0.75"/>
+  </g>
+
+  <!-- Tape strand connecting the two reels (thin teal line). -->
+  <line x1="235" y1="260" x2="365" y2="260" stroke="#2bd9ba" stroke-opacity="0.45" stroke-width="2"/>
+
+  <!-- Lower screws (corner bolts), pure decoration -->
+  <circle cx="40" cy="350" r="6" fill="#0a0a0c" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <circle cx="560" cy="350" r="6" fill="#0a0a0c" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <circle cx="40" cy="50" r="6" fill="#0a0a0c" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+  <circle cx="560" cy="50" r="6" fill="#0a0a0c" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+</svg>

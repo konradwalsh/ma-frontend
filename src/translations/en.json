@@ -1868,6 +1868,14 @@
             "section_random_picks": "Random Picks",
             "section_recently_active_artists": "Recently Active Artists"
         },
+        "media_display": {
+            "kind_label": "Album cover companion",
+            "kind_description": "Pick a physical-media graphic to render alongside album covers — a record, a CD, or a cassette.",
+            "kind_vinyl": "Record",
+            "kind_cd": "CD",
+            "kind_cassette": "Cassette",
+            "kind_none": "None"
+        },
         "settings": {
             "header_title": "streamloader",
             "header_description": "Customize how Streamloader looks and feels.",

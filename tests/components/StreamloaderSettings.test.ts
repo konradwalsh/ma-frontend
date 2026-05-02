@@ -9,26 +9,34 @@ import { defineComponent, h, nextTick } from "vue";
 // peer).
 
 // Hoisted mocks shared between the vi.mock factories and the test cases.
-const { apiMock, eventbusMock, routerPushMock, prefStorageMock } = vi.hoisted(
-  () => ({
-    apiMock: {
-      providers: {} as Record<
-        string,
-        {
-          domain: string;
-          name: string;
-          available: boolean;
-          instance_id: string;
-        }
-      >,
-    },
-    eventbusMock: { emit: vi.fn() },
-    routerPushMock: vi.fn(),
-    // Backing store for the streamloaderPrefs mock — lets tests read what
-    // setStreamloaderPref wrote without us depending on the live module.
-    prefStorageMock: {} as Record<string, boolean>,
-  }),
-);
+const {
+  apiMock,
+  eventbusMock,
+  routerPushMock,
+  prefStorageMock,
+  mediaKindStore,
+} = vi.hoisted(() => ({
+  apiMock: {
+    providers: {} as Record<
+      string,
+      {
+        domain: string;
+        name: string;
+        available: boolean;
+        instance_id: string;
+      }
+    >,
+  },
+  eventbusMock: { emit: vi.fn() },
+  routerPushMock: vi.fn(),
+  // Backing store for the streamloaderPrefs mock — lets tests read what
+  // setStreamloaderPref wrote without us depending on the live module.
+  prefStorageMock: {} as Record<string, boolean>,
+  // Backing store for the media-display kind chooser mock. Default to the
+  // production fallback ("vinyl") so the existing toggle/section
+  // assertions don't have to opt in to the new kind UI.
+  mediaKindStore: { value: "vinyl" as "vinyl" | "cd" | "cassette" | "none" },
+}));
 
 vi.mock("@/plugins/api", () => ({ default: apiMock }));
 vi.mock("@/plugins/eventbus", () => ({ eventbus: eventbusMock }));
@@ -48,6 +56,15 @@ vi.mock("@/composables/streamloaderPrefs", async () => {
     useStreamloaderPref: (key: string) => ref(prefStorageMock[key] ?? false),
     setStreamloaderPref: (...args: unknown[]) =>
       setStreamloaderPrefSpy(...(args as [string, boolean])),
+    // Media-display kind chooser exports — keep the mock in sync with the
+    // production module so adding a new kind doesn't silently break this
+    // test file. The ref + setter satisfy the v-model wiring in the chip
+    // chooser; tests don't assert on the kind UI itself yet, but the
+    // mounting must not throw.
+    useMediaDisplayKind: () => ref(mediaKindStore.value),
+    setMediaDisplayKind: (next: "vinyl" | "cd" | "cassette" | "none") => {
+      mediaKindStore.value = next;
+    },
   };
 });
 

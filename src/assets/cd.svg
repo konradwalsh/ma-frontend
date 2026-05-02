@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Streamloader-fork addition: CD companion disc, sibling to vinyl.svg.
+
+  Same 600x600 viewBox + circular footprint as vinyl.svg so it slots into
+  the existing .sl-vinyl-disc/.sl-vinyl-disc-protrude wrappers and inherits
+  the same protrude+spin behaviour. Visual difference vs vinyl:
+    - Holographic rim (conic gradient approximated with multiple radial
+      stops) reads as the iridescent reflection of a real CD.
+    - Light-grey body (vs vinyl's near-black) so it reads distinctly even
+      at thumbnail size.
+    - Larger center hole (CDs have a much bigger spindle hole than LPs).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-hidden="true">
+  <defs>
+    <!-- Body: cool silver-white, brighter near the centre. -->
+    <radialGradient id="cdBody" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f5f7fa"/>
+      <stop offset="55%" stop-color="#cfd6df"/>
+      <stop offset="100%" stop-color="#9aa4b1"/>
+    </radialGradient>
+    <!-- Iridescent rim — six rainbow stops layered translucent over the body
+         to suggest the holographic data side without going full crayon. -->
+    <radialGradient id="cdRim" cx="50%" cy="50%" r="50%">
+      <stop offset="78%" stop-color="rgba(255,255,255,0)"/>
+      <stop offset="82%" stop-color="rgba(255, 70, 120, 0.55)"/>
+      <stop offset="86%" stop-color="rgba(255, 180, 60, 0.55)"/>
+      <stop offset="90%" stop-color="rgba(120, 220, 100, 0.55)"/>
+      <stop offset="94%" stop-color="rgba(60, 180, 230, 0.55)"/>
+      <stop offset="98%" stop-color="rgba(170, 110, 230, 0.55)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.35)"/>
+    </radialGradient>
+    <!-- Specular sheen highlight — same idea as vinylSheen so the disc
+         catches "room light". -->
+    <radialGradient id="cdSheen" cx="35%" cy="32%" r="55%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.45)"/>
+      <stop offset="55%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+  <!-- Disc body -->
+  <circle cx="300" cy="300" r="290" fill="url(#cdBody)"/>
+  <!-- Holographic rim overlay -->
+  <circle cx="300" cy="300" r="290" fill="url(#cdRim)"/>
+  <!-- Faint concentric data rings — quieter than vinyl grooves. -->
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.12">
+    <circle cx="300" cy="300" r="270" stroke-width="0.5"/>
+    <circle cx="300" cy="300" r="240" stroke-width="0.5"/>
+    <circle cx="300" cy="300" r="210" stroke-width="0.5"/>
+    <circle cx="300" cy="300" r="180" stroke-width="0.5"/>
+    <circle cx="300" cy="300" r="150" stroke-width="0.5"/>
+    <circle cx="300" cy="300" r="125" stroke-width="0.5"/>
+  </g>
+  <!-- Asymmetric edge tick so rotation reads at a glance (matches vinyl
+       affordance — without it a uniformly iridescent disc looks static). -->
+  <rect x="297" y="40" width="6" height="120" fill="#2bd9ba" opacity="0.75" rx="2"/>
+  <!-- Inner clear ring around the spindle — CDs have a transparent hub. -->
+  <circle cx="300" cy="300" r="105" fill="#ffffff" fill-opacity="0.85"/>
+  <circle cx="300" cy="300" r="105" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1"/>
+  <!-- Center label area (smaller than vinyl's — CDs have small printed
+       artwork). The .sl-vinyl-label overlay still mounts on top. -->
+  <circle cx="300" cy="300" r="65" fill="#2bd9ba"/>
+  <circle cx="300" cy="300" r="65" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1"/>
+  <!-- Sheen highlight on top -->
+  <circle cx="300" cy="300" r="290" fill="url(#cdSheen)"/>
+  <!-- Spindle hole — substantially larger than vinyl. -->
+  <circle cx="300" cy="300" r="22" fill="#000"/>
+</svg>

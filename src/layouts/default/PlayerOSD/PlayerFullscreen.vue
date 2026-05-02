@@ -156,22 +156,38 @@
                  reported media_type, and the vinyl is iconic of that act.
                  Touch-suppression handled in the scoped CSS below. -->
             <div
-              v-else-if="store.activePlayer?.powered != false && largeCoverUrl"
+              v-else-if="
+                store.activePlayer?.powered != false &&
+                largeCoverUrl &&
+                (mediaDisplayKind === 'vinyl' ||
+                  mediaDisplayKind === 'cd')
+              "
               class="sl-vinyl-wrapper"
-              :class="vinylWrapperClasses"
+              :class="[
+                vinylWrapperClasses,
+                `sl-media-kind--${mediaDisplayKind}`,
+              ]"
             >
               <!-- Streamloader-fork fix (batch MMM4): split protrude
                    translate from spin rotate onto separate wrappers.
                    See InfoHeader.vue for the full rationale — the
                    combined translate+rotate on a single element rotated
                    around the box's pre-translate center, making the
-                   disc orbit the cover instead of spinning in place. -->
+                   disc orbit the cover instead of spinning in place.
+
+                   Streamloader-fork addition (media-kind chooser):
+                   `discSvg` swaps between vinyl.svg and cd.svg based on
+                   the user's saved `media_display_kind`. CD reuses the
+                   exact same protrude+spin pipeline because the
+                   geometry is identical (round, ~same diameter); only
+                   the underlying art changes. Cassette has its own
+                   sibling block below — rectangular, no protrude. -->
               <div class="sl-vinyl-disc-protrude" aria-hidden="true">
                 <div
                   class="sl-vinyl-disc-spin"
                   :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
                 >
-                  <img :src="vinylSvg" alt="" class="sl-vinyl-disc" />
+                  <img :src="discSvg" alt="" class="sl-vinyl-disc" />
                   <!-- Streamloader-fork addition (batch MMM3 / MMM4):
                        cover thumb printed onto the vinyl center label;
                        inherits the spin wrapper's rotation. -->
@@ -205,6 +221,62 @@
                      the hero blank, and a :key tied to the image URL so the
                      img remounts cleanly on track change (kills any stuck
                      error state from the previous track). -->
+                <img
+                  :key="largeCoverUrl"
+                  :src="largeCoverUrl"
+                  alt=""
+                  class="sl-vinyl-cover-img"
+                  @error="onLargeCoverError"
+                />
+              </div>
+            </div>
+            <!-- Streamloader-fork addition (media-kind chooser): cassette.
+                 Rectangular footprint so we deliberately DON'T reuse the
+                 vinyl protrude pipeline. Cover renders normally; cassette
+                 sits stacked beneath it, with its two reels spinning in
+                 opposite directions while the body stays still. -->
+            <div
+              v-else-if="
+                store.activePlayer?.powered != false &&
+                largeCoverUrl &&
+                mediaDisplayKind === 'cassette'
+              "
+              class="sl-cassette-wrapper"
+            >
+              <div
+                class="sl-vinyl-cover"
+                :class="{ 'sl-track-pulse': pulseActive }"
+              >
+                <img
+                  :key="largeCoverUrl"
+                  :src="largeCoverUrl"
+                  alt=""
+                  class="sl-vinyl-cover-img"
+                  @error="onLargeCoverError"
+                />
+              </div>
+              <div
+                class="sl-cassette-body"
+                :class="{ 'sl-cassette--paused': !cassetteShouldSpin }"
+                aria-hidden="true"
+              >
+                <img :src="cassetteSvg" alt="" class="sl-cassette-img" />
+              </div>
+            </div>
+            <!-- Streamloader-fork addition (media-kind chooser): "none"
+                 kind — render only the cover, no companion media. -->
+            <div
+              v-else-if="
+                store.activePlayer?.powered != false &&
+                largeCoverUrl &&
+                mediaDisplayKind === 'none'
+              "
+              class="sl-vinyl-wrapper"
+            >
+              <div
+                class="sl-vinyl-cover"
+                :class="{ 'sl-track-pulse': pulseActive }"
+              >
                 <img
                   :key="largeCoverUrl"
                   :src="largeCoverUrl"
@@ -684,11 +756,20 @@
         >
           <div class="main-media-details-image main-media-details-image-alt">
             <!-- Streamloader-fork addition: same vinyl-cover hover reveal
-                 as the primary media-image position above. -->
+                 as the primary media-image position above. The media-kind
+                 chooser (vinyl / cd / cassette / none) gates which branch
+                 renders, mirroring the primary cover block above. -->
             <div
-              v-if="largeCoverUrl"
+              v-if="
+                largeCoverUrl &&
+                (mediaDisplayKind === 'vinyl' ||
+                  mediaDisplayKind === 'cd')
+              "
               class="sl-vinyl-wrapper"
-              :class="vinylWrapperClasses"
+              :class="[
+                vinylWrapperClasses,
+                `sl-media-kind--${mediaDisplayKind}`,
+              ]"
             >
               <!-- Streamloader-fork fix (batch MMM4): same split-wrapper
                    structure as the primary cover position above. -->
@@ -697,7 +778,7 @@
                   class="sl-vinyl-disc-spin"
                   :class="{ 'sl-vinyl-spinning--paused': !vinylShouldSpin }"
                 >
-                  <img :src="vinylSvg" alt="" class="sl-vinyl-disc" />
+                  <img :src="discSvg" alt="" class="sl-vinyl-disc" />
                   <div v-if="largeCoverUrl" class="sl-vinyl-label">
                     <img
                       :src="largeCoverUrl"
@@ -715,6 +796,49 @@
                 <!-- Streamloader-fork fix (batch JJJ3): see matching block
                      above for the rationale. Same fix mirrored here for the
                      short-screen alt cover position. -->
+                <img
+                  :key="largeCoverUrl"
+                  :src="largeCoverUrl"
+                  alt=""
+                  class="sl-vinyl-cover-img"
+                  @error="onLargeCoverError"
+                />
+              </div>
+            </div>
+            <div
+              v-else-if="
+                largeCoverUrl && mediaDisplayKind === 'cassette'
+              "
+              class="sl-cassette-wrapper"
+            >
+              <div
+                class="sl-vinyl-cover"
+                :class="{ 'sl-track-pulse': pulseActive }"
+              >
+                <img
+                  :key="largeCoverUrl"
+                  :src="largeCoverUrl"
+                  alt=""
+                  class="sl-vinyl-cover-img"
+                  @error="onLargeCoverError"
+                />
+              </div>
+              <div
+                class="sl-cassette-body"
+                :class="{ 'sl-cassette--paused': !cassetteShouldSpin }"
+                aria-hidden="true"
+              >
+                <img :src="cassetteSvg" alt="" class="sl-cassette-img" />
+              </div>
+            </div>
+            <div
+              v-else-if="largeCoverUrl && mediaDisplayKind === 'none'"
+              class="sl-vinyl-wrapper"
+            >
+              <div
+                class="sl-vinyl-cover"
+                :class="{ 'sl-track-pulse': pulseActive }"
+              >
                 <img
                   :key="largeCoverUrl"
                   :src="largeCoverUrl"
@@ -875,6 +999,7 @@ import StreamloaderSourceBadge from "@/components/StreamloaderSourceBadge.vue";
 import { useArtworkOverrideUrl } from "@/composables/useArtworkOverrides";
 import { useLyricsElapsedTime } from "@/composables/useLyricsElapsedTime";
 import { usePartyConfig } from "@/composables/usePartyConfig";
+import { useMediaDisplayKind } from "@/composables/streamloaderPrefs";
 import { useTrackChangePulse } from "@/composables/useTrackChangePulse";
 import { getShortcutKeyFor } from "@/composables/useKeyboardShortcuts";
 
@@ -952,6 +1077,11 @@ const { name } = useDisplay();
 // reveal (sl-vinyl-* classes in the template/style below). Mirrors the
 // pattern shipped on the album-detail page in InfoHeader.vue.
 const vinylSvg = new URL("@/assets/vinyl.svg", import.meta.url).href;
+// Streamloader-fork addition (media-kind chooser): companion variants.
+// CD shares the round protrude+spin geometry with vinyl; cassette is
+// rectangular and rendered in a sibling block.
+const cdSvg = new URL("@/assets/cd.svg", import.meta.url).href;
+const cassetteSvg = new URL("@/assets/cassette.svg", import.meta.url).href;
 
 // Streamloader-fork addition: vinyl display mode driven by the
 // "vinyl_display_mode" frontend setting (FrontendConfig.vue). Read once
@@ -973,6 +1103,20 @@ const vinylWrapperClasses = computed(() => ({
 
 const vinylShouldSpin = computed(() => {
   if (vinylDisplayMode !== "always-visible-spinning") return false;
+  return store.activePlayer?.playback_state === PlaybackState.PLAYING;
+});
+
+// Streamloader-fork addition (media-kind chooser): reactive choice of
+// physical-media companion. Same composable as InfoHeader so the two
+// surfaces stay in lockstep — flipping the kind in the streamloader
+// settings page updates both immediately, no reload required.
+const mediaDisplayKind = useMediaDisplayKind();
+const discSvg = computed(() =>
+  mediaDisplayKind.value === "cd" ? cdSvg : vinylSvg,
+);
+// Cassette spin gating mirrors `vinylShouldSpin` but isn't subject to
+// the vinyl_display_mode (no hover/always axis on cassette).
+const cassetteShouldSpin = computed(() => {
   return store.activePlayer?.playback_state === PlaybackState.PLAYING;
 });
 
@@ -3097,6 +3241,79 @@ button {
   .sl-vinyl-wrapper.vinyl-mode--always-visible:hover,
   .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning:hover {
     transform: none;
+  }
+}
+
+/* ─── Streamloader-fork addition (media-kind chooser): cassette layout
+       for the fullscreen player. Mirrors InfoHeader.vue's cassette
+       block; full rationale lives there (cassette is rectangular, no
+       protrude pipeline reuse, two reels spin in opposite directions,
+       body never rotates). 4s per revolution — slightly faster than the
+       vinyl 5s because cassette reels visibly spin faster IRL. */
+.sl-cassette-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  /* Inherit container-query sizing so the wrapper still respects the
+     fullscreen image box. */
+  width: min(100cqi, 100cqh);
+}
+
+.sl-cassette-body {
+  display: block;
+  width: 100%;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.5));
+}
+
+.sl-cassette-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+.sl-cassette-img :deep([data-reel="reel-left"]) {
+  animation: sl-cassette-reel-cw 4s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.sl-cassette-img :deep([data-reel="reel-right"]) {
+  animation: sl-cassette-reel-ccw 4s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.sl-cassette-body.sl-cassette--paused
+  .sl-cassette-img
+  :deep([data-reel="reel-left"]),
+.sl-cassette-body.sl-cassette--paused
+  .sl-cassette-img
+  :deep([data-reel="reel-right"]) {
+  animation-play-state: paused;
+}
+
+@keyframes sl-cassette-reel-cw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes sl-cassette-reel-ccw {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-cassette-img :deep([data-reel="reel-left"]),
+  .sl-cassette-img :deep([data-reel="reel-right"]) {
+    animation: none;
   }
 }
 </style>
