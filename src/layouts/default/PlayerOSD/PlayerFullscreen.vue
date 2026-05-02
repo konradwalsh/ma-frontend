@@ -648,6 +648,21 @@
               :title="$t('queue_empty')"
               :message="$t('pick_something_to_play')"
             />
+            <!-- Streamloader-fork addition (batch 56 polish): visual parity
+                 with the Queue-tab empty state above. Without this, switching
+                 to the Played tab on a fresh queue showed an empty void with
+                 no explanation. Wording emphasises history specifically so
+                 users understand this is a separate surface from "Queue". -->
+            <StreamloaderEmptyState
+              v-if="
+                !tempHide &&
+                activeQueuePanel === 1 &&
+                previousItems.length === 0
+              "
+              :icon="History"
+              :title="$t('streamloader.player.played_empty_title')"
+              :message="$t('streamloader.player.played_empty_message')"
+            />
             <!-- Lyrics view -->
             <div v-if="activeQueuePanel === 2" class="lyrics-wrapper">
               <LyricsViewer
@@ -910,6 +925,7 @@ import Color from "color";
 import {
   GripVertical,
   Heart,
+  History,
   ListMusic,
   ListPlus,
   Trash2,

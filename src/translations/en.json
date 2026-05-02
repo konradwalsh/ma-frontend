@@ -1932,6 +1932,15 @@
             "loading_label": "Loading your library",
             "loading_text": "loading your library…"
         },
+        "player": {
+            "played_empty_title": "No history yet",
+            "played_empty_message": "Tracks you've played from this queue will show here.",
+            "playlist_adding_one": "Adding to playlist…",
+            "playlist_adding_other": "Adding {count} items to playlist…",
+            "playlist_added_one": "Added to {playlist}.",
+            "playlist_added_other": "Added {count} items to {playlist}.",
+            "playlist_add_failed": "Couldn't add to {playlist}. Try again?"
+        },
         "info_header": {
             "loading_label": "Loading details",
             "actions_aria_label": "Item actions",

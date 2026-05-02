@@ -554,10 +554,7 @@ describe("InfoHeader.vue (streamloader action cluster)", () => {
     expect(heroImg.attributes("src")).toBe("data:image/png;base64,AAAA");
     // Safety-net thumb must NOT be rendered when heroCoverUrl is truthy.
     expect(
-      wrapper
-        .find(".sl-vinyl-cover")
-        .find(".media-item-thumb-stub")
-        .exists(),
+      wrapper.find(".sl-vinyl-cover").find(".media-item-thumb-stub").exists(),
     ).toBe(false);
   });
 

@@ -23,6 +23,8 @@
             :key="playlist.item_id"
             type="button"
             class="playlist-row flex w-full items-center gap-3 px-4 py-2.5 text-left"
+            :class="{ 'is-pending': pendingPlaylistId === playlist.item_id }"
+            :disabled="pendingPlaylistId !== null"
             @click="addToPlaylist(playlist)"
           >
             <div class="shrink-0">
@@ -36,8 +38,13 @@
                 {{ playlist.owner }}
               </div>
             </div>
+            <Loader2
+              v-if="pendingPlaylistId === playlist.item_id"
+              class="shrink-0 size-5 animate-spin text-[#2dd4bf]"
+              :aria-label="$t('streamloader.player.playlist_adding_one')"
+            />
             <provider-icon
-              v-if="playlist.provider_mappings"
+              v-else-if="playlist.provider_mappings"
               :domain="playlist.provider_mappings[0].provider_domain"
               :size="20"
               class="shrink-0"
@@ -102,14 +109,21 @@ import { MediaType, ProviderFeature } from "@/plugins/api/interfaces";
 import { eventbus, PlaylistDialogEvent } from "@/plugins/eventbus";
 import { $t } from "@/plugins/i18n";
 import { store } from "@/plugins/store";
-import { ListPlus } from "lucide-vue-next";
+import { ListPlus, Loader2 } from "lucide-vue-next";
 import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { toast } from "vue-sonner";
 
 const show = ref<boolean>(false);
 const playlists = ref<Playlist[]>([]);
 const createPlaylistProviders = ref<string[]>([]);
 const parentItem = ref<MediaItemType>();
 const selectedItems = ref<MediaItemTypeOrItemMapping[]>([]);
+// Streamloader-fork addition (batch 56 polish): tracks the playlist whose
+// add request is currently in-flight, so the row can show a spinner and the
+// rest of the rows can be disabled. Previously this dialog fired the API call
+// fire-and-forget and closed instantly with no feedback — successful adds
+// felt like nothing happened and failures were silent.
+const pendingPlaylistId = ref<string | number | null>(null);
 
 watch(show, (open) => {
   store.dialogActive = open;
@@ -237,12 +251,34 @@ const fetchPlaylists = async function () {
   }
 };
 const addToPlaylist = async function (value: MediaItemType) {
-  // add item(s) to playlist
-  api.addPlaylistTracks(
-    value.item_id,
-    selectedItems.value.map((x) => x.uri),
-  );
-  close();
+  // Streamloader-fork polish (batch 56): await the request so we can show a
+  // spinner on the chosen row + a success/error toast. The dialog stays open
+  // until the request resolves so the user sees the spinner; on failure we
+  // keep it open so they can retry on a different playlist.
+  if (pendingPlaylistId.value !== null) return;
+  pendingPlaylistId.value = value.item_id;
+  const count = selectedItems.value.length;
+  try {
+    await api.addPlaylistTracks(
+      value.item_id,
+      selectedItems.value.map((x) => x.uri),
+    );
+    const successMsg =
+      count === 1
+        ? $t("streamloader.player.playlist_added_one", { playlist: value.name })
+        : $t("streamloader.player.playlist_added_other", {
+            count,
+            playlist: value.name,
+          });
+    toast.success(successMsg);
+    close();
+  } catch {
+    toast.error(
+      $t("streamloader.player.playlist_add_failed", { playlist: value.name }),
+    );
+  } finally {
+    pendingPlaylistId.value = null;
+  }
 };
 const newPlaylist = async function (provId: string) {
   let refItem = selectedItems.value.length ? selectedItems.value[0] : undefined;
@@ -297,6 +333,10 @@ const newPlaylist = async function (provId: string) {
 
 const close = function () {
   show.value = false;
+  // Reset pending state in case the dialog was closed via overlay click
+  // while a request was in flight (the request still resolves; we just no
+  // longer want a stale pending ref carried into the next open).
+  pendingPlaylistId.value = null;
 };
 </script>
 
@@ -345,6 +385,22 @@ const close = function () {
 
 .playlist-row:active {
   background-color: rgba(45, 212, 191, 0.14);
+}
+
+/* Streamloader-fork polish (batch 56): visual cue while a row's add request
+   is in flight. Other rows are dimmed via :disabled below. */
+.playlist-row.is-pending {
+  background-color: rgba(45, 212, 191, 0.12);
+  box-shadow: inset 3px 0 0 #2dd4bf;
+}
+
+.playlist-row:disabled {
+  cursor: progress;
+}
+
+.playlist-row:disabled:not(.is-pending) {
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 /* Create-new-playlist CTA: teal-leaning primary affordance */
