@@ -17,31 +17,47 @@ import { defineComponent, h, nextTick, ref } from "vue";
 // hermetic.
 
 // ── Hoisted shared state ─────────────────────────────────────────────
-const { apiMock, storeMock, eventbusMock, authMock, routerMock } = vi.hoisted(
-  () => ({
-    apiMock: {
-      toggleFavorite: vi.fn(),
-      getGenresForMediaItem: vi.fn(() => Promise.resolve([])),
-      refreshItem: vi.fn(),
-      signalEvent: vi.fn(),
-      // EventType.MEDIA_ITEM_UPDATED subscription — return an unsub spy.
-      subscribe: vi.fn(() => () => {}),
-    },
-    storeMock: {
-      activePlayer: undefined as unknown,
-      activePlayerQueue: undefined as unknown,
-      curQueueItem: undefined as unknown,
-      prevRoute: undefined as unknown,
-    },
-    eventbusMock: { emit: vi.fn() },
-    authMock: { isAdmin: vi.fn(() => true) },
-    routerMock: {
-      push: vi.fn(),
-      back: vi.fn(),
-      currentRoute: { value: { name: "album" } },
-    },
-  }),
-);
+const {
+  apiMock,
+  storeMock,
+  eventbusMock,
+  authMock,
+  routerMock,
+  thumbState,
+  overrideState,
+} = vi.hoisted(() => ({
+  apiMock: {
+    // baseUrl is required by the heroCoverUrl computed (imageproxy URL build).
+    baseUrl: "https://ma.example.test",
+    toggleFavorite: vi.fn(),
+    getGenresForMediaItem: vi.fn(() => Promise.resolve([])),
+    refreshItem: vi.fn(),
+    signalEvent: vi.fn(),
+    // EventType.MEDIA_ITEM_UPDATED subscription — return an unsub spy.
+    subscribe: vi.fn(() => () => {}),
+  },
+  storeMock: {
+    activePlayer: undefined as unknown,
+    activePlayerQueue: undefined as unknown,
+    curQueueItem: undefined as unknown,
+    prevRoute: undefined as unknown,
+  },
+  eventbusMock: { emit: vi.fn() },
+  authMock: { isAdmin: vi.fn(() => true) },
+  routerMock: {
+    push: vi.fn(),
+    back: vi.fn(),
+    currentRoute: { value: { name: "album" } },
+  },
+  // Mutable thunk so individual heroCoverUrl tests can override what
+  // getImageThumbForItem returns without re-mocking the whole helpers
+  // module. Default to "" to preserve the existing action-cluster tests'
+  // behaviour.
+  thumbState: { value: "" as string },
+  // Same trick for the artwork-override composable: by default no
+  // override is set, but the override-wins test can flip it on.
+  overrideState: { value: undefined as string | undefined },
+}));
 
 vi.mock("@/plugins/api", () => ({ api: apiMock, default: apiMock }));
 vi.mock("@/plugins/store", () => ({ store: storeMock }));
@@ -84,13 +100,23 @@ vi.mock("@/layouts/default/ItemContextMenu.vue", () => ({
 vi.mock("@/helpers/utils", () => ({
   getGenreDescription: () => "",
   getGenreDisplayName: (name: string) => name,
-  getImageThumbForItem: () => "",
+  getImageThumbForItem: () => thumbState.value,
   handleMediaItemClick: vi.fn(),
   handlePlayBtnClick: vi.fn(),
   markdownToHtml: (s: string) => s,
   parseBool: (v: unknown) => Boolean(v),
   truncateString: (s: string) => s,
 }));
+
+// useArtworkOverrideUrl is a real composable that reads from a module-
+// scoped reactive Map. Stub it so heroCoverUrl branches can be exercised
+// deterministically per-test via overrideState.value.
+vi.mock("@/composables/useArtworkOverrides", async () => {
+  const { computed: c } = await import("vue");
+  return {
+    useArtworkOverrideUrl: () => c(() => overrideState.value),
+  };
+});
 
 vi.mock("@/helpers/prettifyMediaName", () => ({
   prettifyMediaName: (n: string) => n,
@@ -298,7 +324,15 @@ vi.mock("@/components/MarqueeText.vue", () => ({
   }),
 }));
 vi.mock("@/components/MediaItemThumb.vue", () => ({
-  default: defineComponent({ name: "MediaItemThumb", render: () => null }),
+  // Render a probe span so heroCoverUrl branch tests can assert that the
+  // safety-net <MediaItemThumb v-else> path was selected (vs. the new
+  // <img v-if="heroCoverUrl"> path).
+  default: defineComponent({
+    name: "MediaItemThumb",
+    setup() {
+      return () => h("span", { class: "media-item-thumb-stub" });
+    },
+  }),
 }));
 vi.mock("@/components/MenuButton.vue", () => ({
   default: defineComponent({
@@ -411,6 +445,11 @@ describe("InfoHeader.vue (streamloader action cluster)", () => {
     eventbusMock.emit.mockClear();
     routerMock.push.mockClear();
     authMock.isAdmin.mockReturnValue(true);
+    // Reset hero-cover stubs to "no override, no auto-detected thumb" —
+    // matches the original test fixtures' behaviour so the existing
+    // action-cluster assertions remain unaffected.
+    thumbState.value = "";
+    overrideState.value = undefined;
   });
 
   it("renders the favorite, provider, merge, trash, edit-artwork, and rescan buttons for an admin-viewed library genre", async () => {
@@ -494,5 +533,78 @@ describe("InfoHeader.vue (streamloader action cluster)", () => {
     expect(
       wrapper.find(".edit-artwork-dialog-stub").attributes("data-item-id"),
     ).toBe("id-1");
+  });
+
+  // ── heroCoverUrl computed branches ─────────────────────────────────
+  //
+  // Batch 54 introduced the heroCoverUrl computed on the album-hero
+  // <img>. Four branches exist (override / album+thumb / album+no-thumb /
+  // non-album), each validated below.
+
+  it("heroCoverUrl: override URL wins over the auto-detected thumb (data: bypasses imageproxy)", async () => {
+    // Override is a data: URL — should be used verbatim, NOT routed
+    // through imageproxy. getImageThumbForItem still returns a raw URL
+    // to prove the override branch shadows it.
+    overrideState.value = "data:image/png;base64,AAAA";
+    thumbState.value = "https://upstream.example/cover.jpg";
+    const wrapper = mountHeader(baseItem(MediaType.ALBUM));
+    await nextTick();
+    const heroImg = wrapper.find("img.sl-vinyl-cover-img");
+    expect(heroImg.exists()).toBe(true);
+    expect(heroImg.attributes("src")).toBe("data:image/png;base64,AAAA");
+    // Safety-net thumb must NOT be rendered when heroCoverUrl is truthy.
+    expect(
+      wrapper
+        .find(".sl-vinyl-cover")
+        .find(".media-item-thumb-stub")
+        .exists(),
+    ).toBe(false);
+  });
+
+  it("heroCoverUrl: album with raw image URL is routed through imageproxy with size=600 and double-encoded path", async () => {
+    const raw = "https://upstream.example/cover image.jpg?x=1";
+    thumbState.value = raw;
+    const wrapper = mountHeader(baseItem(MediaType.ALBUM));
+    await nextTick();
+    const heroImg = wrapper.find("img.sl-vinyl-cover-img");
+    expect(heroImg.exists()).toBe(true);
+    const src = heroImg.attributes("src") ?? "";
+    // Imageproxy routing — base URL + path query + size hint, with the
+    // raw upstream URL encoded twice (component does
+    // encodeURIComponent(encodeURIComponent(raw))).
+    expect(src).toContain("/imageproxy?path=");
+    expect(src).toContain("size=600");
+    expect(src.startsWith("https://ma.example.test/imageproxy?")).toBe(true);
+    const expectedEnc = encodeURIComponent(encodeURIComponent(raw));
+    expect(src).toContain(expectedEnc);
+  });
+
+  it("heroCoverUrl: returns empty string for an album with no detected image (template hides the <img>, falls back to MediaItemThumb safety net)", async () => {
+    thumbState.value = ""; // no auto-detected URL
+    overrideState.value = undefined; // no override
+    const wrapper = mountHeader(baseItem(MediaType.ALBUM));
+    await nextTick();
+    // The hero <img> is gated on heroCoverUrl truthy — must NOT exist.
+    expect(wrapper.find("img.sl-vinyl-cover-img").exists()).toBe(false);
+    // The v-else MediaItemThumb safety net IS rendered inside the
+    // .sl-vinyl-cover wrapper to keep the cover slot from going empty.
+    const cover = wrapper.find(".sl-vinyl-cover");
+    expect(cover.exists()).toBe(true);
+    expect(cover.find(".media-item-thumb-stub").exists()).toBe(true);
+  });
+
+  it("heroCoverUrl: non-album item bypasses the new <img> entirely and falls through to the outer v-else MediaItemThumb branch", async () => {
+    // Even with a thumb URL set, a non-album item never enters the
+    // album-only sl-vinyl-wrapper branch — the heroCoverUrl computed
+    // short-circuits to "" because of the media_type guard, and the
+    // outer v-else renders the plain MediaItemThumb cover.
+    thumbState.value = "https://upstream.example/cover.jpg";
+    const wrapper = mountHeader(baseItem(MediaType.TRACK));
+    await nextTick();
+    // No vinyl wrapper, no hero <img>.
+    expect(wrapper.find(".sl-vinyl-wrapper").exists()).toBe(false);
+    expect(wrapper.find("img.sl-vinyl-cover-img").exists()).toBe(false);
+    // Safety-net MediaItemThumb is rendered for the non-album case.
+    expect(wrapper.find(".media-item-thumb-stub").exists()).toBe(true);
   });
 });

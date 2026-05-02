@@ -873,9 +873,7 @@ const vinylLabelImage = computed<string | null>(() => {
 // useArtworkOverrides). Keyed by the displayed item's item_id; reactive
 // so the hero cover swaps instantly the moment the user clicks Apply in
 // the dialog.
-const heroOverrideUrl = useArtworkOverrideUrl(
-  () => compProps.item?.item_id,
-);
+const heroOverrideUrl = useArtworkOverrideUrl(() => compProps.item?.item_id);
 
 // Streamloader-fork fix (batch 32 pattern, applied to InfoHeader album
 // hero): defensively route the album-hero cover through imageproxy with
