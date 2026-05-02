@@ -95,12 +95,34 @@ import StreamloaderHealthPill from "@/components/StreamloaderHealthPill.vue";
 import StreamloaderActivityPulse from "@/components/StreamloaderActivityPulse.vue";
 import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
 import StreamloaderErrorBoundary from "@/components/StreamloaderErrorBoundary.vue";
-import StreamloaderInstallPrompt from "@/components/StreamloaderInstallPrompt.vue";
-import StreamloaderShortcutsHint from "@/components/StreamloaderShortcutsHint.vue";
-import StreamloaderWelcomeTour from "@/components/StreamloaderWelcomeTour.vue";
-import StreamloaderWhatsNewDialog from "@/components/StreamloaderWhatsNewDialog.vue";
 import { store } from "@/plugins/store";
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
+
+// Streamloader-fork bundle-split (batch 61 audit): these four overlays are
+// all v-if-gated dialogs/pills that are only ever rendered AFTER first user
+// interaction (or AFTER a frameless check). Importing them eagerly pulls
+// their templates + styles into the root layout chunk (which sits in the
+// main entry graph). defineAsyncComponent lets Rollup emit each one as its
+// own tiny async chunk, kept out of first-paint cost.
+const StreamloaderInstallPrompt = defineAsyncComponent(
+  () => import("@/components/StreamloaderInstallPrompt.vue"),
+);
+const StreamloaderShortcutsHint = defineAsyncComponent(
+  () => import("@/components/StreamloaderShortcutsHint.vue"),
+);
+const StreamloaderWelcomeTour = defineAsyncComponent(
+  () => import("@/components/StreamloaderWelcomeTour.vue"),
+);
+const StreamloaderWhatsNewDialog = defineAsyncComponent(
+  () => import("@/components/StreamloaderWhatsNewDialog.vue"),
+);
 import api from "@/plugins/api";
 import { useRoute, useRouter } from "vue-router";
 import { useKeyboardShortcuts } from "@/composables/useKeyboardShortcuts";

@@ -37,12 +37,7 @@ const {
   // production fallback ("vinyl") so the existing toggle/section
   // assertions don't have to opt in to the new kind UI.
   mediaKindStore: {
-    value: "vinyl" as
-      | "vinyl"
-      | "vinyl-photo"
-      | "cd"
-      | "cassette"
-      | "none",
+    value: "vinyl" as "vinyl" | "vinyl-photo" | "cd" | "cassette" | "none",
   },
   setMediaDisplayKindSpy: vi.fn(),
 }));
