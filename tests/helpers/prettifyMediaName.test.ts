@@ -103,9 +103,9 @@ describe("prettifyMediaName", () => {
     // The composable then continues through the underscore/title-case
     // pipeline on the unstripped value, so the artist name itself is
     // returned in cleaned form rather than dropped to "".
-    expect(
-      prettifyMediaName("graham_coxon", { artist: "Graham Coxon" }),
-    ).toBe("Graham Coxon");
+    expect(prettifyMediaName("graham_coxon", { artist: "Graham Coxon" })).toBe(
+      "Graham Coxon",
+    );
   });
 
   it("retains Cyrillic + CJK segments when title-casing a mixed Latin name", () => {

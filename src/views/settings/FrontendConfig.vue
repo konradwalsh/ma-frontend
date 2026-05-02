@@ -1,15 +1,15 @@
 <template>
-  <div class="p-4">
+  <div class="frontend-config p-4">
     <!-- Header card -->
-    <Card class="mb-4">
+    <Card class="frontend-header-card mb-4">
       <CardHeader class="flex flex-row items-center gap-4 pb-4">
-        <div
-          class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-orange-500/10"
-        >
-          <Palette class="size-8 text-orange-500" />
+        <div class="frontend-icon-halo">
+          <Palette class="size-8 frontend-icon" />
         </div>
-        <div class="flex flex-col gap-1">
-          <CardTitle>{{ $t("settings.frontend") }}</CardTitle>
+        <div class="flex flex-col gap-1 min-w-0 flex-1">
+          <CardTitle class="frontend-header-title">{{
+            $t("settings.frontend")
+          }}</CardTitle>
           <CardDescription>{{
             $t("settings.frontend_description")
           }}</CardDescription>
@@ -286,3 +286,193 @@ const onImmediateApply = function (values: Record<string, ConfigValueType>) {
   }
 };
 </script>
+
+<style scoped>
+/*
+  Polish layer for the Frontend settings page. Mirrors the visual language
+  used on the Settings landing card (teal halo + accent underline) so when
+  the user drills into Frontend they don't fall back into "default Vuetify"
+  territory. All animations respect prefers-reduced-motion; all hover
+  effects are suppressed on touch (hover: none).
+*/
+
+.frontend-header-card {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(45, 212, 191, 0.22);
+  background: linear-gradient(
+    135deg,
+    rgba(45, 212, 191, 0.05) 0%,
+    rgba(45, 212, 191, 0) 60%
+  );
+  transition:
+    border-color 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+/* Brand accent underline along the top edge of the header card. */
+.frontend-header-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 16px;
+  width: 64px;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(
+    90deg,
+    rgb(45, 212, 191) 0%,
+    rgba(45, 212, 191, 0.4) 100%
+  );
+}
+
+.frontend-header-card:hover {
+  border-color: rgba(45, 212, 191, 0.4);
+  box-shadow: 0 4px 18px -8px rgba(45, 212, 191, 0.35);
+}
+
+.frontend-header-title {
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+
+/* Replace the off-brand orange icon background with a teal halo that
+   matches every other settings card and pulses a sheen on hover. */
+.frontend-icon-halo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: rgba(45, 212, 191, 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(45, 212, 191, 0.06);
+  transition:
+    background 220ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    transform 180ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.frontend-icon {
+  color: #2dd4bf;
+  transition: transform 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.frontend-header-card:hover .frontend-icon-halo {
+  background: rgba(45, 212, 191, 0.2);
+  transform: scale(1.04);
+}
+
+.frontend-header-card:hover .frontend-icon {
+  transform: rotate(-8deg);
+}
+
+/* Form inputs inside EditConfig — teal focus rings matching the rest of
+   the brand. EditConfig renders Vuetify v-text-field/v-select wrapped in
+   a .config-entry container; we punch into shadow with :deep(). */
+.frontend-config :deep(.config-entry .v-field--focused .v-field__outline) {
+  --v-field-border-opacity: 1;
+}
+
+.frontend-config :deep(.config-entry .v-field--focused) {
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.22);
+  border-radius: 6px;
+  transition: box-shadow 180ms ease;
+}
+
+/* Action buttons inside the EditConfig footer get a teal hover wash and
+   compress slightly on press, matching the established brand pattern. */
+.frontend-config :deep(.config-actions .v-btn) {
+  transition:
+    transform 140ms cubic-bezier(0.34, 1.36, 0.64, 1),
+    box-shadow 200ms ease,
+    background-color 200ms ease;
+}
+
+.frontend-config :deep(.config-actions .v-btn:active:not(.v-btn--disabled)) {
+  transform: scale(0.97);
+}
+
+.frontend-config
+  :deep(.config-actions .v-btn--variant-outlined:hover:not(.v-btn--disabled)) {
+  background-color: rgba(45, 212, 191, 0.08);
+}
+
+/* Section headers inside EditConfig — bump the brand-tone subtle accent
+   bar so each generic/web_player category reads as a polished section. */
+.frontend-config :deep(.category-section) {
+  transition: border-color 220ms cubic-bezier(0.34, 1.36, 0.64, 1);
+}
+
+.frontend-config :deep(.category-section:hover) {
+  border-color: rgba(45, 212, 191, 0.3);
+}
+
+.frontend-config :deep(.category-header) {
+  position: relative;
+}
+
+.frontend-config :deep(.category-header)::after {
+  content: "";
+  position: absolute;
+  left: 20px;
+  bottom: 0;
+  width: 28px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgb(45, 212, 191);
+  opacity: 0.7;
+}
+
+/* Touch suppression — never give users on touch devices a hover state
+   stuck-on after a tap. */
+@media (hover: none) {
+  .frontend-header-card:hover {
+    border-color: rgba(45, 212, 191, 0.22);
+    box-shadow: none;
+  }
+
+  .frontend-header-card:hover .frontend-icon-halo {
+    background: rgba(45, 212, 191, 0.12);
+    transform: none;
+  }
+
+  .frontend-header-card:hover .frontend-icon {
+    transform: none;
+  }
+
+  .frontend-config
+    :deep(.config-actions .v-btn--variant-outlined:hover:not(.v-btn--disabled)) {
+    background-color: transparent;
+  }
+
+  .frontend-config :deep(.category-section:hover) {
+    border-color: rgba(var(--v-theme-primary), 0.16);
+  }
+}
+
+/* Focus-visible fallback for keyboard users on the header card so it
+   reads as actionable (it isn't, but consistent treatment matters). */
+.frontend-header-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frontend-header-card,
+  .frontend-icon-halo,
+  .frontend-icon,
+  .frontend-config :deep(.config-entry .v-field--focused),
+  .frontend-config :deep(.config-actions .v-btn),
+  .frontend-config :deep(.category-section) {
+    transition: none !important;
+  }
+
+  .frontend-header-card:hover .frontend-icon-halo,
+  .frontend-header-card:hover .frontend-icon,
+  .frontend-config :deep(.config-actions .v-btn:active:not(.v-btn--disabled)) {
+    transform: none !important;
+  }
+}
+</style>
