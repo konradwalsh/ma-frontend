@@ -33,6 +33,8 @@
         type="button"
         class="sl-activity-log__bell"
         :class="{ 'sl-activity-log__bell--collapsed': collapsed }"
+        aria-haspopup="menu"
+        :aria-expanded="open"
         :aria-label="
           hasUnread
             ? t('streamloader.activity_log.bell_label_unread', {

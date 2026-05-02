@@ -97,6 +97,8 @@
           size="small"
           variant="text"
           class="task-card-menu"
+          :aria-label="$t('streamloader.a11y.task_options')"
+          aria-haspopup="menu"
           @click.stop="emit('menu', $event, task)"
         />
       </div>

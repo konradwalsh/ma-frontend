@@ -58,6 +58,7 @@
                 size="small"
                 density="compact"
                 class="rename-btn"
+                :aria-label="$t('streamloader.a11y.edit_provider_name')"
                 @click="showRenameDialog = true"
               />
             </div>

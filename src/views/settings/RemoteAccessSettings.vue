@@ -169,6 +169,7 @@
                 color="primary"
                 class="copy-button"
                 :title="$t('settings.remote_access_copy_id')"
+                :aria-label="$t('streamloader.a11y.copy_remote_id')"
                 @click="copyRemoteId"
               />
             </div>

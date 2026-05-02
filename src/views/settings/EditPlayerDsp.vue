@@ -45,6 +45,7 @@
                 icon="mdi-delete"
                 variant="text"
                 density="compact"
+                :aria-label="$t('streamloader.a11y.remove_dsp_preset')"
                 @click.stop="confirmRemovePreset(preset.preset_id)"
               />
             </template>
@@ -102,6 +103,7 @@
               v-if="mobile"
               class="hidden-xs-only"
               icon
+              :aria-label="$t('streamloader.a11y.toolbar_back')"
               @click="selectedStage = null"
             >
               <v-icon>mdi-arrow-left</v-icon>
@@ -114,6 +116,7 @@
                 selectedStage > 0
               "
               icon
+              :aria-label="$t('streamloader.a11y.move_dsp_filter_up')"
               @click="moveFilter(selectedStage, 'up')"
             >
               <v-icon>mdi-arrow-up</v-icon>
@@ -125,6 +128,7 @@
                 selectedStage < dsp.filters.length - 1
               "
               icon
+              :aria-label="$t('streamloader.a11y.move_dsp_filter_down')"
               @click="moveFilter(selectedStage, 'down')"
             >
               <v-icon>mdi-arrow-down</v-icon>
@@ -140,6 +144,7 @@
             <v-btn
               v-if="typeof selectedStage === 'number'"
               icon
+              :aria-label="$t('streamloader.a11y.delete_dsp_filter')"
               @click="removeFilter(selectedStage)"
             >
               <v-icon>mdi-delete</v-icon>

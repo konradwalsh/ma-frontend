@@ -39,6 +39,7 @@
             v-if="widgetRow.settings.position !== 0"
             icon="mdi-chevron-up"
             class="enabled"
+            :aria-label="$t('streamloader.a11y.move_widget_up')"
             @click="
               emit('update:settings', {
                 ...widgetRow.settings,
@@ -49,6 +50,7 @@
           <!-- down button -->
           <v-btn
             icon="mdi-chevron-down"
+            :aria-label="$t('streamloader.a11y.move_widget_down')"
             @click="
               emit('update:settings', {
                 ...widgetRow.settings,
@@ -63,6 +65,8 @@
                 ? 'mdi-checkbox-marked'
                 : 'mdi-checkbox-blank-outline'
             "
+            :aria-label="$t('streamloader.a11y.toggle_widget_enabled')"
+            :aria-pressed="!!widgetRow.settings.enabled"
             @click="
               emit('update:settings', {
                 ...widgetRow.settings,
@@ -77,6 +81,7 @@
             typeof widgetRow.icon === 'string' ? widgetRow.icon : undefined
           "
           variant="text"
+          :aria-label="$t('streamloader.a11y.widget_action')"
           @click="handleActionIconClick"
         >
           <component

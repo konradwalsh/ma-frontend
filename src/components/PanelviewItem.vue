@@ -113,6 +113,7 @@
         color="primary"
         fab
         :disabled="disablePlayButton"
+        :aria-label="$t('play')"
         :style="`position: absolute; right: 15px; bottom: ${showActions ? 90 : 35}px; opacity: 0.8`"
         @click.stop="onPlayClick"
       />

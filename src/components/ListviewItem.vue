@@ -215,6 +215,7 @@
         variant="text"
         size="small"
         :disabled="disablePlayButton"
+        :aria-label="$t('play')"
         @click.stop="onPlayClick"
       >
         <v-icon size="24">mdi-play-circle-outline</v-icon>

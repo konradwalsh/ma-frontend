@@ -8,7 +8,7 @@
     variant="button"
     role="button"
     :title="tooltipLabel"
-    :aria-label="isPlaying ? 'Pause' : $t('play')"
+    :aria-label="isPlaying ? $t('streamloader.a11y.pause') : $t('play')"
     :aria-keyshortcuts="shortcutKey || undefined"
     :aria-pressed="isPlaying"
     :aria-disabled="!canPlayPause || isLoading"

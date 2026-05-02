@@ -82,9 +82,10 @@
             type="button"
             class="settings-search-clear"
             :title="t('close')"
+            :aria-label="t('streamloader.a11y.clear_search')"
             @click="searchQuery = ''"
           >
-            <Icon icon="mdi-close-circle" size="18" />
+            <Icon icon="mdi-close-circle" size="18" aria-hidden="true" />
           </button>
         </div>
 
@@ -125,6 +126,7 @@
             variant="text"
             size="small"
             class="onboarding-close"
+            :aria-label="t('streamloader.a11y.close_onboarding')"
             @click="store.isOnboarding = false"
           />
         </div>

@@ -130,6 +130,7 @@
                     : 'mdi-play-circle'
                 "
                 :title="$t('tooltip.play_sample')"
+                :aria-label="$t('tooltip.play_sample')"
                 @click="playBtnClick(providerMapping)"
               />
             </div>

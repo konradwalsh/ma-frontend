@@ -8,7 +8,7 @@
     variant="button"
     role="button"
     :title="tooltipLabel"
-    aria-label="Next track"
+    :aria-label="$t('streamloader.a11y.next_track')"
     :aria-keyshortcuts="shortcutKey || undefined"
     :aria-disabled="!canNext || isLoading"
     @click="api.playerCommandNext(player.player_id)"

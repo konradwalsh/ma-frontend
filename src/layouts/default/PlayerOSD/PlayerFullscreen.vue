@@ -31,7 +31,9 @@
         </template>
         <template #append>
           <v-menu v-if="store.activePlayerQueue?.radio_source.length" scrim>
-            <template #activator="{ props: menuActivator, isActive: menuActive }">
+            <template
+              #activator="{ props: menuActivator, isActive: menuActive }"
+            >
               <Button
                 v-bind="menuActivator"
                 icon
@@ -40,7 +42,11 @@
                 aria-haspopup="menu"
                 :aria-expanded="!!menuActive"
               >
-                <v-icon color="accent" icon="mdi-radio-tower" aria-hidden="true" />
+                <v-icon
+                  color="accent"
+                  icon="mdi-radio-tower"
+                  aria-hidden="true"
+                />
               </Button>
             </template>
 
@@ -429,6 +435,9 @@
                   @mouseleave="hoveredQueueIndex = -1"
                   @keydown.delete.stop.prevent="
                     activeQueuePanel == 0 ? onRemoveQueueItem(item) : null
+                  "
+                  @keydown.enter.stop.prevent="
+                    activeQueuePanel == 0 ? queueCommand(item, 'play_now') : null
                   "
                   @dragover.prevent="
                     (e: DragEvent) => onQueueRowDragOver(e, index)
@@ -2298,10 +2307,29 @@ watchEffect(() => {
 
 .queue-items-scroll-box :deep(.v-list-item-title) {
   font-size: var(--queue-title-size, 1rem);
+  /* Streamloader-fork (queue UX polish): primary text gets weight 500 so
+     the title visually dominates the muted subtitle in each row. The
+     currently-playing row bumps to 600 via .queue-row-current below. */
+  font-weight: 500;
 }
 
 .queue-items-scroll-box :deep(.v-list-item-subtitle) {
   font-size: var(--queue-subtitle-size, 0.875rem);
+  /* Muted subtitle so the title carries the visual weight. Vuetify's
+     default subtitle opacity is ~0.6; explicit value here prevents any
+     parent rule (e.g. queue-row-current title color) from leaking in. */
+  opacity: 0.7;
+}
+
+/* Streamloader-fork (queue UX polish): subtitle is a flex row with
+   duration + separator + (marquee) album. Without overflow control
+   on the d-flex wrapper, a long album name forces the row wider than
+   the queue panel and triggers horizontal scroll. Cap the row to its
+   container and let the marquee child shrink. */
+.queue-items-scroll-box :deep(.v-list-item-subtitle) > .d-flex {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 /* Streamloader source badge in queue rows: small right margin so the
@@ -2432,16 +2460,27 @@ watchEffect(() => {
 
 /* Streamloader-fork addition (queue UX polish): currently-playing row
    gets a 3px teal left-border (painted via inset box-shadow to preserve
-   v-virtual-scroll's fixed item-height) and a faint teal-tinted bg.
-   Stronger than the existing NowPlayingBadge alone so the eye lands on
-   the active row immediately when scanning the queue. */
+   v-virtual-scroll's fixed item-height) and a teal-tinted bg. Stronger
+   than the existing NowPlayingBadge alone so the eye lands on the
+   active row immediately when scanning the queue. Tint bumped from
+   0.08 → 0.12 for clearer separation from the 0.08 hover wash defined
+   on .list-item-main; hover on the current row deepens to 0.16 so the
+   row stays visually distinct under the cursor. */
 .queue-row-current {
-  background-color: rgba(45, 212, 191, 0.08) !important;
+  background-color: rgba(45, 212, 191, 0.12) !important;
   box-shadow: inset 3px 0 0 0 rgb(45, 212, 191) !important;
+}
+.queue-row-current:hover {
+  background-color: rgba(45, 212, 191, 0.16) !important;
 }
 .queue-row-current :deep(.v-list-item-title) {
   color: rgb(45, 212, 191);
   font-weight: 600;
+}
+.queue-row-current :deep(.v-list-item-subtitle) {
+  /* Restore subtle separation for the subtitle on the playing row so
+     the title's teal still reads as the dominant element. */
+  opacity: 0.85;
 }
 /* Drop-indicators take precedence over the current-row tint when
    actively dragging so the drop target remains visually unambiguous. */

@@ -24,6 +24,8 @@
           size="small"
           variant="text"
           class="menu-btn"
+          :aria-label="$t('streamloader.a11y.player_options')"
+          aria-haspopup="menu"
           @click.stop="handleMenu"
         />
       </div>

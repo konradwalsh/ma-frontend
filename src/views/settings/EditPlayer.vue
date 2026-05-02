@@ -44,6 +44,7 @@
                 density="compact"
                 color="primary"
                 class="rename-btn"
+                :aria-label="$t('streamloader.a11y.rename_player')"
                 @click="showRenameDialog = true"
               />
             </div>

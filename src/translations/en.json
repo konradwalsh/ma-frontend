@@ -1894,6 +1894,18 @@
             "status_ready_title": "Streamloader ({name}) is reachable and authenticated",
             "status_aria_label": "Streamloader status: {label}"
         },
+        "about": {
+            "brand_tagline": "A streamloader-flavored fork of Music Assistant.",
+            "fork_description": "Streamloader extends Music Assistant with: live activity widgets, artwork override UI, branded source indicators, and personalized discovery.",
+            "fork_version_label": "Streamloader fork version",
+            "last_update_label": "Last fork update",
+            "github_title": "GitHub fork",
+            "github_sub": "github.com/konradwalsh/ma-frontend",
+            "whats_new_button": "What's new",
+            "whats_new_aria": "Show what's new in this Streamloader build",
+            "upstream_section_label": "Music Assistant (upstream)",
+            "upstream_section_note": "Streamloader is built on top of the upstream Music Assistant project. Everything in the section below is provided by the original MA team."
+        },
         "spinner": {
             "default_label": "Loading"
         },
@@ -1922,7 +1934,23 @@
             "copy_remote_id": "Copy remote ID",
             "provider_options": "Provider options",
             "menu_button_open": "Open menu",
-            "toolbar_back": "Back"
+            "toolbar_back": "Back",
+            "pause": "Pause",
+            "next_track": "Next track",
+            "previous_track": "Previous track",
+            "play_item": "Play item",
+            "move_widget_up": "Move widget up",
+            "move_widget_down": "Move widget down",
+            "toggle_widget_enabled": "Toggle widget enabled",
+            "widget_action": "Widget action",
+            "player_options": "Player options",
+            "task_options": "Task options",
+            "clear_search": "Clear search",
+            "close_onboarding": "Close onboarding",
+            "edit_player_name": "Edit player name",
+            "move_dsp_filter_up": "Move DSP filter up",
+            "move_dsp_filter_down": "Move DSP filter down",
+            "delete_dsp_filter": "Delete DSP filter"
         },
         "stats": {
             "toolbar_title": "Streamloader Stats",

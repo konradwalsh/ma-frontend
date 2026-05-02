@@ -64,6 +64,7 @@
             color="white"
             fab
             :disabled="disablePlayButton"
+            :aria-label="$t('play')"
             class="play-button-fab"
             @click.stop="onPlayClick"
           />

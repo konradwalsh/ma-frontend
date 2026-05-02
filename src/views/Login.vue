@@ -350,6 +350,7 @@
                     icon="mdi-close"
                     variant="text"
                     size="small"
+                    :aria-label="$t('close')"
                     @click="closeQrScanner"
                   />
                 </v-card-title>
