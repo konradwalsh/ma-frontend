@@ -4,9 +4,14 @@ import { mount } from "@vue/test-utils";
 
 import {
   DEFAULT_STREAMLOADER_PREFS,
+  DEFAULT_STREAMLOADER_STRING_PREFS,
+  readMediaDisplayKind,
   readStreamloaderPref,
+  setMediaDisplayKind,
   setStreamloaderPref,
+  useMediaDisplayKind,
   useStreamloaderPref,
+  type MediaDisplayKind,
 } from "@/composables/streamloaderPrefs";
 
 const STORAGE_PREFIX = "frontend.settings.streamloader.";
@@ -110,5 +115,82 @@ describe("streamloaderPrefs", () => {
       "false",
     );
     expect(readStreamloaderPref("showRecentlyDownloaded")).toBe(false);
+  });
+});
+
+// Mount helper for the string-valued media-display-kind composable —
+// same lifecycle gotcha (onMounted/onBeforeUnmount listeners) so the
+// composable must run inside a real component instance.
+function mountWithMediaKind() {
+  const captured: { ref: ReturnType<typeof useMediaDisplayKind> | null } = {
+    ref: null,
+  };
+  const Comp = defineComponent({
+    setup() {
+      const kind = useMediaDisplayKind();
+      captured.ref = kind;
+      return () => h("div", { "data-kind": kind.value });
+    },
+  });
+  const wrapper = mount(Comp);
+  return { wrapper, captured };
+}
+
+describe("streamloaderPrefs (media-display-kind)", () => {
+  const KIND_KEY = `${STORAGE_PREFIX}media_display_kind`;
+
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    window.localStorage.clear();
+  });
+
+  it("default kind is 'vinyl' when nothing is persisted", () => {
+    expect(DEFAULT_STREAMLOADER_STRING_PREFS.media_display_kind).toBe("vinyl");
+    expect(readMediaDisplayKind()).toBe("vinyl");
+    const { captured } = mountWithMediaKind();
+    expect(captured.ref?.value).toBe("vinyl");
+  });
+
+  it("setMediaDisplayKind('cd') persists to localStorage and broadcasts to mounted refs", async () => {
+    const { captured } = mountWithMediaKind();
+    expect(captured.ref?.value).toBe("vinyl");
+
+    setMediaDisplayKind("cd");
+    expect(window.localStorage.getItem(KIND_KEY)).toBe("cd");
+    await nextTick();
+    expect(captured.ref?.value).toBe("cd");
+  });
+
+  it("readMediaDisplayKind returns the persisted value", () => {
+    window.localStorage.setItem(KIND_KEY, "cassette");
+    expect(readMediaDisplayKind()).toBe("cassette");
+  });
+
+  it("invalid persisted value coerces to the default ('vinyl')", () => {
+    window.localStorage.setItem(KIND_KEY, "totally-bogus");
+    expect(readMediaDisplayKind()).toBe("vinyl");
+    const { captured } = mountWithMediaKind();
+    expect(captured.ref?.value).toBe("vinyl");
+  });
+
+  it("all 5 kinds round-trip via setMediaDisplayKind + readMediaDisplayKind", async () => {
+    const allKinds: MediaDisplayKind[] = [
+      "vinyl",
+      "vinyl-photo",
+      "cd",
+      "cassette",
+      "none",
+    ];
+    const { captured } = mountWithMediaKind();
+    for (const kind of allKinds) {
+      setMediaDisplayKind(kind);
+      expect(window.localStorage.getItem(KIND_KEY)).toBe(kind);
+      expect(readMediaDisplayKind()).toBe(kind);
+      await nextTick();
+      expect(captured.ref?.value).toBe(kind);
+    }
   });
 });

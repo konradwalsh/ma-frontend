@@ -25,6 +25,7 @@ const {
   routerMock,
   thumbState,
   overrideState,
+  mediaKindState,
 } = vi.hoisted(() => ({
   apiMock: {
     // baseUrl is required by the heroCoverUrl computed (imageproxy URL build).
@@ -57,6 +58,14 @@ const {
   // Same trick for the artwork-override composable: by default no
   // override is set, but the override-wins test can flip it on.
   overrideState: { value: undefined as string | undefined },
+  // Streamloader-fork addition (media-kind chooser, batches 57-58):
+  // mutable backing store for the useMediaDisplayKind composable. The
+  // discSvg branching tests below flip this between renders to exercise
+  // each `media_display_kind` branch (vinyl / vinyl-photo / cd /
+  // cassette / none) of the InfoHeader hero.
+  mediaKindState: {
+    value: "vinyl" as "vinyl" | "vinyl-photo" | "cd" | "cassette" | "none",
+  },
 }));
 
 vi.mock("@/plugins/api", () => ({ api: apiMock, default: apiMock }));
@@ -115,6 +124,16 @@ vi.mock("@/composables/useArtworkOverrides", async () => {
   const { computed: c } = await import("vue");
   return {
     useArtworkOverrideUrl: () => c(() => overrideState.value),
+  };
+});
+
+// Streamloader-fork addition (media-kind chooser): mock the prefs
+// composable so each test can pin which kind the InfoHeader template
+// renders without going through localStorage broadcast plumbing.
+vi.mock("@/composables/streamloaderPrefs", async () => {
+  const { computed: c } = await import("vue");
+  return {
+    useMediaDisplayKind: () => c(() => mediaKindState.value),
   };
 });
 
@@ -450,6 +469,10 @@ describe("InfoHeader.vue (streamloader action cluster)", () => {
     // action-cluster assertions remain unaffected.
     thumbState.value = "";
     overrideState.value = undefined;
+    // Reset to the production default — the existing action-cluster
+    // tests run as media_type=ALBUM with kind="vinyl" which keeps the
+    // historical .sl-vinyl-wrapper render path active.
+    mediaKindState.value = "vinyl";
   });
 
   it("renders the favorite, provider, merge, trash, edit-artwork, and rescan buttons for an admin-viewed library genre", async () => {
@@ -588,6 +611,127 @@ describe("InfoHeader.vue (streamloader action cluster)", () => {
     const cover = wrapper.find(".sl-vinyl-cover");
     expect(cover.exists()).toBe(true);
     expect(cover.find(".media-item-thumb-stub").exists()).toBe(true);
+  });
+
+  // ── Media-display kind branching (batches 57-58) ───────────────────
+  //
+  // The InfoHeader hero swaps between three render branches based on
+  // the user's `media_display_kind` pref:
+  //   - vinyl / vinyl-photo / cd → .sl-vinyl-wrapper (round disc that
+  //     protrudes + spins beside the cover). Asset is chosen via the
+  //     `discSvg` computed (vinyl.svg / vinyl-photo.png / cd.svg).
+  //   - cassette → .sl-cassette-wrapper (rectangular body, reels spin).
+  //   - none → cover-only render (no .sl-vinyl-wrapper, no
+  //     .sl-cassette-wrapper, no disc <img>).
+  // Each test below exercises one of those branches end-to-end.
+
+  // Vite inlines small SVG assets as `data:image/svg+xml;base64,...` URLs
+  // at import time (via assetsInlineLimit), so the `<img :src="discSvg">`
+  // attribute won't contain the literal filename. Decode the data URL and
+  // probe for the asset's distinctive in-SVG marker (the production assets
+  // each carry a unique gradient / comment that identifies them).
+  const decodeAssetSrc = (src: string): string => {
+    if (src.startsWith("data:image/svg+xml;base64,")) {
+      const b64 = src.slice("data:image/svg+xml;base64,".length);
+      try {
+        return Buffer.from(b64, "base64").toString("utf-8");
+      } catch {
+        return src;
+      }
+    }
+    return src;
+  };
+
+  it("kind='vinyl' → renders .sl-vinyl-wrapper with the vinyl.svg disc image", async () => {
+    mediaKindState.value = "vinyl";
+    const wrapper = mountHeader(baseItem(MediaType.ALBUM));
+    await nextTick();
+    const vinylWrapper = wrapper.find(".sl-vinyl-wrapper");
+    expect(vinylWrapper.exists()).toBe(true);
+    expect(vinylWrapper.classes()).toContain("sl-media-kind--vinyl");
+    const discImg = vinylWrapper.find("img.sl-vinyl-disc");
+    expect(discImg.exists()).toBe(true);
+    // vinyl.svg uses the `vinylBody` gradient id — distinct from cd.svg
+    // (which uses `cdBody`). Decoding the inlined data URL lets us
+    // unambiguously assert which production asset Vite resolved.
+    const decoded = decodeAssetSrc(discImg.attributes("src") ?? "");
+    expect(decoded).toContain("vinylBody");
+    expect(decoded).not.toContain("cdBody");
+    // Sibling branches must NOT be active.
+    expect(wrapper.find(".sl-cassette-wrapper").exists()).toBe(false);
+  });
+
+  it("kind='vinyl-photo' → still uses .sl-vinyl-wrapper but swaps the disc to vinyl-photo.png", async () => {
+    mediaKindState.value = "vinyl-photo";
+    const wrapper = mountHeader(baseItem(MediaType.ALBUM));
+    await nextTick();
+    const vinylWrapper = wrapper.find(".sl-vinyl-wrapper");
+    expect(vinylWrapper.exists()).toBe(true);
+    expect(vinylWrapper.classes()).toContain("sl-media-kind--vinyl-photo");
+    const discImg = vinylWrapper.find("img.sl-vinyl-disc");
+    expect(discImg.exists()).toBe(true);
+    // vinyl-photo.png is a binary asset (not inlined as svg+xml). Vite
+    // either ships it as a hashed file URL or base64-encodes it as
+    // `data:image/png;...` — both branches MUST NOT contain the
+    // vinyl.svg / cd.svg gradient markers.
+    const src = discImg.attributes("src") ?? "";
+    if (src.startsWith("data:image/svg+xml")) {
+      throw new Error(
+        `vinyl-photo branch unexpectedly resolved to an inlined SVG: ${src.slice(0, 60)}…`,
+      );
+    }
+    // Either a png data URL or a hashed file URL — accept both.
+    expect(src.includes("png") || src.includes("vinyl-photo")).toBe(true);
+  });
+
+  it("kind='cd' → still uses .sl-vinyl-wrapper but swaps the disc to cd.svg", async () => {
+    mediaKindState.value = "cd";
+    const wrapper = mountHeader(baseItem(MediaType.ALBUM));
+    await nextTick();
+    const vinylWrapper = wrapper.find(".sl-vinyl-wrapper");
+    expect(vinylWrapper.exists()).toBe(true);
+    expect(vinylWrapper.classes()).toContain("sl-media-kind--cd");
+    const discImg = vinylWrapper.find("img.sl-vinyl-disc");
+    expect(discImg.exists()).toBe(true);
+    // cd.svg uses the `cdBody` + `cdRim` gradient ids — vinyl uses
+    // `vinylBody`. Decode and assert on the distinguishing marker.
+    const decoded = decodeAssetSrc(discImg.attributes("src") ?? "");
+    expect(decoded).toContain("cdBody");
+    expect(decoded).not.toContain("vinylBody");
+    // Defensive: must not also render the cassette wrapper.
+    expect(wrapper.find(".sl-cassette-wrapper").exists()).toBe(false);
+  });
+
+  it("kind='cassette' → renders .sl-cassette-wrapper with the cassette body image, NOT the round-disc pipeline", async () => {
+    mediaKindState.value = "cassette";
+    const wrapper = mountHeader(baseItem(MediaType.ALBUM));
+    await nextTick();
+    // Cassette branch is rectangular and lives in a sibling v-else-if —
+    // the round-disc wrapper (and its disc <img>) MUST NOT render.
+    expect(wrapper.find(".sl-vinyl-wrapper").exists()).toBe(false);
+    expect(wrapper.find("img.sl-vinyl-disc").exists()).toBe(false);
+    const cassetteWrapper = wrapper.find(".sl-cassette-wrapper");
+    expect(cassetteWrapper.exists()).toBe(true);
+    const cassetteImg = cassetteWrapper.find("img.sl-cassette-img");
+    expect(cassetteImg.exists()).toBe(true);
+    // cassette.svg is large enough that Vite serves it as a hashed file
+    // URL rather than inlining it as base64 — so the src can be probed
+    // by filename directly. (Smaller assets like vinyl.svg get inlined,
+    // which is why those branches decode the data URL instead.)
+    const src = cassetteImg.attributes("src") ?? "";
+    expect(src).toContain("cassette.svg");
+  });
+
+  it("kind='none' → no companion disc/cassette is rendered (cover-only)", async () => {
+    mediaKindState.value = "none";
+    const wrapper = mountHeader(baseItem(MediaType.ALBUM));
+    await nextTick();
+    // Neither sibling render branch is active.
+    expect(wrapper.find(".sl-vinyl-wrapper").exists()).toBe(false);
+    expect(wrapper.find(".sl-cassette-wrapper").exists()).toBe(false);
+    // No companion media images at all — only the album cover.
+    expect(wrapper.find("img.sl-vinyl-disc").exists()).toBe(false);
+    expect(wrapper.find("img.sl-cassette-img").exists()).toBe(false);
   });
 
   it("heroCoverUrl: non-album item bypasses the new <img> entirely and falls through to the outer v-else MediaItemThumb branch", async () => {

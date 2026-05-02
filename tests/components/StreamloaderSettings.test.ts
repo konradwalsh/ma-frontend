@@ -15,6 +15,7 @@ const {
   routerPushMock,
   prefStorageMock,
   mediaKindStore,
+  setMediaDisplayKindSpy,
 } = vi.hoisted(() => ({
   apiMock: {
     providers: {} as Record<
@@ -35,7 +36,15 @@ const {
   // Backing store for the media-display kind chooser mock. Default to the
   // production fallback ("vinyl") so the existing toggle/section
   // assertions don't have to opt in to the new kind UI.
-  mediaKindStore: { value: "vinyl" as "vinyl" | "cd" | "cassette" | "none" },
+  mediaKindStore: {
+    value: "vinyl" as
+      | "vinyl"
+      | "vinyl-photo"
+      | "cd"
+      | "cassette"
+      | "none",
+  },
+  setMediaDisplayKindSpy: vi.fn(),
 }));
 
 vi.mock("@/plugins/api", () => ({ default: apiMock }));
@@ -62,8 +71,11 @@ vi.mock("@/composables/streamloaderPrefs", async () => {
     // chooser; tests don't assert on the kind UI itself yet, but the
     // mounting must not throw.
     useMediaDisplayKind: () => ref(mediaKindStore.value),
-    setMediaDisplayKind: (next: "vinyl" | "cd" | "cassette" | "none") => {
+    setMediaDisplayKind: (
+      next: "vinyl" | "vinyl-photo" | "cd" | "cassette" | "none",
+    ) => {
       mediaKindStore.value = next;
+      setMediaDisplayKindSpy(next);
     },
   };
 });
@@ -186,7 +198,7 @@ vi.mock("vuetify/lib/components/VIcon/index.mjs", () => {
 vi.mock("vuetify/lib/components/VSelect/index.mjs", () => {
   const VSelect = defineComponent({
     name: "VSelect",
-    props: ["modelValue", "items"],
+    props: ["modelValue", "items", "disabled"],
     emits: ["update:modelValue"],
     setup(props, { emit }) {
       return () =>
@@ -195,6 +207,13 @@ vi.mock("vuetify/lib/components/VSelect/index.mjs", () => {
           {
             class: "v-select-stub",
             value: props.modelValue,
+            // Surface `disabled` as a real DOM attribute so chip-chooser
+            // tests can assert that the display-mode dropdown greys out
+            // for media kinds that have no hover/always axis (cassette /
+            // none). Vuetify's prod component does the same — we
+            // promise-mirror that behaviour from the stub.
+            disabled: props.disabled ? "" : undefined,
+            "data-disabled": props.disabled ? "true" : "false",
             onChange: (e: Event) =>
               emit("update:modelValue", (e.target as HTMLSelectElement).value),
           },
@@ -226,6 +245,8 @@ describe("StreamloaderSettings.vue", () => {
     eventbusMock.emit.mockClear();
     routerPushMock.mockClear();
     setStreamloaderPrefSpy.mockClear();
+    setMediaDisplayKindSpy.mockClear();
+    mediaKindStore.value = "vinyl";
     for (const key of Object.keys(prefStorageMock)) {
       delete prefStorageMock[key];
     }
@@ -309,6 +330,80 @@ describe("StreamloaderSettings.vue", () => {
     const wrapper = mountSettings();
     expect(wrapper.text()).toContain("Not configured");
     expect(wrapper.text()).toContain("Add Streamloader Provider");
+  });
+
+  // ── Media-display kind chip chooser (batches 57-58) ───────────────
+  //
+  // The chip strip lives in the Player Display section and lets the user
+  // pick which physical-media companion to render alongside the album
+  // cover (Record / Photo Vinyl / CD / Cassette / None). Selection is
+  // backed by useMediaDisplayKind / setMediaDisplayKind in the prefs
+  // composable — both mocked at the top of this file so we can assert
+  // wiring without touching real localStorage broadcast plumbing.
+
+  it("renders all 5 media-kind chips with the expected labels", () => {
+    const wrapper = mountSettings();
+    const chips = wrapper.findAll(".sl-media-kind-chip");
+    expect(chips).toHaveLength(5);
+    const labels = chips.map((c) => c.text());
+    // Labels resolve through the i18n mock against en.json.
+    expect(labels).toContain("Record");
+    expect(labels).toContain("Photo Vinyl");
+    expect(labels).toContain("CD");
+    expect(labels).toContain("Cassette");
+    expect(labels).toContain("None");
+  });
+
+  it("clicking the CD chip calls setMediaDisplayKind('cd')", async () => {
+    const wrapper = mountSettings();
+    const chips = wrapper.findAll(".sl-media-kind-chip");
+    const cdChip = chips.find((c) => c.text() === "CD");
+    expect(cdChip).toBeTruthy();
+    await cdChip!.trigger("click");
+    expect(setMediaDisplayKindSpy).toHaveBeenCalledWith("cd");
+    expect(mediaKindStore.value).toBe("cd");
+  });
+
+  it("the active chip carries the brand-teal accent class (sl-media-kind-chip--active)", async () => {
+    // Default kind is "vinyl" so the Record chip should be active on
+    // initial mount.
+    const wrapper = mountSettings();
+    const chips = wrapper.findAll(".sl-media-kind-chip");
+    const recordChip = chips.find((c) => c.text() === "Record")!;
+    const cdChip = chips.find((c) => c.text() === "CD")!;
+    expect(recordChip.classes()).toContain("sl-media-kind-chip--active");
+    expect(cdChip.classes()).not.toContain("sl-media-kind-chip--active");
+    // aria-checked mirrors the active state for the radiogroup pattern.
+    expect(recordChip.attributes("aria-checked")).toBe("true");
+    expect(cdChip.attributes("aria-checked")).toBe("false");
+  });
+
+  it("display-mode dropdown is disabled for kind='cassette' (no hover/always axis)", () => {
+    mediaKindStore.value = "cassette";
+    const wrapper = mountSettings();
+    const select = wrapper.find(".v-select-stub");
+    expect(select.exists()).toBe(true);
+    expect(select.attributes("data-disabled")).toBe("true");
+  });
+
+  it("display-mode dropdown is disabled for kind='none' (no companion at all)", () => {
+    mediaKindStore.value = "none";
+    const wrapper = mountSettings();
+    const select = wrapper.find(".v-select-stub");
+    expect(select.exists()).toBe(true);
+    expect(select.attributes("data-disabled")).toBe("true");
+  });
+
+  it("display-mode dropdown is enabled for the round-disc kinds (vinyl / vinyl-photo / cd)", () => {
+    for (const kind of ["vinyl", "vinyl-photo", "cd"] as const) {
+      mediaKindStore.value = kind;
+      const wrapper = mountSettings();
+      const select = wrapper.find(".v-select-stub");
+      expect(
+        select.attributes("data-disabled"),
+        `display mode should be enabled for kind=${kind}`,
+      ).toBe("false");
+    }
   });
 
   it("clicking 'Show welcome tour again' clears the localStorage flag and emits the eventbus signal", async () => {
