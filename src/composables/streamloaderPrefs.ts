@@ -137,7 +137,12 @@ export function readStreamloaderPref(
    event broadcast pattern as the boolean helper above keeps consumers
    in lockstep across the same tab. */
 
-export type MediaDisplayKind = "vinyl" | "cd" | "cassette" | "none";
+export type MediaDisplayKind =
+  | "vinyl"
+  | "vinyl-photo"
+  | "cd"
+  | "cassette"
+  | "none";
 
 export interface StreamloaderStringPrefDefaults {
   media_display_kind: MediaDisplayKind;
@@ -152,9 +157,8 @@ export const DEFAULT_STREAMLOADER_STRING_PREFS: StreamloaderStringPrefDefaults =
     media_display_kind: "vinyl",
   };
 
-const stringStorageKey = (
-  key: keyof StreamloaderStringPrefDefaults,
-): string => `${PREFIX}${key}`;
+const stringStorageKey = (key: keyof StreamloaderStringPrefDefaults): string =>
+  `${PREFIX}${key}`;
 
 const readString = <K extends keyof StreamloaderStringPrefDefaults>(
   key: K,
@@ -172,6 +176,7 @@ const readString = <K extends keyof StreamloaderStringPrefDefaults>(
 
 const MEDIA_DISPLAY_KIND_VALUES: ReadonlyArray<MediaDisplayKind> = [
   "vinyl",
+  "vinyl-photo",
   "cd",
   "cassette",
   "none",

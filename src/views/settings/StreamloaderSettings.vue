@@ -94,7 +94,10 @@
               :aria-checked="mediaDisplayKindSel === opt.value"
               :class="[
                 'sl-media-kind-chip',
-                { 'sl-media-kind-chip--active': mediaDisplayKindSel === opt.value },
+                {
+                  'sl-media-kind-chip--active':
+                    mediaDisplayKindSel === opt.value,
+                },
               ]"
               @click="mediaDisplayKindSel = opt.value"
             >
@@ -365,6 +368,13 @@ import streamloaderMark from "@/assets/streamloader-mark.svg";
 // the same asset the InfoHeader / PlayerFullscreen actually use — the
 // preview never drifts from the rendered hero.
 import vinylPreview from "@/assets/vinyl.svg";
+// NOTE (Photo Vinyl): the file at src/assets/vinyl-photo.png shipped in
+// this batch is a 1x1 transparent PNG placeholder so the Vite import
+// resolves at build time. User: drop your real-vinyl PNG at
+// src/assets/vinyl-photo.png to replace the placeholder — Vite hashes it
+// on the next build and both the chip preview AND the rendered hero
+// will pick it up automatically (no code change needed).
+import vinylPhotoPreview from "@/assets/vinyl-photo.png";
 import cdPreview from "@/assets/cd.svg";
 import cassettePreview from "@/assets/cassette.svg";
 import Container from "@/components/Container.vue";
@@ -462,6 +472,17 @@ const mediaKindOptions = computed<
     preview: vinylPreview,
   },
   {
+    // Streamloader-fork addition (Photo Vinyl, batch 5th-kind): a real
+    // photographic vinyl image instead of the stylized SVG. Uses the
+    // SAME .sl-vinyl-* protrude+spin pipeline as `vinyl` — only the
+    // underlying art changes. The bundled asset is a 1x1 transparent
+    // placeholder; the user drops their own high-res PNG at
+    // src/assets/vinyl-photo.png to replace it.
+    value: "vinyl-photo",
+    label: t("streamloader.media_display.kind_vinyl_photo"),
+    preview: vinylPhotoPreview,
+  },
+  {
     value: "cd",
     label: t("streamloader.media_display.kind_cd"),
     preview: cdPreview,
@@ -484,6 +505,7 @@ const mediaKindOptions = computed<
 const displayModeAppliesToKind = computed(
   () =>
     mediaDisplayKindSel.value === "vinyl" ||
+    mediaDisplayKindSel.value === "vinyl-photo" ||
     mediaDisplayKindSel.value === "cd",
 );
 

@@ -1872,6 +1872,8 @@
             "kind_label": "Album cover companion",
             "kind_description": "Pick a physical-media graphic to render alongside album covers — a record, a CD, or a cassette.",
             "kind_vinyl": "Record",
+            "kind_vinyl_photo": "Photo Vinyl",
+            "kind_vinyl_photo_hint": "Replace src/assets/vinyl-photo.png with your own image",
             "kind_cd": "CD",
             "kind_cassette": "Cassette",
             "kind_none": "None"

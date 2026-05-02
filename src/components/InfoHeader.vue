@@ -101,6 +101,7 @@
             v-else-if="
               item.media_type === MediaType.ALBUM &&
               (mediaDisplayKind === 'vinyl' ||
+                mediaDisplayKind === 'vinyl-photo' ||
                 mediaDisplayKind === 'cd')
             "
             class="sl-vinyl-wrapper"
@@ -261,8 +262,7 @@
                kind — render only the album cover, no companion media. -->
           <div
             v-else-if="
-              item.media_type === MediaType.ALBUM &&
-              mediaDisplayKind === 'none'
+              item.media_type === MediaType.ALBUM && mediaDisplayKind === 'none'
             "
             :class="{ 'sl-track-pulse': showPulse }"
           >
@@ -922,6 +922,13 @@ const vinylSvg = new URL("../assets/vinyl.svg", import.meta.url).href;
 // `media_display_kind`.
 const cdSvg = new URL("../assets/cd.svg", import.meta.url).href;
 const cassetteSvg = new URL("../assets/cassette.svg", import.meta.url).href;
+// Streamloader-fork addition (media-kind chooser, photo vinyl): a real
+// photographic vinyl image. Drop-in replacement for the stylized SVG —
+// uses the SAME .sl-vinyl-* protrude+spin pipeline as `vinylSvg`. The
+// shipped file is a 1x1 transparent placeholder; the user is expected to
+// overwrite `src/assets/vinyl-photo.png` with their own high-res photo.
+const vinylPhotoSrc = new URL("../assets/vinyl-photo.png", import.meta.url)
+  .href;
 
 // Streamloader-fork fix (batch MMM5): brand-mark fallback for the
 // vinyl center label image when the cover thumbnail fails to load —
@@ -961,13 +968,16 @@ const vinylWrapperClasses = computed(() => ({
 // updates this hero immediately without a reload, mirroring how the
 // boolean toggles already behave.
 const mediaDisplayKind = useMediaDisplayKind();
-// `discSvg` switches the active asset for the round-disc pipeline. CD
-// and vinyl share geometry (round, protrudes, spins) so the same
-// .sl-vinyl-disc-* wrappers apply to both — only the underlying art
-// changes. Cassette renders in a sibling branch entirely.
-const discSvg = computed(() =>
-  mediaDisplayKind.value === "cd" ? cdSvg : vinylSvg,
-);
+// `discSvg` switches the active asset for the round-disc pipeline. CD,
+// stylized vinyl, and the photographic vinyl all share geometry (round,
+// protrudes, spins) so the same .sl-vinyl-disc-* wrappers apply to all
+// three — only the underlying art changes. Cassette renders in a sibling
+// branch entirely.
+const discSvg = computed(() => {
+  if (mediaDisplayKind.value === "cd") return cdSvg;
+  if (mediaDisplayKind.value === "vinyl-photo") return vinylPhotoSrc;
+  return vinylSvg;
+});
 
 // Cassette spin gating mirrors `vinylShouldSpin` but is independent of
 // `vinyl_display_mode` (the cassette has no "hover/always" axis — it

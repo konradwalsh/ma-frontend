@@ -160,6 +160,7 @@
                 store.activePlayer?.powered != false &&
                 largeCoverUrl &&
                 (mediaDisplayKind === 'vinyl' ||
+                  mediaDisplayKind === 'vinyl-photo' ||
                   mediaDisplayKind === 'cd')
               "
               class="sl-vinyl-wrapper"
@@ -763,6 +764,7 @@
               v-if="
                 largeCoverUrl &&
                 (mediaDisplayKind === 'vinyl' ||
+                  mediaDisplayKind === 'vinyl-photo' ||
                   mediaDisplayKind === 'cd')
               "
               class="sl-vinyl-wrapper"
@@ -806,9 +808,7 @@
               </div>
             </div>
             <div
-              v-else-if="
-                largeCoverUrl && mediaDisplayKind === 'cassette'
-              "
+              v-else-if="largeCoverUrl && mediaDisplayKind === 'cassette'"
               class="sl-cassette-wrapper"
             >
               <div
@@ -1082,6 +1082,13 @@ const vinylSvg = new URL("@/assets/vinyl.svg", import.meta.url).href;
 // rectangular and rendered in a sibling block.
 const cdSvg = new URL("@/assets/cd.svg", import.meta.url).href;
 const cassetteSvg = new URL("@/assets/cassette.svg", import.meta.url).href;
+// Streamloader-fork addition (media-kind chooser, photo vinyl): a real
+// photographic vinyl image, swapped in for the stylized SVG when the
+// user picks "Photo Vinyl". Uses the SAME .sl-vinyl-* protrude+spin
+// pipeline. Shipped file is a 1x1 transparent placeholder; the user is
+// expected to overwrite `src/assets/vinyl-photo.png` with their own
+// high-res photo.
+const vinylPhotoSrc = new URL("@/assets/vinyl-photo.png", import.meta.url).href;
 
 // Streamloader-fork addition: vinyl display mode driven by the
 // "vinyl_display_mode" frontend setting (FrontendConfig.vue). Read once
@@ -1111,9 +1118,13 @@ const vinylShouldSpin = computed(() => {
 // surfaces stay in lockstep — flipping the kind in the streamloader
 // settings page updates both immediately, no reload required.
 const mediaDisplayKind = useMediaDisplayKind();
-const discSvg = computed(() =>
-  mediaDisplayKind.value === "cd" ? cdSvg : vinylSvg,
-);
+// CD, stylized vinyl, and photographic vinyl all share the round
+// protrude+spin geometry so a single computed picks the active asset.
+const discSvg = computed(() => {
+  if (mediaDisplayKind.value === "cd") return cdSvg;
+  if (mediaDisplayKind.value === "vinyl-photo") return vinylPhotoSrc;
+  return vinylSvg;
+});
 // Cassette spin gating mirrors `vinylShouldSpin` but isn't subject to
 // the vinyl_display_mode (no hover/always axis on cassette).
 const cassetteShouldSpin = computed(() => {
