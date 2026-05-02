@@ -18,6 +18,7 @@ import {
   Radio,
   Search,
   Settings,
+  Sparkles,
 } from "lucide-vue-next";
 import { Component } from "vue";
 
@@ -70,12 +71,13 @@ export const getMenuItems = function () {
     }
     if (enabledMenuItemStr === "streamloaderdiscover") {
       // Streamloader-fork addition: curated picks page (recently added,
-      // random picks, recently active artists). Compass icon shared with
-      // the upstream /discover entry — same family of "go find something"
-      // affordances; the label disambiguates them.
+      // random picks, recently active artists). Uses the Sparkles icon and
+      // a "For You" label to clearly distinguish it from the upstream
+      // Compass-icon /discover entry — this page is personalized to the
+      // user's library activity, not a generic browse landing page.
       items.push({
         label: "streamloader.discover.menu_label",
-        icon: Compass,
+        icon: Sparkles,
         path: "/streamloader-discover",
         isLibraryNode: false,
       });

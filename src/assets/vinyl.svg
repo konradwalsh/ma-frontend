@@ -40,6 +40,14 @@
   <circle cx="300" cy="300" r="95"  fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="0.8"/>
   <!-- Sheen highlight -->
   <circle cx="300" cy="300" r="290" fill="url(#vinylSheen)"/>
+  <!-- Streamloader-fork addition (batch MMM6): asymmetric edge tick so the
+       rotation is visible at a glance. Without an asymmetric mark a solid
+       black grooved disc reads as static even at 5s/rev. Brand-teal radial
+       slash from r=110 → r=270 at the 12 o'clock position (top of disc). -->
+  <rect x="297" y="30" width="6" height="160" fill="#2bd9ba" opacity="0.85" rx="2"/>
+  <!-- Secondary smaller accent at the 4 o'clock position for extra motion
+       cue and asymmetry — keeps the disc from looking like a clock face. -->
+  <circle cx="438" cy="370" r="5" fill="#2bd9ba" opacity="0.7"/>
   <!-- Center label -->
   <circle cx="300" cy="300" r="80" fill="#2bd9ba"/>
   <circle cx="300" cy="300" r="80" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1"/>

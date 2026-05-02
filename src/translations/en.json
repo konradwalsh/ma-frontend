@@ -1858,7 +1858,7 @@
             "settings_desc": "Tune streamloader display and behaviour."
         },
         "discover": {
-            "menu_label": "Discover Picks",
+            "menu_label": "For You",
             "page_title": "Discover",
             "subtitle": "Curated picks from your streamloader library.",
             "loading_label": "Loading discover picks",

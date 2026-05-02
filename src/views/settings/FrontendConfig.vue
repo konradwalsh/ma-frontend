@@ -443,7 +443,9 @@ const onImmediateApply = function (values: Record<string, ConfigValueType>) {
   }
 
   .frontend-config
-    :deep(.config-actions .v-btn--variant-outlined:hover:not(.v-btn--disabled)) {
+    :deep(
+      .config-actions .v-btn--variant-outlined:hover:not(.v-btn--disabled)
+    ) {
     background-color: transparent;
   }
 

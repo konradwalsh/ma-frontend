@@ -158,7 +158,38 @@
               <div class="sl-vinyl-sheen"></div>
             </div>
             <div class="sl-vinyl-cover">
+              <!-- Streamloader-fork fix (batch 32 pattern, applied to
+                   InfoHeader): the album-detail hero cover used
+                   <MediaItemThumb> which wraps <v-img :src=getImageThumbForItem(...)>.
+                   For some albums the raw provider URL 404s while the
+                   imageproxy-resized variant succeeds — that asymmetry made
+                   the hero cover blank while the queue-row thumb (also
+                   MediaItemThumb but at size 256) loaded. Switched to a
+                   native <img> routed through heroCoverUrl (forces
+                   imageproxy + size=600 hint, matching PlayerFullscreen),
+                   with an @error fallback to the streamloader brand mark
+                   so a single failure can't leave the hero blank, and a
+                   :key tied to the URL so the img remounts cleanly when
+                   the item changes (kills any stuck error state). The
+                   override URL (StreamloaderEditArtworkDialog) wins over
+                   the auto-detected URL when set. -->
+              <img
+                v-if="heroCoverUrl"
+                :key="heroCoverUrl"
+                :src="heroCoverUrl"
+                alt=""
+                class="sl-vinyl-cover-img rounded"
+                style="
+                  width: 100%;
+                  height: 100%;
+                  max-height: 256px;
+                  object-fit: cover;
+                  display: block;
+                "
+                @error="onHeroCoverError"
+              />
               <MediaItemThumb
+                v-else
                 :item="item"
                 size="calc(100%)"
                 style="max-height: 256px"
@@ -747,6 +778,7 @@ import {
 import { authManager } from "@/plugins/auth";
 import { eventbus } from "@/plugins/eventbus";
 import { store } from "@/plugins/store";
+import { useArtworkOverrideUrl } from "@/composables/useArtworkOverrides";
 import { useTrackChangePulse } from "@/composables/useTrackChangePulse";
 import { IconHeart, IconHeartFilled } from "@tabler/icons-vue";
 import {
@@ -835,6 +867,48 @@ const vinylLabelImage = computed<string | null>(() => {
   if (compProps.item.media_type !== MediaType.ALBUM) return null;
   return getImageThumbForItem(compProps.item, ImageType.THUMB) || null;
 });
+
+// Streamloader-fork fix (batch 32 pattern, applied to InfoHeader album
+// hero): user-applied artwork override (StreamloaderEditArtworkDialog →
+// useArtworkOverrides). Keyed by the displayed item's item_id; reactive
+// so the hero cover swaps instantly the moment the user clicks Apply in
+// the dialog.
+const heroOverrideUrl = useArtworkOverrideUrl(
+  () => compProps.item?.item_id,
+);
+
+// Streamloader-fork fix (batch 32 pattern, applied to InfoHeader album
+// hero): defensively route the album-hero cover through imageproxy with
+// a generous size hint, matching the queue-thumb path that works (and
+// PlayerFullscreen's largeCoverUrl). Some providers return a raw image
+// URL that 404s at full resolution while the imageproxy-resized variant
+// succeeds — that asymmetry was making the hero blank on
+// /album/<id> pages while the queue rows for the SAME album rendered
+// fine. Override wins over the auto-detected URL when present; data:
+// URLs and explicit overrides bypass imageproxy.
+const heroCoverUrl = computed<string>(() => {
+  if (heroOverrideUrl.value) return heroOverrideUrl.value;
+  const item = compProps.item;
+  if (!item || item.media_type !== MediaType.ALBUM) return "";
+  const raw = getImageThumbForItem(item, ImageType.THUMB);
+  if (!raw) return "";
+  if (raw.startsWith("data:image")) return raw;
+  // Force imageproxy with a generous size; the proxy handles smaller
+  // upstream images gracefully.
+  const enc = encodeURIComponent(encodeURIComponent(raw));
+  return `${api.baseUrl}/imageproxy?path=${enc}&size=600`;
+});
+
+// Swap to the streamloader brand mark on a single image error so the
+// hero never renders blank. The :key on the <img> remounts the element
+// on every URL change, so a previous item's error state can't bleed
+// into the next item.
+const onHeroCoverError = (evt: Event) => {
+  const el = evt.target as HTMLImageElement | null;
+  if (!el) return;
+  if (el.src === vinylLabelFallback) return; // already on fallback
+  el.src = vinylLabelFallback;
+};
 
 // Spin only in always-visible-spinning mode AND when the active player
 // is actually playing. Falls back to "spin" when no active player so
@@ -1388,43 +1462,58 @@ const deleteGenre = () => {
 
 /* Mode 1 (default for legacy): hover-only reveal. */
 .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc-protrude {
-  /* Peek out ~40% of the disc width to the right past the cover edge.
-     translate(40%, -50%) on the protrude wrapper preserves the spin
-     axis at the disc's true center. */
-  transform: translate(40%, -50%);
+  /* Peek out 50% of the disc width to the right past the cover edge
+     (batch MMM6: bumped 40% → 50% — at 40% the disc was barely poking
+     out behind the fixed sheen on darker covers). translate on the
+     protrude wrapper preserves the spin axis at the disc's true center. */
+  transform: translate(50%, -50%);
 }
 .sl-vinyl-wrapper.vinyl-mode--hover:hover {
   transform: rotate(-3deg) scale(1.03);
 }
 
-/* Mode 2 + 3: vinyl always peeks out — ~40% of the disc width is
-   visible past the cover's right edge. */
+/* Mode 2 + 3: vinyl always peeks out — 50% of the disc width is
+   visible past the cover's right edge (batch MMM6: bumped from 40%). */
 .sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-disc-protrude,
 .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-protrude {
-  transform: translate(40%, -50%);
+  transform: translate(50%, -50%);
 }
 
-/* Mode 3: continuous spin. Streamloader-fork tweak (batch MMM5):
-   sped from 8s → 6s per revolution so the rotation is actually
-   visible — at 8s the cover-art label barely moved between glances.
-   Animation lives on the spin wrapper (NOT the protrude wrapper), so
-   the rotation happens around the disc's own center. The pause class
-   freezes the spin without resetting the angle. */
+/* Streamloader-fork addition (batch MMM6): hover ALSO pops the disc
+   further out in the always-visible modes. User reported the hover
+   pop-out wasn't working — that's because the original hover rule
+   only targeted vinyl-mode--hover. With always-visible-spinning being
+   the default, the rule never fired. Push to 65% on hover so there's
+   visible feedback regardless of which display mode is active. */
+.sl-vinyl-wrapper.vinyl-mode--always-visible:hover .sl-vinyl-disc-protrude,
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning:hover
+  .sl-vinyl-disc-protrude {
+  transform: translate(65%, -50%);
+}
+.sl-vinyl-wrapper.vinyl-mode--always-visible:hover,
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning:hover {
+  transform: rotate(-3deg) scale(1.03);
+}
+
+/* Mode 3: continuous spin. Streamloader-fork tweak (batch MMM6):
+   6s → 5s per revolution paired with the new asymmetric edge tick on
+   vinyl.svg so the rotation reads obviously at a glance. Animation
+   lives on the spin wrapper (NOT the protrude wrapper) so rotation
+   happens around the disc's own center. The pause class freezes the
+   spin without resetting the angle. */
 .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-spin {
-  animation: sl-vinyl-spin 6s linear infinite;
+  animation: sl-vinyl-spin 5s linear infinite;
 }
 .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning
   .sl-vinyl-disc-spin.sl-vinyl-spinning--paused {
   animation-play-state: paused;
 }
 
-/* Streamloader-fork tweak (batch MMM5): in hover-mode, kick off the
-   spin while the user is hovering — the protrude pop-out is the cue
-   that the disc just slid out of the sleeve, and a stationary disc
-   reads as "stuck". Fires only while :hover is held; on un-hover the
-   transition rewinds the protrude AND drops the rotation. */
+/* Streamloader-fork tweak (batch MMM6): hover-mode also spins while
+   the user is hovering — a stationary disc reads as "stuck" right
+   after the protrude reveal. Synced to the same 5s as mode 3. */
 .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc-spin {
-  animation: sl-vinyl-spin 6s linear infinite;
+  animation: sl-vinyl-spin 5s linear infinite;
 }
 
 @keyframes sl-vinyl-spin {
@@ -1532,6 +1621,20 @@ const deleteGenre = () => {
     transform: translate(0, -50%);
   }
   .sl-vinyl-wrapper.vinyl-mode--hover:hover {
+    transform: none;
+  }
+  /* Streamloader-fork addition (batch MMM6): also neutralize the new
+     hover-pop boost on always-visible modes so a tap doesn't leave the
+     disc stuck in the popped-out pose on mobile Safari (which can
+     trigger a sticky :hover after tap). Falls back to the mobile 22%
+     base translate to preserve the layout-safe protrude. */
+  .sl-vinyl-wrapper.vinyl-mode--always-visible:hover .sl-vinyl-disc-protrude,
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning:hover
+    .sl-vinyl-disc-protrude {
+    transform: translate(22%, -50%);
+  }
+  .sl-vinyl-wrapper.vinyl-mode--always-visible:hover,
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning:hover {
     transform: none;
   }
 }

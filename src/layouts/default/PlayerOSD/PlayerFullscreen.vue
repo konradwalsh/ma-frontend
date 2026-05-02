@@ -2921,41 +2921,56 @@ button {
 }
 
 /* Mode 1: hover-only reveal (legacy). Translate the protrude wrapper
-   so the disc peeks out ~40% of its width past the cover edge while
-   keeping the spin axis at the disc's true center. */
+   so the disc peeks out 50% of its width past the cover edge (batch
+   MMM6: bumped from 40%) while keeping the spin axis at the disc's
+   true center. */
 .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc-protrude {
-  transform: translate(40%, -50%);
+  transform: translate(50%, -50%);
 }
 .sl-vinyl-wrapper.vinyl-mode--hover:hover {
   transform: rotate(-3deg) scale(1.03);
 }
 
-/* Mode 2 + 3: vinyl always peeks out — ~40% of disc width visible
-   past the cover's right edge. */
+/* Mode 2 + 3: vinyl always peeks out — 50% of disc width visible past
+   the cover's right edge (batch MMM6: bumped from 40%). */
 .sl-vinyl-wrapper.vinyl-mode--always-visible .sl-vinyl-disc-protrude,
 .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-protrude {
-  transform: translate(40%, -50%);
+  transform: translate(50%, -50%);
 }
 
-/* Mode 3: continuous spin. Streamloader-fork tweak (batch MMM5):
-   8s → 6s per revolution so the rotation reads as motion at a glance
-   on a large fullscreen disc — at 8s the cover-art label was barely
-   moving on first impression. Animation lives on the spin wrapper so
-   rotation is around the disc center. The pause class freezes the
-   spin without resetting the angle. */
+/* Streamloader-fork addition (batch MMM6): hover ALSO pops further in
+   the always-visible modes — without this the hover affordance was
+   silently broken whenever the user wasn't in vinyl-mode--hover (and
+   always-visible-spinning is the default). 65% on hover so there's
+   visible feedback regardless of display mode. */
+.sl-vinyl-wrapper.vinyl-mode--always-visible:hover .sl-vinyl-disc-protrude,
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning:hover
+  .sl-vinyl-disc-protrude {
+  transform: translate(65%, -50%);
+}
+.sl-vinyl-wrapper.vinyl-mode--always-visible:hover,
+.sl-vinyl-wrapper.vinyl-mode--always-visible-spinning:hover {
+  transform: rotate(-3deg) scale(1.03);
+}
+
+/* Mode 3: continuous spin. Streamloader-fork tweak (batch MMM6):
+   6s → 5s per revolution paired with the new asymmetric edge tick on
+   vinyl.svg so the rotation is obvious at a glance. Animation lives
+   on the spin wrapper so rotation is around the disc center. The
+   pause class freezes the spin without resetting the angle. */
 .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning .sl-vinyl-disc-spin {
-  animation: sl-vinyl-spin 6s linear infinite;
+  animation: sl-vinyl-spin 5s linear infinite;
 }
 .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning
   .sl-vinyl-disc-spin.sl-vinyl-spinning--paused {
   animation-play-state: paused;
 }
 
-/* Streamloader-fork tweak (batch MMM5): hover-mode also kicks the
-   spin while the user is hovering — gives the protruded LP something
-   to do, otherwise it reads as a static prop instead of a record. */
+/* Streamloader-fork tweak (batch MMM6): hover-mode also spins while
+   the user is hovering — a stationary disc reads as "stuck" right
+   after the protrude reveal. Synced to mode 3's 5s tempo. */
 .sl-vinyl-wrapper.vinyl-mode--hover:hover .sl-vinyl-disc-spin {
-  animation: sl-vinyl-spin 6s linear infinite;
+  animation: sl-vinyl-spin 5s linear infinite;
 }
 
 @keyframes sl-vinyl-spin {
@@ -3052,6 +3067,19 @@ button {
     transform: translate(0, -50%);
   }
   .sl-vinyl-wrapper.vinyl-mode--hover:hover {
+    transform: none;
+  }
+  /* Streamloader-fork addition (batch MMM6): neutralize the new
+     hover-pop boost on always-visible modes so a tap doesn't leave the
+     disc stuck in the popped-out pose on mobile Safari (sticky :hover
+     after tap). Reverts to the standard 50% always-visible position. */
+  .sl-vinyl-wrapper.vinyl-mode--always-visible:hover .sl-vinyl-disc-protrude,
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning:hover
+    .sl-vinyl-disc-protrude {
+    transform: translate(50%, -50%);
+  }
+  .sl-vinyl-wrapper.vinyl-mode--always-visible:hover,
+  .sl-vinyl-wrapper.vinyl-mode--always-visible-spinning:hover {
     transform: none;
   }
 }
