@@ -1838,6 +1838,25 @@
             "chip_all": "All time",
             "chip_tooltip": "Filters approximate by recency count"
         },
+        "chrome": {
+            "section": "Streamloader",
+            "section_aria": "Streamloader section",
+            "badge": "streamloader",
+            "badge_title": "This view is part of the streamloader fork (not upstream Music Assistant).",
+            "breadcrumb_aria": "Breadcrumb",
+            "breadcrumb_separator": "/"
+        },
+        "see_also": {
+            "heading": "See also",
+            "discover": "Discover",
+            "discover_desc": "Curated picks from your local library.",
+            "recently_played": "Recently Played",
+            "recently_played_desc": "What you've been listening to lately.",
+            "stats": "Stats",
+            "stats_desc": "Library, provider, and activity at a glance.",
+            "settings": "Settings",
+            "settings_desc": "Tune streamloader display and behaviour."
+        },
         "discover": {
             "menu_label": "Discover Picks",
             "page_title": "Discover",

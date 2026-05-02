@@ -234,6 +234,105 @@ describe("StreamloaderActivityLog.vue", () => {
     expect(wrapper.text()).toContain("Downloaded one");
     expect(wrapper.text()).toContain("Downloaded two");
   });
+
+  // ── Edge-case coverage (batch follow-up) ────────────────────────────
+  // The popover surface (filter chips, clear-all, bell aria-expanded) was
+  // previously covered only at the "renders" level. The cases below exercise
+  // the user-driven state transitions: opening the menu via the activator,
+  // switching the active filter chip, and clearing the entry list.
+
+  it("flips bell aria-expanded when the menu opens and closes", async () => {
+    activityState.entries = [makeEntry({ id: "1", message: "First" })];
+    const wrapper = mountLog();
+    const bell = wrapper.find(".sl-activity-log__bell");
+    // Initial state — menu closed, aria-expanded reflects the v-model ref.
+    expect(bell.attributes("aria-expanded")).toBe("false");
+    // The VMenuStub forwards modelValue updates verbatim, so flipping the
+    // emitted event simulates the popover opening from a user click on
+    // the activator. We grab the stub instance off the tree so we can
+    // emit() into the same v-model binding the bell is wired to.
+    const menu = wrapper.findComponent({ name: "VMenuStub" });
+    await menu.vm.$emit("update:modelValue", true);
+    expect(bell.attributes("aria-expanded")).toBe("true");
+    await menu.vm.$emit("update:modelValue", false);
+    expect(bell.attributes("aria-expanded")).toBe("false");
+  });
+
+  it("switches the displayed entries when a filter chip is clicked", async () => {
+    // Mixed kinds — the "Errors" chip should leave only the error entry.
+    activityState.entries = [
+      makeEntry({
+        id: "d1",
+        kind: "download",
+        message: "Downloaded one",
+        status: TaskStatus.SUCCESS,
+      }),
+      makeEntry({
+        id: "s1",
+        kind: "scan",
+        message: "Scan finished",
+        status: TaskStatus.SUCCESS,
+      }),
+      makeEntry({
+        id: "e1",
+        kind: "error",
+        message: "Things broke",
+        status: TaskStatus.FAILED,
+      }),
+    ];
+    const wrapper = mountLog();
+    // All filter on by default — three rows render.
+    expect(wrapper.findAll(".sl-activity-log__row")).toHaveLength(3);
+
+    // Click the Errors chip (last of four). The order of FILTER_CHIPS in
+    // the SFC is fixed: All / Downloads / Scans / Errors — hence index 3.
+    const chips = wrapper.findAll(".sl-activity-log__chip");
+    await chips[3].trigger("click");
+    const filteredRows = wrapper.findAll(".sl-activity-log__row");
+    expect(filteredRows).toHaveLength(1);
+    expect(filteredRows[0].text()).toContain("Things broke");
+    // Active-chip styling tracks the selection too — checked here so a
+    // CSS-class rename surfaces alongside the data filter.
+    expect(chips[3].classes()).toContain("sl-activity-log__chip--active");
+    expect(chips[0].classes()).not.toContain("sl-activity-log__chip--active");
+
+    // Switching to Scans should leave only the scan entry.
+    await chips[2].trigger("click");
+    const scanRows = wrapper.findAll(".sl-activity-log__row");
+    expect(scanRows).toHaveLength(1);
+    expect(scanRows[0].text()).toContain("Scan finished");
+  });
+
+  it("invokes clearAll when the Clear all button is pressed", async () => {
+    // Hoisted activityState.clearAll is wrapped with vi.fn() per-call inside
+    // the composable mock, so we instead spy by mutating the entries list
+    // from the spy itself — that mirrors the real composable's behaviour
+    // (clearAll empties the persisted ring buffer).
+    activityState.clearAll = () => {
+      activityState.entries = [];
+    };
+    activityState.entries = [
+      makeEntry({ id: "1", message: "Entry A" }),
+      makeEntry({ id: "2", message: "Entry B" }),
+    ];
+    const wrapper = mountLog();
+    const clearBtn = wrapper.find(".sl-activity-log__clear");
+    expect(clearBtn.exists()).toBe(true);
+    // Sanity: the button must NOT be disabled when there are entries.
+    expect(clearBtn.attributes("disabled")).toBeUndefined();
+    await clearBtn.trigger("click");
+    // Note: the composable mock returns a NEW spy-wrapped clearAll on
+    // every render call, but it closes over the shared activityState
+    // object — so flipping entries to [] there propagates into the
+    // wrapper's reactive ref on the next tick. We re-mount to get a fresh
+    // render off the cleared state because the existing wrapper's local
+    // entries-ref was captured at mount time.
+    const wrapper2 = mountLog();
+    expect(wrapper2.findAll(".sl-activity-log__row")).toHaveLength(0);
+    expect(
+      wrapper2.findComponent({ name: "StreamloaderEmptyState" }).exists(),
+    ).toBe(true);
+  });
 });
 
 // Touch the imported `computed` so the test file's import block stays clean

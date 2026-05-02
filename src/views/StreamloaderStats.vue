@@ -33,6 +33,30 @@
     />
 
     <Container variant="comfortable" class="sl-stats-container">
+      <!-- Shared streamloader page chrome (mirrors Discover/RecentlyPlayed) -->
+      <nav
+        class="sl-page-chrome"
+        :aria-label="$t('streamloader.chrome.breadcrumb_aria')"
+      >
+        <ol class="sl-crumbs">
+          <li class="sl-crumbs__item sl-crumbs__item--root">
+            {{ $t("streamloader.chrome.section") }}
+          </li>
+          <li class="sl-crumbs__sep" aria-hidden="true">
+            {{ $t("streamloader.chrome.breadcrumb_separator") }}
+          </li>
+          <li class="sl-crumbs__item sl-crumbs__item--current" aria-current="page">
+            {{ $t("streamloader.stats.page_title") }}
+          </li>
+        </ol>
+        <span
+          class="sl-fork-badge"
+          :title="$t('streamloader.chrome.badge_title')"
+        >
+          {{ $t("streamloader.chrome.badge") }}
+        </span>
+      </nav>
+
       <!-- Page header with brand-teal underline (matches RecentlyPlayed) -->
       <div class="sl-stats-header">
         <h1 class="sl-stats-title">
@@ -184,6 +208,41 @@
           </footer>
         </article>
       </div>
+
+      <!-- "See also" cross-links -->
+      <aside class="sl-see-also">
+        <div class="sl-see-also__heading">
+          {{ $t("streamloader.see_also.heading") }}
+        </div>
+        <ul class="sl-see-also__list">
+          <li>
+            <router-link
+              :to="{ name: 'streamloaderdiscover' }"
+              class="sl-see-also__link"
+            >
+              <span class="sl-see-also__link-title">
+                {{ $t("streamloader.see_also.discover") }}
+              </span>
+              <span class="sl-see-also__link-desc">
+                {{ $t("streamloader.see_also.discover_desc") }}
+              </span>
+            </router-link>
+          </li>
+          <li>
+            <router-link
+              :to="{ name: 'recentlyplayed' }"
+              class="sl-see-also__link"
+            >
+              <span class="sl-see-also__link-title">
+                {{ $t("streamloader.see_also.recently_played") }}
+              </span>
+              <span class="sl-see-also__link-desc">
+                {{ $t("streamloader.see_also.recently_played_desc") }}
+              </span>
+            </router-link>
+          </li>
+        </ul>
+      </aside>
     </Container>
   </div>
 </template>
@@ -329,6 +388,126 @@ const lastActivityLabel = computed(() => {
 
 .sl-stats-container {
   padding-top: 8px;
+}
+
+/* --- Shared streamloader page chrome (mirrors Discover/RecentlyPlayed) - */
+.sl-page-chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 4px 6px;
+  flex-wrap: wrap;
+}
+
+.sl-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: rgba(var(--v-theme-on-background), 0.55);
+}
+
+.sl-crumbs__item--root {
+  text-transform: lowercase;
+  color: #2dd4bf;
+  font-weight: 600;
+}
+
+:global(.v-theme--light) .sl-crumbs__item--root {
+  color: #0f766e;
+}
+
+.sl-crumbs__sep {
+  opacity: 0.45;
+}
+
+.sl-crumbs__item--current {
+  color: rgba(var(--v-theme-on-background), 0.78);
+  font-weight: 500;
+}
+
+.sl-fork-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.12);
+  color: #2dd4bf;
+  border: 1px solid rgba(45, 212, 191, 0.4);
+  user-select: none;
+}
+
+:global(.v-theme--light) .sl-fork-badge {
+  background: rgba(15, 118, 110, 0.1);
+  color: #0f766e;
+  border-color: rgba(15, 118, 110, 0.45);
+}
+
+/* --- Shared "see also" cross-link footer ------------------------------ */
+.sl-see-also {
+  margin: 24px 4px 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(var(--v-theme-on-background), 0.08);
+}
+
+.sl-see-also__heading {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(var(--v-theme-on-background), 0.55);
+  margin-bottom: 10px;
+}
+
+.sl-see-also__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sl-see-also__link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(var(--v-theme-on-background), 0.1);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.sl-see-also__link:hover {
+  border-color: rgba(45, 212, 191, 0.5);
+  background-color: rgba(45, 212, 191, 0.06);
+}
+
+.sl-see-also__link:focus-visible {
+  outline: 2px solid #2dd4bf;
+  outline-offset: 2px;
+}
+
+.sl-see-also__link-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgb(var(--v-theme-on-background));
+}
+
+.sl-see-also__link-desc {
+  font-size: 0.75rem;
+  color: rgba(var(--v-theme-on-background), 0.6);
 }
 
 /* Header — same teal underline language as the other streamloader views.

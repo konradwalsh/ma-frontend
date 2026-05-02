@@ -185,6 +185,10 @@ const columns: ColumnDef<GenreRow>[] = [
               r.thumbSrc
                 ? h("img", {
                     src: r.thumbSrc,
+                    loading: "lazy",
+                    decoding: "async",
+                    width: 32,
+                    height: 32,
                     class: "size-8 rounded object-cover",
                   })
                 : h(GenreIcon, { class: "size-4 text-muted-foreground" }),

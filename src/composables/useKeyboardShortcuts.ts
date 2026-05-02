@@ -29,6 +29,8 @@ import { RepeatMode } from "@/plugins/api/interfaces";
 import { store } from "@/plugins/store";
 
 const VOLUME_STEP = 5;
+const VOLUME_MIN = 0;
+const VOLUME_MAX = 100;
 
 // Repeat-mode cycle order (matches Spotify's UX: Off -> All -> One -> Off).
 // Note: api.queueCommandRepeatToggle uses Off -> One -> All -> Off, which
@@ -220,15 +222,15 @@ function handleKeydown(e: KeyboardEvent) {
       e.preventDefault();
       break;
     case "ArrowUp": {
-      const cur = (player.volume_level ?? 0) as number;
-      const next = Math.min(100, Math.max(0, cur + VOLUME_STEP));
+      const cur = player.volume_level ?? 0;
+      const next = Math.min(VOLUME_MAX, Math.max(VOLUME_MIN, cur + VOLUME_STEP));
       api.playerCommandVolumeSet(playerId, next);
       e.preventDefault();
       break;
     }
     case "ArrowDown": {
-      const cur = (player.volume_level ?? 0) as number;
-      const next = Math.min(100, Math.max(0, cur - VOLUME_STEP));
+      const cur = player.volume_level ?? 0;
+      const next = Math.min(VOLUME_MAX, Math.max(VOLUME_MIN, cur - VOLUME_STEP));
       api.playerCommandVolumeSet(playerId, next);
       e.preventDefault();
       break;

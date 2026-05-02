@@ -264,7 +264,7 @@
       :style="{ color: chromeTextColor }"
     >
       <span>{{ $t("providers.party.powered_by") }}</span>
-      <img :src="maLogoSrc" alt="Music Assistant" class="h-5 w-auto" />
+      <img :src="maLogoSrc" alt="Music Assistant" loading="lazy" decoding="async" height="20" class="h-5 w-auto" />
     </div>
 
     <!-- Guest Access Toggle Dialog -->
