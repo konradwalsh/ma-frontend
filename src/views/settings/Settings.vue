@@ -101,10 +101,7 @@
             class="settings-recent-chip"
             @click="navigateToSection(section)"
           >
-            <span
-              class="settings-recent-dot"
-              :style="getIconBackgroundStyle(section.color)"
-            ></span>
+            <span class="settings-recent-dot" aria-hidden="true"></span>
             {{ t(section.label) }}
           </button>
         </div>
@@ -1170,6 +1167,8 @@ const documentationUrl = computed(() => {
   position: relative;
   display: flex;
   align-items: center;
+  width: 100%;
+  max-width: 480px;
   background: rgba(var(--v-theme-surface), 0.7);
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
   border-radius: 10px;
@@ -1194,12 +1193,20 @@ const documentationUrl = computed(() => {
 
 .settings-search-input {
   flex: 1;
+  min-width: 0;
   background: transparent;
   border: none;
   outline: none;
   color: rgb(var(--v-theme-on-surface));
   font-size: 0.95rem;
   height: 100%;
+  text-align: start;
+  direction: ltr;
+}
+
+.settings-search-input::placeholder {
+  text-align: start;
+  color: rgba(var(--v-theme-on-surface), 0.5);
 }
 
 .settings-search-clear {
@@ -1268,6 +1275,7 @@ const documentationUrl = computed(() => {
   height: 8px;
   border-radius: 50%;
   display: inline-block;
+  background: rgb(20, 184, 166);
 }
 
 .settings-group {
